@@ -291,6 +291,8 @@ export default function CalculatorResults({
                         text-[10px] uppercase tracking-[0.08em]
                         ${row.phase === 'residency'
                           ? 'bg-[color:var(--color-near-black)]/[0.08] text-[color:var(--text-primary)]'
+                          : row.phase === 'fellowship'
+                          ? 'bg-[color:var(--color-near-black)]/[0.12] text-[color:var(--text-primary)]'
                           : row.phase === 'forgiven'
                           ? 'bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]'
                           : 'bg-[color:var(--color-light-mint)] text-[color:var(--color-dark-green)]'}

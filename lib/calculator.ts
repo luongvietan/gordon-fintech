@@ -71,7 +71,7 @@ export interface YearlySnapshot {
   annualPayment: number;
   annualIncome: number;
   netWorth: number;
-  phase: 'residency' | 'attending' | 'forgiven';
+  phase: 'residency' | 'fellowship' | 'attending' | 'forgiven';
 }
 
 export interface CalculatorOutputs {
