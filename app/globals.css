@@ -1,26 +1,449 @@
+/* ============================================================
+   MEDDEBT — WISE-INSPIRED DESIGN SYSTEM
+   Palette: lime #9fe870 / near-black #0e0f0c / warm off-white
+   Typography: Inter 400/600/900 (Wise Sans substitute)
+   Radius: 9999px pills / 16-30-40 cards
+   Shadows: ring shadows only
+   ============================================================ */
+
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── Brand ─────────────────────────────────────────────── */
+  --color-wise-green:    #9fe870;
+  --color-dark-green:    #163300;
+  --color-light-mint:    #e2f6d5;
+  --color-pastel-green:  #cdffad;
+
+  /* ── Canvas + ink ─────────────────────────────────────── */
+  --color-near-black:    #0e0f0c;
+  --color-warm-dark:     #454745;
+  --color-gray:          #868685;
+  --color-light-surface: #e8ebe6;
+  --color-off-white:     #fcfbf7;
+
+  /* ── Semantic state ───────────────────────────────────── */
+  --color-positive:      #054d28;
+  --color-danger:        #d03238;
+  --color-warning:       #ffd11a;
+  --color-info:          #38c8ff;
+
+  /* ── Semantic roles ───────────────────────────────────── */
+  --bg-base:             #ffffff;
+  --bg-canvas:           var(--color-off-white);
+  --bg-muted:            var(--color-light-surface);
+  --bg-ink:              var(--color-near-black);
+  --bg-accent:           var(--color-wise-green);
+  --bg-accent-soft:      var(--color-light-mint);
+
+  --text-primary:        var(--color-near-black);
+  --text-secondary:      var(--color-warm-dark);
+  --text-muted:          var(--color-gray);
+  --text-on-dark:        #ffffff;
+  --text-on-accent:      var(--color-dark-green);
+
+  --border-subtle:       rgba(14, 15, 12, 0.08);
+  --border-default:      rgba(14, 15, 12, 0.12);
+  --border-strong:       rgba(14, 15, 12, 0.24);
+
+  /* ── Typography ───────────────────────────────────────── */
+  --font-display:        var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body:           var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-numbers:        var(--font-inter), 'Inter', 'SF Mono', monospace;
+
+  /* ── Radius ───────────────────────────────────────────── */
+  --r-input:             10px;
+  --r-card-sm:           16px;
+  --r-card:              30px;
+  --r-card-lg:           40px;
+  --r-pill:              9999px;
+
+  /* ── Ring shadows (Wise style — no drop shadows) ──────── */
+  --shadow-ring:         rgba(14, 15, 12, 0.12) 0 0 0 1px;
+  --shadow-ring-strong:  rgba(14, 15, 12, 0.24) 0 0 0 1px;
+  --shadow-ring-inset:   rgba(134, 134, 133, 1) 0 0 0 1px inset;
+  --shadow-focus:        rgba(159, 232, 112, 0.45) 0 0 0 3px;
+
+  /* Subtle drop for floating cards (charts, popovers) */
+  --shadow-float:        0 4px 24px rgba(14, 15, 12, 0.08),
+                         0 1px 3px rgba(14, 15, 12, 0.04);
+
+  /* ── Motion ───────────────────────────────────────────── */
+  --duration-fast:  150ms;
+  --duration-base:  200ms;
+  --duration-slow:  300ms;
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Layout ───────────────────────────────────────────── */
+  --container-max:  1200px;
+  --container-wide: 1440px;
 }
 
+/* ============================================================
+   TAILWIND v4 THEME MAPPING
+   ============================================================ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans:  var(--font-body);
+  --font-serif: var(--font-display);
+  --font-mono:  var(--font-numbers);
+
+  --color-wise:        var(--color-wise-green);
+  --color-wise-ink:    var(--color-dark-green);
+  --color-mint:        var(--color-light-mint);
+  --color-pastel:      var(--color-pastel-green);
+  --color-ink:         var(--color-near-black);
+  --color-ink-soft:    var(--color-warm-dark);
+  --color-muted:       var(--color-gray);
+  --color-surface:     var(--color-light-surface);
+  --color-canvas:      var(--color-off-white);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ============================================================
+   RESET + BASE
+   "calt" contextual alternates on all text — per Wise design
+   ============================================================ */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    font-feature-settings: "calt" 1;
+  }
+
+  body {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+    color: var(--text-primary);
+    background-color: var(--bg-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "calt" 1;
+  }
+
+  img, video, svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-feature-settings: "calt" 1;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+    font-size: inherit;
+    font-feature-settings: "calt" 1;
+  }
+
+  ::selection {
+    background: var(--color-wise-green);
+    color: var(--color-dark-green);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================================
+   LAYOUT UTILITIES
+   ============================================================ */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    padding-inline: 2.5rem;
+  }
+}
+
+.container-wide {
+  max-width: var(--container-wide);
+}
+
+/* ============================================================
+   TYPOGRAPHY — WISE DISPLAY SYSTEM
+   Weight 900 + line-height 0.85 is the brand identity
+   ============================================================ */
+.display-mega {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 10vw, 7.875rem);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.display-hero {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.display-section {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.display-sub {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   PROSE (BLOG ARTICLES) — Wise overrides on @tailwindcss/typography
+   ============================================================ */
+.prose {
+  --tw-prose-body: var(--color-warm-dark);
+  --tw-prose-headings: var(--color-near-black);
+  --tw-prose-links: var(--color-dark-green);
+  --tw-prose-bold: var(--color-near-black);
+  --tw-prose-counters: var(--color-gray);
+  --tw-prose-bullets: var(--color-gray);
+  --tw-prose-hr: var(--border-subtle);
+  --tw-prose-quotes: var(--color-near-black);
+  --tw-prose-quote-borders: var(--color-wise-green);
+  --tw-prose-captions: var(--color-gray);
+  --tw-prose-code: var(--color-near-black);
+  --tw-prose-pre-code: #ffffff;
+  --tw-prose-pre-bg: var(--color-near-black);
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--color-warm-dark);
+}
+
+.prose h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+.prose h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 2rem;
+  line-height: 0.95;
+  letter-spacing: -0.015em;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.prose h3 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.375rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose p, .prose li {
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.prose a {
+  color: var(--color-dark-green);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--color-wise-green);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  transition: color var(--duration-base) var(--ease-standard);
+}
+
+.prose a:hover {
+  color: var(--color-near-black);
+  text-decoration-color: var(--color-pastel-green);
+}
+
+.prose strong {
+  font-weight: 700;
+}
+
+.prose blockquote {
+  border-left-width: 4px;
+  border-left-color: var(--color-wise-green);
+  padding-left: 1.25rem;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--color-near-black);
+}
+
+.prose code {
+  background: var(--color-light-surface);
+  padding: 0.125rem 0.375rem;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+/* ── Blog tables ─────────────────────────────────────────── */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-body);
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--r-card-sm);
+  box-shadow: var(--shadow-ring);
+}
+
+.prose thead {
+  background-color: var(--color-near-black);
+}
+
+.prose thead th {
+  color: #ffffff;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: none;
+}
+
+.prose tbody tr {
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.prose tbody tr:last-child {
+  border-bottom: none;
+}
+
+.prose tbody tr:hover {
+  background-color: var(--color-light-mint);
+}
+
+.prose tbody td {
+  padding: 0.75rem 1rem;
+  color: var(--color-near-black);
+  vertical-align: middle;
+  font-weight: 500;
+}
+
+/* ============================================================
+   AD SLOTS (AdSense-ready)
+   ============================================================ */
+.ad-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-canvas);
+  border-radius: var(--r-card-sm);
+  box-shadow: var(--shadow-ring);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ad-slot--banner {
+  min-height: 90px;
+  width: 100%;
+}
+
+.ad-slot--sidebar {
+  min-height: 250px;
+  width: 100%;
+}
+
+.ad-slot--inline {
+  min-height: 120px;
+  width: 100%;
+  margin-block: 2rem;
+}
+
+/* ============================================================
+   SCROLLBAR (subtle)
+   ============================================================ */
+.wise-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.wise-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.wise-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.wise-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: var(--r-pill);
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
