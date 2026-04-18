@@ -10,7 +10,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://meddebtcalc.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
 
 export async function generateStaticParams() {
   const slugs = await getAllSlugs();

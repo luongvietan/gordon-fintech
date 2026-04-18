@@ -91,7 +91,7 @@ export default function Footer() {
               Blog
             </Link>
             <a
-              href="mailto:hello@meddebtcalc.com"
+              href="mailto:hello@medschooldebtcalculator.com"
               className="text-xs font-semibold text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] transition-colors"
             >
               Contact

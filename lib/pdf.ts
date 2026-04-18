@@ -90,7 +90,7 @@ function drawFooter(doc: jsPDF, pageNum: number, totalPages: number) {
   doc.setFontSize(7.5);
   setText(doc, COLOR.gray);
   doc.text(
-    'Educational estimate only · Not financial advice · meddebtcalc.com',
+    'Educational estimate only · Not financial advice · medschooldebtcalculator.com',
     PAGE.margin,
     PAGE.height - 7,
   );
