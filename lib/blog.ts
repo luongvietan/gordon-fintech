@@ -1,6 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
+import { sanityClient } from './sanity.client';
+import {
+  allPostsQuery,
+  allSlugsQuery,
+  postBySlugQuery,
+} from './sanity.queries';
 
 export interface FaqItem {
   q: string;
@@ -15,64 +18,62 @@ export interface PostMeta {
   readingTime: string;
   /** Optional focus keyword (used for light SEO metadata). */
   keyword?: string;
-  /** Optional FAQ items — emitted as FAQPage schema when present. */
-  faqs?: FaqItem[];
 }
 
 export interface Post extends PostMeta {
+  /** Markdown body — rendered through next-mdx-remote. */
   content: string;
+  /** Optional FAQ items — emitted as FAQPage JSON-LD when present. */
+  faqs?: FaqItem[];
 }
 
-const CONTENT_DIR = path.join(process.cwd(), 'content', 'blog');
-
-function ensureDir() {
-  if (!fs.existsSync(CONTENT_DIR)) {
-    fs.mkdirSync(CONTENT_DIR, { recursive: true });
-  }
-}
-
-function parseMeta(slug: string, data: Record<string, unknown>): PostMeta {
-  return {
-    slug: (data.slug as string) ?? slug,
-    title: (data.title as string) ?? slug,
-    description: (data.description as string) ?? '',
-    date: (data.date as string) ?? '',
-    readingTime: (data.readingTime as string) ?? '5 min read',
-    keyword: data.keyword as string | undefined,
-    faqs: Array.isArray(data.faqs) ? (data.faqs as FaqItem[]) : undefined,
-  };
-}
+/**
+ * Keep a revalidation window so publishes from the Studio appear on the
+ * live site without a full redeploy. 60s is a reasonable default — bump
+ * down for faster editorial turnaround or up to ease load.
+ */
+const REVALIDATE_SECONDS = 60;
 
 export async function getAllPosts(): Promise<PostMeta[]> {
-  ensureDir();
-  const files = fs.readdirSync(CONTENT_DIR).filter((f) => f.endsWith('.mdx'));
+  const posts = await sanityClient.fetch<PostMeta[]>(
+    allPostsQuery,
+    {},
+    { next: { revalidate: REVALIDATE_SECONDS, tags: ['post'] } },
+  );
+  return posts ?? [];
+}
 
-  const posts = files.map((file) => {
-    const slug = file.replace(/\.mdx$/, '');
-    const raw = fs.readFileSync(path.join(CONTENT_DIR, file), 'utf-8');
-    const { data } = matter(raw);
-    return parseMeta(slug, data);
-  });
-
-  return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
+interface PostRaw extends PostMeta {
+  body: string;
+  faqs?: FaqItem[];
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
-  ensureDir();
-  const filePath = path.join(CONTENT_DIR, `${slug}.mdx`);
-  if (!fs.existsSync(filePath)) return null;
+  const post = await sanityClient.fetch<PostRaw | null>(
+    postBySlugQuery,
+    { slug },
+    { next: { revalidate: REVALIDATE_SECONDS, tags: [`post:${slug}`, 'post'] } },
+  );
 
-  const raw = fs.readFileSync(filePath, 'utf-8');
-  const { data, content } = matter(raw);
+  if (!post) return null;
 
   return {
-    ...parseMeta(slug, data),
-    content,
+    slug: post.slug,
+    title: post.title,
+    description: post.description,
+    date: post.date,
+    readingTime: post.readingTime,
+    keyword: post.keyword,
+    content: post.body ?? '',
+    faqs: post.faqs,
   };
 }
 
 export async function getAllSlugs(): Promise<string[]> {
-  ensureDir();
-  const files = fs.readdirSync(CONTENT_DIR).filter((f) => f.endsWith('.mdx'));
-  return files.map((f) => f.replace(/\.mdx$/, ''));
+  const slugs = await sanityClient.fetch<string[]>(
+    allSlugsQuery,
+    {},
+    { next: { revalidate: REVALIDATE_SECONDS, tags: ['post'] } },
+  );
+  return slugs ?? [];
 }

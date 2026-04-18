@@ -6,19 +6,30 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sanity:seed:generate": "node scripts/generate-sanity-seed.mjs",
+    "sanity:seed:import": "sanity dataset import sanity-seed.ndjson production --replace",
+    "sanity:dev": "sanity dev",
+    "sanity:deploy": "sanity deploy"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.3",
+    "@portabletext/react": "^6.0.3",
+    "@sanity/image-url": "^2.1.1",
+    "@sanity/vision": "^5.21.0",
     "gray-matter": "^4.0.3",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
     "next": "16.2.3",
     "next-mdx-remote": "^6.0.0",
+    "next-sanity": "^12.3.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.8.1",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "sanity": "^5.21.0",
+    "sanity-plugin-markdown": "^8.0.5",
+    "styled-components": "^6.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
