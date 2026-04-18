@@ -10,7 +10,19 @@ export interface Specialty {
   id: string;
   label: string;
   attendingSalary: number;   // median annual attending salary (USD)
-  residencyYears: number;    // total training duration (residency + fellowship)
+  /** Total training duration (residency + fellowship) used for calculations. */
+  residencyYears: number;
+  /**
+   * Optional human-readable range label (e.g. "5–7y"). Used in dropdowns
+   * where PDF spec lists a variable training duration.
+   */
+  trainingLabel?: string;
+  /**
+   * Typical fellowship years baked into `residencyYears`.
+   * Used to pre-fill the optional fellowship input when the user switches
+   * to "model residency + fellowship separately".
+   */
+  fellowshipYears?: number;
 }
 
 export const SPECIALTIES: Specialty[] = [
@@ -21,7 +33,7 @@ export const SPECIALTIES: Specialty[] = [
   { id: 'pediatrics',          label: 'Pediatrics',          attendingSalary: 210000, residencyYears: 3 },
 
   // Mid-tier
-  { id: 'emergency-medicine',  label: 'Emergency Medicine',  attendingSalary: 350000, residencyYears: 4 },
+  { id: 'emergency-medicine',  label: 'Emergency Medicine',  attendingSalary: 350000, residencyYears: 4, trainingLabel: '3–4y' },
   { id: 'psychiatry',          label: 'Psychiatry',          attendingSalary: 280000, residencyYears: 4 },
   { id: 'neurology',           label: 'Neurology',           attendingSalary: 300000, residencyYears: 4 },
   { id: 'pathology',           label: 'Pathology',           attendingSalary: 300000, residencyYears: 4 },
@@ -30,12 +42,12 @@ export const SPECIALTIES: Specialty[] = [
   { id: 'anesthesiology',      label: 'Anesthesiology',      attendingSalary: 400000, residencyYears: 4 },
   { id: 'radiology',           label: 'Radiology',           attendingSalary: 420000, residencyYears: 5 },
   { id: 'dermatology',         label: 'Dermatology',         attendingSalary: 500000, residencyYears: 4 },
-  { id: 'general-surgery',     label: 'General Surgery',     attendingSalary: 450000, residencyYears: 6 },
+  { id: 'general-surgery',     label: 'General Surgery',     attendingSalary: 450000, residencyYears: 6, trainingLabel: '5–7y' },
 
   // Surgical specialty / high-end
   { id: 'orthopedics',         label: 'Orthopedic Surgery',  attendingSalary: 550000, residencyYears: 5 },
-  { id: 'cardiology',          label: 'Cardiology',          attendingSalary: 500000, residencyYears: 7 },
-  { id: 'gastroenterology',    label: 'Gastroenterology',    attendingSalary: 550000, residencyYears: 6 },
+  { id: 'cardiology',          label: 'Cardiology',          attendingSalary: 500000, residencyYears: 7, trainingLabel: '6–8y', fellowshipYears: 3 },
+  { id: 'gastroenterology',    label: 'Gastroenterology',    attendingSalary: 550000, residencyYears: 6, trainingLabel: '6–7y', fellowshipYears: 3 },
   { id: 'neurosurgery',        label: 'Neurosurgery',        attendingSalary: 700000, residencyYears: 7 },
 ];
 

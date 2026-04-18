@@ -380,7 +380,7 @@ export function downloadResultsPdf(
       doc,
       'PSLF Forgiveness',
       `${formatDollars(outputs.pslfForgiven)} forgiven · ${formatDollars(outputs.pslfSavings)} saved vs. standard`,
-      '120 qualifying monthly payments at a 501(c)(3) / government employer. Tax-free at the federal level.',
+      '120 qualifying monthly payments at a 501(c)(3) / government employer. Tax-free under current federal law (not guaranteed under all future policy scenarios).',
       y,
       'lime',
     );
@@ -391,7 +391,7 @@ export function downloadResultsPdf(
     doc,
     'Opportunity cost',
     formatDollars(outputs.opportunityCost),
-    `If the ${formatDollars(outputs.extraDollarsPaid)} you paid above IDR minimums had been invested at ${inputs.investmentReturn}% instead, it would grow to roughly this over the payoff horizon.`,
+    `If the ${formatDollars(outputs.extraDollarsPaid)} you paid above the modeled payment floor (federal: simplified IDR; private: interest-only) had been invested at ${inputs.investmentReturn}% instead, it would grow to roughly this over the payoff horizon.`,
     y,
     'dark',
   );
@@ -408,10 +408,45 @@ export function downloadResultsPdf(
         'PSLF enabled',
         inputs.pslfEnabled && inputs.loanType === 'federal' ? 'Yes' : 'No',
       ],
+      [
+        'Residency counts toward PSLF',
+        inputs.pslfEnabled && inputs.loanType === 'federal'
+          ? inputs.pslfResidencyQualifies === false
+            ? 'No (private / non-qualifying employer)'
+            : 'Yes (501(c)(3) or government)'
+          : '—',
+      ],
+      [
+        'Interest capitalization',
+        inputs.capitalizeOnlyAfterTraining
+          ? 'Once after training (federal IDR behavior)'
+          : 'Monthly compound (worst case)',
+      ],
       ['Specialty', specialty],
       ['Residency length', `${inputs.residencyYears} years`],
-      ['Attending salary', formatDollarsExact(inputs.attendingSalary)],
-      ['Salary growth', `${inputs.salaryGrowthRate}% / year`],
+      [
+        'Fellowship length',
+        inputs.fellowshipYears && inputs.fellowshipYears > 0
+          ? `${inputs.fellowshipYears} years`
+          : 'None',
+      ],
+      ['Attending salary (start)', formatDollarsExact(inputs.attendingSalary)],
+      [
+        'Residency starting salary',
+        formatDollarsExact(inputs.residencyStartingSalary),
+      ],
+      ...(inputs.fellowshipYears && inputs.fellowshipYears > 0
+        ? ([
+            [
+              'Fellowship salary',
+              formatDollarsExact(inputs.fellowshipSalary ?? inputs.residencyStartingSalary),
+            ],
+          ] as [string, string][])
+        : []),
+      [
+        'Salary growth (training / attending)',
+        `${inputs.residentSalaryGrowthRate}% / ${inputs.attendingSalaryGrowthRate}% per year`,
+      ],
       [
         'Residency living',
         `${formatDollarsExact(inputs.livingExpensesResidency)} / mo`,
@@ -424,7 +459,13 @@ export function downloadResultsPdf(
       ['CPI inflation', `${inputs.inflationRate.toFixed(1)}%`],
       ['Expected market return', `${inputs.investmentReturn.toFixed(1)}%`],
       [
-        'Monthly payment override',
+        'Monthly override (training)',
+        inputs.monthlyPaymentResidencyOverride
+          ? formatDollarsExact(inputs.monthlyPaymentResidencyOverride)
+          : 'Auto (federal: IDR; private: interest-only)',
+      ],
+      [
+        'Monthly override (attending)',
         inputs.monthlyPaymentOverride
           ? formatDollarsExact(inputs.monthlyPaymentOverride)
           : 'Auto (10-yr amortization)',

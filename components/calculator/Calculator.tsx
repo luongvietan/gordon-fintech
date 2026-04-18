@@ -10,6 +10,7 @@ import {
 } from '@/lib/calculator';
 import CalculatorInputsForm from './CalculatorInputs';
 import CalculatorResults from './CalculatorResults';
+import { RESIDENT_SALARY } from '@/lib/specialties';
 
 // ─── Download PDF button ───────────────────────────────────
 // Lazy-load jsPDF only on click so the ~150KB library stays out of the
@@ -80,22 +81,33 @@ const DEFAULT_INPUTS: CalculatorInputs = {
   interestRate: 6.5,
   loanType: 'federal',
   residencyYears: 3,
+  fellowshipYears: 0,
+  fellowshipSalary: 75000,
+  residencyStartingSalary: RESIDENT_SALARY,
   attendingSalary: 250000,
-  salaryGrowthRate: 3,
+  residentSalaryGrowthRate: 2,
+  attendingSalaryGrowthRate: 3,
+  monthlyPaymentResidencyOverride: undefined,
   monthlyPaymentOverride: undefined,
   pslfEnabled: false,
+  pslfResidencyQualifies: true,
   livingExpensesResidency: 3000,
   livingExpensesAttending: 5500,
   taxRate: 32,
   inflationRate: 2.5,
   investmentReturn: 7,
+  capitalizeOnlyAfterTraining: true,
   scenarioPreset: 'custom',
 };
 
 const PRESETS: { id: ScenarioPreset; label: string; description: string }[] = [
   { id: 'aggressive', label: 'Aggressive payoff', description: 'Pay 1.5× standard — knock it out fast' },
   { id: 'pslf-optimized', label: 'PSLF-optimized', description: '10 years of qualifying service, then forgiveness' },
-  { id: 'minimum', label: 'Minimum payment', description: 'IDR floor — lowest monthly possible' },
+  {
+    id: 'minimum',
+    label: 'Minimum payment',
+    description: 'Federal: IDR-style floor; private: interest-only — lowest modeled payment',
+  },
 ];
 
 export default function Calculator() {
@@ -117,6 +129,8 @@ export default function Calculator() {
 
   const outputs = useMemo(() => calculateOutputs(inputs), [inputs]);
   const activePreset = inputs.scenarioPreset ?? 'custom';
+  const trainingYears =
+    inputs.residencyYears + (inputs.fellowshipYears ?? 0);
 
   return (
     <div
@@ -193,7 +207,7 @@ export default function Calculator() {
         <div className="p-5 md:p-6 bg-[color:var(--color-off-white)] max-h-none lg:max-h-[min(90vh,800px)] overflow-y-auto wise-scroll">
           <CalculatorResults
             outputs={outputs}
-            residencyYears={inputs.residencyYears}
+            residencyYears={trainingYears}
             taxRate={inputs.taxRate}
           />
         </div>

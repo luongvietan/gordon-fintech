@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   LabelList,
+  Legend,
 } from 'recharts';
 import { CalculatorOutputs } from '@/lib/calculator';
 
@@ -41,14 +42,14 @@ export default function ComparisonChart({ outputs }: Props) {
       PSLF: outputs.pslfTotalPaid,
     },
     {
+      name: 'Interest paid',
+      Standard: outputs.totalInterestPaid,
+      PSLF: outputs.pslfInterestPaid,
+    },
+    {
       name: 'Forgiven (tax-free)',
       Standard: 0,
       PSLF: outputs.pslfForgiven,
-    },
-    {
-      name: 'Total interest',
-      Standard: outputs.totalInterestPaid,
-      PSLF: 0,
     },
   ];
 
@@ -65,11 +66,12 @@ export default function ComparisonChart({ outputs }: Props) {
           Side-by-side totals
         </span>
       </div>
-      <ResponsiveContainer width="100%" height={260}>
+      <ResponsiveContainer width="100%" height={280}>
         <BarChart
           data={data}
-          margin={{ top: 8, right: 12, left: 0, bottom: 4 }}
-          barCategoryGap="24%"
+          margin={{ top: 24, right: 12, left: 0, bottom: 4 }}
+          barCategoryGap="28%"
+          barGap={6}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(14,15,12,0.06)" vertical={false} />
           <XAxis
@@ -98,14 +100,60 @@ export default function ComparisonChart({ outputs }: Props) {
             itemStyle={{ padding: 0 }}
             cursor={{ fill: 'rgba(14,15,12,0.04)' }}
           />
-          <Bar dataKey="Standard" fill="#0e0f0c" radius={[8, 8, 0, 0]} maxBarSize={44}>
-            <LabelList dataKey="Standard" position="top" fontSize={10} fontWeight={700} formatter={(v: unknown) => (typeof v === 'number' && v > 0 ? fmtY(v) : '')} />
+          <Legend
+            verticalAlign="top"
+            height={32}
+            iconType="circle"
+            iconSize={8}
+            wrapperStyle={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#0e0f0c',
+              paddingBottom: 8,
+            }}
+          />
+          <Bar
+            dataKey="Standard"
+            fill="#0e0f0c"
+            radius={[8, 8, 0, 0]}
+            maxBarSize={44}
+          >
+            <LabelList
+              dataKey="Standard"
+              position="top"
+              fontSize={10}
+              fontWeight={700}
+              fill="#0e0f0c"
+              formatter={(v: unknown) =>
+                typeof v === 'number' && v > 0 ? fmtY(v) : ''
+              }
+            />
           </Bar>
-          <Bar dataKey="PSLF" fill="#9fe870" radius={[8, 8, 0, 0]} maxBarSize={44}>
-            <LabelList dataKey="PSLF" position="top" fontSize={10} fontWeight={700} fill="#163300" formatter={(v: unknown) => (typeof v === 'number' && v > 0 ? fmtY(v) : '')} />
+          <Bar
+            dataKey="PSLF"
+            fill="#9fe870"
+            radius={[8, 8, 0, 0]}
+            maxBarSize={44}
+          >
+            <LabelList
+              dataKey="PSLF"
+              position="top"
+              fontSize={10}
+              fontWeight={700}
+              fill="#163300"
+              formatter={(v: unknown) =>
+                typeof v === 'number' && v > 0 ? fmtY(v) : ''
+              }
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+      <p className="text-[11px] text-[color:var(--text-muted)] mt-3 leading-relaxed font-medium">
+        <strong className="text-[color:var(--text-primary)] font-bold">Out of pocket</strong> —
+        total $ you actually pay. <strong className="text-[color:var(--text-primary)] font-bold">Interest paid</strong> —
+        portion that went to interest. <strong className="text-[color:var(--text-primary)] font-bold">Forgiven</strong> —
+        remaining balance wiped tax-free after 120 qualifying payments.
+      </p>
     </div>
   );
 }
