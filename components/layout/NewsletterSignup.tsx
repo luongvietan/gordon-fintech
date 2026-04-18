@@ -1,8 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { NEWSLETTER_SUBSCRIBER_COUNT } from '@/lib/trust-content';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
+
+function formatSubscriberCount(n: number): string {
+  if (n >= 1000) {
+    const thousands = Math.floor(n / 1000);
+    return `${thousands.toLocaleString('en-US')},000+`;
+  }
+  // Round down to the nearest 100 for a conservative display.
+  return `${(Math.floor(n / 100) * 100).toLocaleString('en-US')}+`;
+}
 
 export default function NewsletterSignup() {
   const [email, setEmail] = useState('');
@@ -65,10 +76,33 @@ export default function NewsletterSignup() {
 
         <div className="relative grid md:grid-cols-[1.2fr_1fr] gap-8 md:gap-12 items-center">
           <div>
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--r-pill)] text-[11px] sm:text-xs font-semibold bg-white/10 text-white/80">
-              <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-wise-green)]" />
-              Doctor Finance Digest
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--r-pill)] text-[11px] sm:text-xs font-semibold bg-white/10 text-white/80">
+                <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-wise-green)]" />
+                Doctor Finance Digest
+              </span>
+              {NEWSLETTER_SUBSCRIBER_COUNT !== null && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[11px] sm:text-xs font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]">
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  Join {formatSubscriberCount(NEWSLETTER_SUBSCRIBER_COUNT)} physicians
+                </span>
+              )}
+            </div>
             <h2
               className="display-sub text-white mt-4 sm:mt-5"
               style={{ fontWeight: 900 }}
@@ -79,6 +113,21 @@ export default function NewsletterSignup() {
               One email a month. Actionable strategies on PSLF, refi, and net worth —
               written for residents and attendings. No spam, unsubscribe any time.
             </p>
+            <Link
+              href="/blog"
+              className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--color-wise-green)] hover:text-white transition-colors"
+            >
+              See a sample issue
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path
+                  d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">

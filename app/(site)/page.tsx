@@ -4,6 +4,12 @@ import Calculator from '@/components/calculator/Calculator';
 import NewsletterSignup from '@/components/layout/NewsletterSignup';
 import AdSlot from '@/components/ads/AdSlot';
 import { getAllPosts } from '@/lib/blog';
+import HeroChart from '@/components/home/HeroChart';
+import CredentialsStrip from '@/components/home/CredentialsStrip';
+import CrossoverUspSection from '@/components/home/CrossoverUspSection';
+import TestimonialsSection from '@/components/home/TestimonialsSection';
+import FaqSection, { type FaqItem as FaqCategoryItem } from '@/components/home/FaqSection';
+import PostThumbnail from '@/components/home/PostThumbnail';
 
 export const metadata: Metadata = {
   title: 'Med School Debt Calculator | Free Tool for Doctors & Medical Students',
@@ -24,7 +30,54 @@ const STATS = [
   { value: '90%', label: 'Doctors with student debt' },
 ];
 
-const HOW_IT_WORKS = [
+/**
+ * Tiny inline SVG used in the Step 02 card to preview what the charts
+ * look like. Decorative — not tied to calculator output.
+ */
+function Step02Preview() {
+  return (
+    <svg
+      viewBox="0 0 160 72"
+      width="160"
+      height="72"
+      fill="none"
+      aria-hidden="true"
+      className="mt-1"
+    >
+      <line x1="0" x2="160" y1="40" y2="40" stroke="currentColor" strokeOpacity="0.25" strokeDasharray="3 4" />
+      <path
+        d="M4 58 L28 52 L52 44 L76 32 L100 20 L124 14 L156 10"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 14 L28 22 L52 30 L76 38 L100 48 L124 56 L156 60"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.55"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray="4 4"
+      />
+      <circle cx="76" cy="40" r="4.5" fill="currentColor" />
+      <circle cx="76" cy="40" r="8" fill="currentColor" opacity="0.2" />
+    </svg>
+  );
+}
+
+interface HowItWorksStep {
+  step: string;
+  title: string;
+  description: string;
+  accent?: boolean;
+  preview?: React.ReactNode;
+}
+
+const HOW_IT_WORKS: HowItWorksStep[] = [
   {
     step: '01',
     title: 'Enter your details',
@@ -37,6 +90,7 @@ const HOW_IT_WORKS = [
     description:
       'Real-time charts show loan balance, net-worth trajectory, and the first year you turn the corner back into the black.',
     accent: true,
+    preview: <Step02Preview />,
   },
   {
     step: '03',
@@ -46,26 +100,31 @@ const HOW_IT_WORKS = [
   },
 ];
 
-const FAQS = [
+const FAQS: FaqCategoryItem[] = [
   {
     q: 'How long does it take doctors to pay off med school debt?',
     a: 'Most doctors take 10–15 years to fully repay medical school loans using a standard 10-year repayment plan or income-driven plan followed by aggressive payoff once they hit attending salary. The exact timeline depends on specialty, total debt, interest rate, and chosen strategy (PSLF vs. refinance vs. aggressive payoff).',
+    category: 'general',
   },
   {
     q: 'Is PSLF (Public Service Loan Forgiveness) worth it for doctors?',
     a: 'PSLF can save $100K+ for doctors who work at non-profit hospitals, the VA, or academic medical centers. It forgives the remaining federal loan balance tax-free after 120 qualifying monthly payments (10 years). The math is most favorable for high-debt borrowers in lower-paying specialties like primary care, pediatrics, and family medicine.',
+    category: 'pslf',
   },
   {
     q: 'What is the average medical school debt in 2025?',
     a: 'The average medical school debt for a graduating MD in the US is approximately $250,000–$260,000 as of 2024–2025 per AAMC data, with about 73% of graduates carrying education debt. DO graduates often owe slightly more. Interest accrues during residency, so the balance at attending-hood can be 15–25% higher.',
+    category: 'general',
   },
   {
     q: 'Can I refinance my federal student loans during residency?',
     a: 'Yes — but doing so gives up access to PSLF, income-driven repayment (IDR), and federal forbearance/forgiveness protections. Most doctors are better off waiting until they have confirmed their long-term employer isn\'t PSLF-eligible before refinancing.',
+    category: 'refi',
   },
   {
     q: 'Do I have to pay taxes on PSLF forgiveness?',
     a: 'No. PSLF forgiveness is tax-free at the federal level. This is different from 20- or 25-year IDR forgiveness (taxable as ordinary income in the year forgiven, sometimes called the "tax bomb").',
+    category: 'tax',
   },
 ];
 
@@ -121,60 +180,81 @@ export default async function HomePage() {
           style={{ background: 'var(--color-wise-green)' }}
         />
 
-        <div className="container relative pt-16 md:pt-28 pb-20 md:pb-28">
-          <div className="max-w-5xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold bg-white/10 text-white/80 mb-6 md:mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-wise-green)] animate-pulse inline-block" />
-              Free · no signup · runs in your browser
+        <div className="container relative pt-16 md:pt-24 pb-20 md:pb-24">
+          <div className="grid lg:grid-cols-[1.3fr_1fr] gap-10 lg:gap-12 items-center">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold bg-white/10 text-white/85 mb-6 md:mb-8 ring-1 ring-inset ring-white/15">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.25"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  className="text-[color:var(--color-wise-green)]"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                100% client-side · your numbers never leave your device
+              </div>
+
+              <h1
+                className="text-white"
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 900,
+                  fontSize: 'clamp(2.75rem, 7vw, 7rem)',
+                  lineHeight: 0.88,
+                  letterSpacing: '-0.03em',
+                }}
+              >
+                The debt calculator{' '}
+                <span style={{ color: 'var(--color-wise-green)' }}>
+                  built for doctors.
+                </span>
+              </h1>
+
+              <p
+                className="mt-6 md:mt-8 text-lg md:text-xl max-w-2xl leading-relaxed font-medium"
+                style={{ color: 'rgba(255,255,255,0.7)' }}
+              >
+                Stop guessing. See exactly when you&apos;ll be debt-free — by specialty,
+                residency length, and strategy. PSLF comparison + net-worth crossover
+                included.
+              </p>
+
+              <div className="mt-8 md:mt-10 flex flex-col sm:flex-row gap-3">
+                <a
+                  href="#calculator"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-base font-semibold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95]"
+                >
+                  Run my numbers
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path
+                      d="M3 8h10m-5-5 5 5-5 5"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </a>
+                <Link
+                  href="/blog/pslf-explained-for-doctors"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-base font-semibold text-white ring-1 ring-inset ring-white/25 hover:ring-white/60 hover:bg-white/5 transition-all"
+                >
+                  Learn about PSLF
+                </Link>
+              </div>
             </div>
 
-            <h1
-              className="text-white"
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontWeight: 900,
-                fontSize: 'clamp(3rem, 8vw, 7.875rem)',
-                lineHeight: 0.85,
-                letterSpacing: '-0.03em',
-              }}
-            >
-              The debt calculator{' '}
-              <span style={{ color: 'var(--color-wise-green)' }}>
-                built for doctors.
-              </span>
-            </h1>
-
-            <p
-              className="mt-6 md:mt-8 text-lg md:text-xl max-w-2xl leading-relaxed font-medium"
-              style={{ color: 'rgba(255,255,255,0.7)' }}
-            >
-              Stop guessing. See exactly when you&apos;ll be debt-free — by specialty,
-              residency length, and strategy. PSLF comparison + net-worth crossover
-              included.
-            </p>
-
-            <div className="mt-8 md:mt-10 flex flex-col sm:flex-row gap-3">
-              <a
-                href="#calculator"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-base font-semibold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95]"
-              >
-                Run my numbers
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path
-                    d="M3 8h10m-5-5 5 5-5 5"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </a>
-              <Link
-                href="/blog/pslf-explained-for-doctors"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-base font-semibold text-white ring-1 ring-inset ring-white/25 hover:ring-white/60 hover:bg-white/5 transition-all"
-              >
-                Learn about PSLF
-              </Link>
+            {/* Visual anchor */}
+            <div className="hidden lg:flex items-center justify-center">
+              <HeroChart />
             </div>
           </div>
         </div>
@@ -212,6 +292,9 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ─── CREDENTIALS STRIP ───────────────────────────────── */}
+      <CredentialsStrip />
+
       {/* ─── AD SLOT ─────────────────────────────────────────── */}
       <div className="container pt-8 md:pt-10">
         <AdSlot variant="banner" slot={process.env.NEXT_PUBLIC_ADSENSE_BANNER_SLOT} />
@@ -239,6 +322,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ─── NET-WORTH CROSSOVER USP ─────────────────────────── */}
+      <CrossoverUspSection />
 
       {/* ─── HOW IT WORKS ────────────────────────────────────── */}
       <section
@@ -269,14 +355,21 @@ export default async function HomePage() {
                 `}
                 style={!item.accent ? { boxShadow: 'var(--shadow-ring)' } : undefined}
               >
-                <span
-                  className={`text-xs font-bold tabular-nums ${
-                    item.accent ? 'text-[color:var(--color-dark-green)]/70' : 'text-[color:var(--text-muted)]'
-                  }`}
-                  style={{ fontFamily: 'var(--font-numbers)' }}
-                >
-                  {item.step}
-                </span>
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`text-xs font-bold tabular-nums ${
+                      item.accent ? 'text-[color:var(--color-dark-green)]/70' : 'text-[color:var(--text-muted)]'
+                    }`}
+                    style={{ fontFamily: 'var(--font-numbers)' }}
+                  >
+                    {item.step}
+                  </span>
+                  {item.accent && (
+                    <span className="text-[10px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded-[var(--r-pill)] bg-[color:var(--color-dark-green)] text-[color:var(--color-wise-green)]">
+                      Aha moment
+                    </span>
+                  )}
+                </div>
                 <h3
                   className="text-[1.75rem] leading-[0.95] tracking-[-0.015em]"
                   style={{ fontWeight: 900 }}
@@ -290,66 +383,26 @@ export default async function HomePage() {
                 >
                   {item.description}
                 </p>
+                {item.preview && (
+                  <div
+                    className={`
+                      mt-auto pt-2 text-[color:var(--color-dark-green)]
+                    `}
+                  >
+                    {item.preview}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* ─── TESTIMONIALS (hidden when no real quotes configured) ─── */}
+      <TestimonialsSection />
+
       {/* ─── FAQ ─────────────────────────────────────────────── */}
-      <section className="py-14 md:py-20">
-        <div className="container">
-          <div className="grid md:grid-cols-[1fr_1.4fr] gap-10 md:gap-16">
-            <div>
-              <p className="eyebrow mb-4">FAQ</p>
-              <h2
-                className="display-section text-[color:var(--color-near-black)]"
-                style={{ fontWeight: 900 }}
-              >
-                The questions doctors ask.
-              </h2>
-              <p className="mt-4 text-base text-[color:var(--text-secondary)] max-w-sm font-medium">
-                Quick answers on PSLF, IDR, refinancing, and the numbers that
-                actually matter.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3">
-              {FAQS.map((f) => (
-                <details
-                  key={f.q}
-                  className="group rounded-[var(--r-card-sm)] bg-white p-5 md:p-6 transition-colors"
-                  style={{ boxShadow: 'var(--shadow-ring)' }}
-                >
-                  <summary className="flex items-center justify-between gap-6 cursor-pointer list-none">
-                    <h3 className="text-base md:text-lg font-bold text-[color:var(--color-near-black)] leading-snug tracking-[-0.005em]">
-                      {f.q}
-                    </h3>
-                    <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-[color:var(--color-near-black)]/[0.06] group-open:bg-[color:var(--color-wise-green)] transition-colors">
-                      <svg
-                        width="10"
-                        height="10"
-                        viewBox="0 0 10 10"
-                        className="transition-transform duration-200 group-open:rotate-45"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M5 1v8M1 5h8"
-                          stroke="currentColor"
-                          strokeWidth="1.75"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </span>
-                  </summary>
-                  <p className="mt-4 text-[15px] text-[color:var(--text-secondary)] leading-relaxed font-medium">
-                    {f.a}
-                  </p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <FaqSection items={FAQS} />
 
       {/* ─── BLOG PREVIEW ────────────────────────────────────── */}
       {previewPosts.length > 0 && (
@@ -389,40 +442,47 @@ export default async function HomePage() {
                 <Link
                   key={post.slug}
                   href={`/blog/${post.slug}`}
-                  className="group flex flex-col gap-3 p-6 md:p-7 rounded-[var(--r-card)] bg-white transition-transform duration-200 hover:scale-[1.01]"
+                  className="group flex flex-col gap-4 p-4 md:p-5 rounded-[var(--r-card)] bg-white transition-transform duration-200 hover:scale-[1.01]"
                   style={{ boxShadow: 'var(--shadow-ring)' }}
                 >
-                  <span className="inline-flex self-start px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-wider bg-[color:var(--color-light-mint)] text-[color:var(--color-dark-green)]">
-                    {post.readingTime}
-                  </span>
-                  <h3
-                    className="text-xl text-[color:var(--color-near-black)] leading-[1.05] tracking-[-0.01em]"
-                    style={{ fontWeight: 900 }}
-                  >
-                    {post.title}
-                  </h3>
-                  <p className="text-sm text-[color:var(--text-secondary)] leading-relaxed line-clamp-3 font-medium">
-                    {post.description}
-                  </p>
-                  <span className="mt-auto pt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--color-dark-green)]">
-                    Read article
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 14 14"
-                      fill="none"
-                      className="transition-transform duration-200 group-hover:translate-x-1"
-                      aria-hidden="true"
+                  <PostThumbnail
+                    slug={post.slug}
+                    title={post.coverImageAlt ?? post.title}
+                    coverImageUrl={post.coverImageUrl}
+                  />
+                  <div className="flex flex-col gap-3 px-1.5 pb-2 md:px-2">
+                    <span className="inline-flex self-start px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-wider bg-[color:var(--color-light-mint)] text-[color:var(--color-dark-green)]">
+                      {post.readingTime}
+                    </span>
+                    <h3
+                      className="text-xl text-[color:var(--color-near-black)] leading-[1.05] tracking-[-0.01em]"
+                      style={{ fontWeight: 900 }}
                     >
-                      <path
-                        d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                        stroke="currentColor"
-                        strokeWidth="1.75"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
+                      {post.title}
+                    </h3>
+                    <p className="text-sm text-[color:var(--text-secondary)] leading-relaxed line-clamp-3 font-medium">
+                      {post.description}
+                    </p>
+                    <span className="mt-auto pt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--color-dark-green)]">
+                      Read article
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        className="transition-transform duration-200 group-hover:translate-x-1"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
+                          stroke="currentColor"
+                          strokeWidth="1.75"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  </div>
                 </Link>
               ))}
             </div>

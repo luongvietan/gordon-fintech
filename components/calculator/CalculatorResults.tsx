@@ -109,16 +109,47 @@ export default function CalculatorResults({
           sub={`Total paid ${formatDollars(outputs.standardTotalPaid)}`}
           dark
         />
-        <KpiCard
-          label="Net-worth crossover"
-          value={
-            outputs.netWorthCrossoverYear !== null
-              ? `Yr ${outputs.netWorthCrossoverYear}`
-              : '—'
-          }
-          sub="First year back in the black"
-          accent
-        />
+        <div className="relative">
+          {/* Annotated callout — surfaces the most valuable insight the tool
+              produces. Hidden on small viewports to avoid crowding the KPI. */}
+          <div
+            aria-hidden
+            className="hidden xl:block absolute -top-7 right-0 translate-y-[-100%] pointer-events-none"
+          >
+            <div className="flex items-end gap-2">
+              <span className="inline-block px-2.5 py-1 rounded-[var(--r-pill)] text-[10px] font-bold uppercase tracking-wider bg-[color:var(--color-near-black)] text-white whitespace-nowrap">
+                The insight most doctors miss
+              </span>
+              <svg
+                width="24"
+                height="36"
+                viewBox="0 0 24 36"
+                fill="none"
+                aria-hidden="true"
+                className="text-[color:var(--color-near-black)] -mb-1"
+              >
+                <path
+                  d="M12 2 C 18 10, 18 22, 12 32 M12 32 L7 26 M12 32 L17 26"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </svg>
+            </div>
+          </div>
+          <KpiCard
+            label="Net-worth crossover"
+            value={
+              outputs.netWorthCrossoverYear !== null
+                ? `Yr ${outputs.netWorthCrossoverYear}`
+                : '—'
+            }
+            sub="First year back in the black"
+            accent
+          />
+        </div>
       </div>
 
       {/* ── PSLF callout ────────────────────────────── */}

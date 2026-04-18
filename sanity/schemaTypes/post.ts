@@ -83,6 +83,23 @@ export const post = defineType({
       description: 'Optional — your target keyword for internal tracking.',
     }),
     defineField({
+      name: 'coverImage',
+      title: 'Cover image',
+      type: 'image',
+      group: 'content',
+      description:
+        'Optional thumbnail shown on the home page and blog index. When absent, a deterministic gradient is used as fallback.',
+      options: { hotspot: true },
+      fields: [
+        defineField({
+          name: 'alt',
+          title: 'Alt text',
+          type: 'string',
+          description: 'Describes the image for screen readers and SEO.',
+        }),
+      ],
+    }),
+    defineField({
       name: 'body',
       title: 'Body (Markdown)',
       type: 'markdown',

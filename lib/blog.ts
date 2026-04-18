@@ -1,4 +1,6 @@
+import type { SanityImageSource } from '@sanity/image-url';
 import { sanityClient } from './sanity.client';
+import { coverImageUrl } from './sanity.image';
 import {
   allPostsQuery,
   allSlugsQuery,
@@ -18,6 +20,10 @@ export interface PostMeta {
   readingTime: string;
   /** Optional focus keyword (used for light SEO metadata). */
   keyword?: string;
+  /** Optional cover image URL resolved from Sanity. Null when the post has no cover. */
+  coverImageUrl?: string | null;
+  /** Alt text for the cover image, when present. */
+  coverImageAlt?: string | null;
 }
 
 export interface Post extends PostMeta {
@@ -34,16 +40,38 @@ export interface Post extends PostMeta {
  */
 const REVALIDATE_SECONDS = 60;
 
+interface SanityCoverImage {
+  asset?: { _ref?: string };
+  alt?: string;
+  hotspot?: unknown;
+  crop?: unknown;
+}
+
+interface PostMetaRaw extends Omit<PostMeta, 'coverImageUrl' | 'coverImageAlt'> {
+  coverImage?: SanityCoverImage | null;
+}
+
+function hydrateCover<T extends PostMetaRaw>(raw: T): PostMeta {
+  const cover = raw.coverImage;
+  const { coverImage: _omit, ...rest } = raw;
+  void _omit;
+  return {
+    ...rest,
+    coverImageUrl: cover ? coverImageUrl(cover as SanityImageSource) : null,
+    coverImageAlt: cover?.alt ?? null,
+  };
+}
+
 export async function getAllPosts(): Promise<PostMeta[]> {
-  const posts = await sanityClient.fetch<PostMeta[]>(
+  const posts = await sanityClient.fetch<PostMetaRaw[]>(
     allPostsQuery,
     {},
     { next: { revalidate: REVALIDATE_SECONDS, tags: ['post'] } },
   );
-  return posts ?? [];
+  return (posts ?? []).map(hydrateCover);
 }
 
-interface PostRaw extends PostMeta {
+interface PostRaw extends PostMetaRaw {
   body: string;
   faqs?: FaqItem[];
 }
@@ -57,13 +85,9 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 
   if (!post) return null;
 
+  const hydrated = hydrateCover(post);
   return {
-    slug: post.slug,
-    title: post.title,
-    description: post.description,
-    date: post.date,
-    readingTime: post.readingTime,
-    keyword: post.keyword,
+    ...hydrated,
     content: post.body ?? '',
     faqs: post.faqs,
   };

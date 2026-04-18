@@ -92,7 +92,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
               : 'Some specialties have variable training length (e.g. 3–4y, 5–7y, 6–8y) — adjust if yours differs.'
           }
         />
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <Input
             label="Residency"
             suffix="yrs"
@@ -130,7 +130,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
 
         {/* Fellowship — PDF v4: "Fellowship Modeling as extended low-income phases" */}
         {showFellowship ? (
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <Input
               label="Fellowship"
               suffix="yrs"
@@ -172,7 +172,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
             + Add fellowship phase
           </button>
         )}
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <Input
             label="Salary growth (training)"
             suffix="%/yr"
@@ -213,7 +213,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
           value={inputs.totalDebt}
           onChange={(e) => onChange({ totalDebt: Number(e.target.value) })}
         />
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <Input
             label="Interest rate"
             suffix="%"
@@ -244,7 +244,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
 
       {/* ── LIFESTYLE ────────────────────────────────── */}
       <SectionLabel>Living expenses</SectionLabel>
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         <Input
           label="Residency"
           prefix="$"

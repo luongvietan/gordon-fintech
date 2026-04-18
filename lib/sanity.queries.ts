@@ -13,7 +13,8 @@ export const allPostsQuery = /* groq */ `
     description,
     "date": date,
     readingTime,
-    keyword
+    keyword,
+    "coverImage": coverImage{ asset, alt, hotspot, crop }
   }
 `;
 
@@ -27,7 +28,8 @@ export const postBySlugQuery = /* groq */ `
     readingTime,
     keyword,
     body,
-    faqs[]{ q, a }
+    faqs[]{ q, a },
+    "coverImage": coverImage{ asset, alt, hotspot, crop }
   }
 `;
 

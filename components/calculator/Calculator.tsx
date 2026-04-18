@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   CalculatorInputs,
   CalculatorOutputs,
@@ -8,6 +8,12 @@ import {
   applyScenarioPreset,
   calculateOutputs,
 } from '@/lib/calculator';
+import {
+  SHARE_PARAM,
+  buildShareUrl,
+  decodeInputs,
+  encodeInputs,
+} from '@/lib/calculator-share';
 import CalculatorInputsForm from './CalculatorInputs';
 import CalculatorResults from './CalculatorResults';
 import { RESIDENT_SALARY } from '@/lib/specialties';
@@ -76,6 +82,113 @@ function DownloadPdfButton({
   );
 }
 
+// ─── Share link button ────────────────────────────────────
+// Copies a URL that encodes the current calculator inputs. Recipients who open
+// the link get the same scenario loaded locally — nothing round-trips through
+// a server, it's just a self-contained payload in the query string.
+type ShareState = 'idle' | 'copied' | 'error';
+
+function ShareLinkButton({
+  inputs,
+  defaults,
+}: {
+  inputs: CalculatorInputs;
+  defaults: CalculatorInputs;
+}) {
+  const [state, setState] = useState<ShareState>('idle');
+
+  async function handleClick() {
+    try {
+      const encoded = encodeInputs(inputs, defaults);
+      const url = buildShareUrl(encoded);
+      if (!url) throw new Error('No window available');
+
+      let copied = false;
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(url);
+          copied = true;
+        } catch {
+          copied = false;
+        }
+      }
+
+      // Fallback for older browsers / non-secure contexts where the async
+      // clipboard API is unavailable or throws.
+      if (!copied && typeof document !== 'undefined') {
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          copied = document.execCommand('copy');
+        } catch {
+          copied = false;
+        }
+        document.body.removeChild(ta);
+      }
+
+      if (typeof window !== 'undefined' && window.history?.replaceState) {
+        window.history.replaceState(null, '', url);
+      }
+
+      if (copied) {
+        setState('copied');
+        setTimeout(() => setState('idle'), 1800);
+      } else {
+        setState('error');
+        setTimeout(() => setState('idle'), 2500);
+      }
+    } catch (err) {
+      console.error('Share link failed', err);
+      setState('error');
+      setTimeout(() => setState('idle'), 2500);
+    }
+  }
+
+  const label =
+    state === 'copied'
+      ? 'Link copied'
+      : state === 'error'
+      ? 'Copy failed'
+      : 'Share link';
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      aria-label="Copy a shareable link to these calculator results"
+      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold bg-[color:var(--color-near-black)]/[0.06] text-[color:var(--color-near-black)] transition-transform duration-200 hover:scale-[1.05] hover:bg-[color:var(--color-near-black)]/[0.10] active:scale-[0.95]"
+    >
+      {state === 'copied' ? (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path
+            d="M2.5 6.5 5 9l4.5-5.5"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path
+            d="M5 7.5 7.5 5m-3.25.25L3 6.5a2 2 0 0 0 2.83 2.83l1.25-1.25M7 4.5l1.25-1.25A2 2 0 0 1 11.08 6.08L9.83 7.33"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+      {label}
+    </button>
+  );
+}
+
 const DEFAULT_INPUTS: CalculatorInputs = {
   totalDebt: 250000,
   interestRate: 6.5,
@@ -112,6 +225,18 @@ const PRESETS: { id: ScenarioPreset; label: string; description: string }[] = [
 
 export default function Calculator() {
   const [inputs, setInputs] = useState<CalculatorInputs>(DEFAULT_INPUTS);
+
+  // Rehydrate from a share link once on mount. We can't read window in the
+  // useState initializer because this component is SSR'd with defaults first;
+  // a hash-driven effect avoids hydration mismatches.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const payload = params.get(SHARE_PARAM);
+    if (!payload) return;
+    const decoded = decodeInputs(payload, DEFAULT_INPUTS);
+    if (decoded) setInputs(decoded);
+  }, []);
 
   function handleChange(updated: Partial<CalculatorInputs>) {
     setInputs((prev) => ({
@@ -155,12 +280,41 @@ export default function Calculator() {
         </div>
 
         <div className="flex items-center gap-2">
+          <ShareLinkButton inputs={inputs} defaults={DEFAULT_INPUTS} />
           <DownloadPdfButton inputs={inputs} outputs={outputs} />
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-widest bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]">
             <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-dark-green)] animate-pulse" />
             Live
           </div>
         </div>
+      </div>
+
+      {/* ── Privacy strip ────────────────────────────────── */}
+      <div
+        className="px-5 md:px-7 py-2.5 flex items-center gap-2.5 border-b border-[color:var(--border-subtle)]"
+        style={{ background: 'var(--color-light-mint)' }}
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.25"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          className="text-[color:var(--color-dark-green)] flex-shrink-0"
+        >
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <p className="text-[12px] md:text-[13px] font-semibold text-[color:var(--color-dark-green)] leading-snug">
+          <span className="font-bold">Your data never leaves your device.</span>{' '}
+          <span className="text-[color:var(--color-dark-green)]/75">
+            We don&apos;t store, track, or sell anything you type in.
+          </span>
+        </p>
       </div>
 
       {/* ── Preset chips ─────────────────────────────────── */}
@@ -197,14 +351,14 @@ export default function Calculator() {
       </div>
 
       {/* ── Two-column layout ────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr]">
+      <div className="grid grid-cols-1 lg:grid-cols-[400px_minmax(0,1fr)]">
         {/* Inputs */}
-        <div className="p-5 md:p-6 lg:border-r border-b lg:border-b-0 border-[color:var(--border-subtle)] max-h-none lg:max-h-[min(90vh,800px)] overflow-y-auto wise-scroll">
+        <div className="min-w-0 p-5 md:p-6 lg:border-r border-b lg:border-b-0 border-[color:var(--border-subtle)] max-h-none lg:max-h-[min(90vh,800px)] overflow-y-auto wise-scroll">
           <CalculatorInputsForm inputs={inputs} onChange={handleChange} />
         </div>
 
         {/* Results */}
-        <div className="p-5 md:p-6 bg-[color:var(--color-off-white)] max-h-none lg:max-h-[min(90vh,800px)] overflow-y-auto wise-scroll">
+        <div className="min-w-0 p-5 md:p-6 bg-[color:var(--color-off-white)] max-h-none lg:max-h-[min(90vh,800px)] overflow-y-auto wise-scroll">
           <CalculatorResults
             outputs={outputs}
             residencyYears={trainingYears}

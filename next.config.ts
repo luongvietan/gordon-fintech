@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   // Image optimization
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      // Sanity CDN — used for blog cover images.
+      { protocol: "https", hostname: "cdn.sanity.io" },
+    ],
   },
 
   // Strict mode for better React error detection
