@@ -330,19 +330,33 @@
   font-weight: 600;
 }
 
-/* ── Blog tables ─────────────────────────────────────────── */
+/* ── Blog tables ───────────────────────────────────────────
+   Keep native `display: table` so column widths behave. Horizontal
+   scroll lives on a logical wrapper via max-width + overflow on
+   the table’s own box (wide tables still scroll inside the article). */
 .prose table {
+  display: table;
   width: 100%;
-  border-collapse: collapse;
+  max-width: 100%;
+  table-layout: auto;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.9375rem;
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
   font-family: var(--font-body);
-  display: block;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   border-radius: var(--r-card-sm);
   box-shadow: var(--shadow-ring);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+
+/* Narrow viewports: article can scroll horizontally if a table is wider than the column */
+@media (max-width: 767px) {
+  article.prose {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .prose thead {
@@ -353,7 +367,7 @@
   color: #ffffff;
   font-weight: 700;
   text-align: left;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1.125rem;
   font-size: 0.75rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -373,11 +387,78 @@
   background-color: var(--color-light-mint);
 }
 
-.prose tbody td {
-  padding: 0.75rem 1rem;
+.prose tbody td,
+.prose tbody th {
+  padding: 0.875rem 1.125rem;
   color: var(--color-near-black);
-  vertical-align: middle;
+  vertical-align: top;
   font-weight: 500;
+}
+
+/* Two-column comparison tables: wider label column, numbers aligned right */
+.prose table:has(thead tr > th:nth-child(2):last-child) {
+  table-layout: fixed;
+}
+
+.prose table:has(thead tr > th:nth-child(2):last-child) thead th:first-child,
+.prose table:has(thead tr > th:nth-child(2):last-child) tbody td:first-child {
+  width: 58%;
+  min-width: 11rem;
+  padding-right: 1.5rem;
+  word-break: break-word;
+}
+
+/* Header row stays light text on dark bar — do not reuse body cell color here */
+.prose table:has(thead tr > th:nth-child(2):last-child) thead th:last-child {
+  width: 42%;
+  text-align: right;
+  color: #ffffff;
+}
+
+.prose table:has(thead tr > th:nth-child(2):last-child) tbody td:last-child {
+  width: 42%;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--color-near-black);
+}
+
+/* Pipe tables without <thead> (first row is th) */
+.prose table:not(:has(thead)) > tbody > tr:first-child:has(th:nth-child(2):last-child) {
+  background-color: var(--color-near-black);
+}
+
+.prose table:not(:has(thead)) > tbody > tr:first-child :is(th, td) {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: none;
+}
+
+.prose table:not(:has(thead)) > tbody > tr:first-child :is(th, td):first-child {
+  width: 58%;
+  min-width: 11rem;
+  text-align: left;
+}
+
+.prose table:not(:has(thead)) > tbody > tr:first-child :is(th, td):last-child {
+  width: 42%;
+  text-align: right;
+}
+
+.prose table:not(:has(thead)) > tbody > tr:not(:first-child) td:first-child {
+  width: 58%;
+  min-width: 11rem;
+  padding-right: 1.5rem;
+  word-break: break-word;
+}
+
+.prose table:not(:has(thead)) > tbody > tr:not(:first-child) td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 
 /* ============================================================
