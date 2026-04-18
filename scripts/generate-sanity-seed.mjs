@@ -9,8 +9,8 @@
  * Usage:
  *   node scripts/generate-sanity-seed.mjs
  *
- * Then import into your Sanity dataset:
- *   npx sanity dataset import sanity-seed.ndjson production
+ * Then import into your Sanity dataset (token from .env.local):
+ *   npm run sanity:seed:import
  *
  * The NDJSON file is checked in (see package.json) so anyone can
  * re-import it without running this script.
@@ -80,7 +80,7 @@ function main() {
 
   fs.writeFileSync(OUT_FILE, lines.join('\n') + '\n', 'utf-8');
   console.log(`✓ Wrote ${lines.length} documents to ${path.relative(ROOT, OUT_FILE)}`);
-  console.log('  Import with: npx sanity dataset import sanity-seed.ndjson production');
+  console.log('  Import with: npm run sanity:seed:import');
 }
 
 main();

@@ -108,7 +108,7 @@ exactly), rendered server-side via `next-mdx-remote`.
 
    ```bash
    npx sanity login             # one-time auth
-   npm run sanity:seed:import   # reads sanity-seed.ndjson → your dataset
+   npm run sanity:seed:import   # uses token from .env.local — no `sanity login` required
    ```
 
 4. `npm run dev`, then open **http://localhost:3000/studio** — you should see
@@ -138,7 +138,7 @@ and want to re-seed a fresh Sanity dataset:
 
 ```bash
 npm run sanity:seed:generate   # rewrites sanity-seed.ndjson from MDX files
-npm run sanity:seed:import     # imports into the `production` dataset
+npm run sanity:seed:import     # imports into NEXT_PUBLIC_SANITY_DATASET (default: production)
 ```
 
 `sanity-seed.ndjson` uses deterministic document IDs (`post-<slug>`) so
@@ -167,7 +167,9 @@ re-imports update existing documents rather than duplicating them.
 | `NEXT_PUBLIC_SANITY_PROJECT_ID`   | Sanity project ID from sanity.io/manage.                             | **yes**  |
 | `NEXT_PUBLIC_SANITY_DATASET`      | Sanity dataset name (usually `production`).                          | **yes**  |
 | `NEXT_PUBLIC_SANITY_API_VERSION`  | Sanity API version (defaults to `2024-10-01`).                       | no       |
-| `SANITY_API_READ_TOKEN`           | Read token for draft previews (optional).                            | no       |
+| `SANITY_API_READ_TOKEN`           | Viewer token — optional; used for server-side GROQ if dataset is private. | no       |
+| `SANITY_API_WRITE_TOKEN`          | Editor token — optional fallback if no read token (prefer read-only). | no       |
+| `SANITY_IMPORT_TOKEN`             | Token for `npm run sanity:seed:import` (falls back to write/read token). | no       |
 | `NEXT_PUBLIC_GA_ID`               | Google Analytics 4 Measurement ID (`G-XXXXXXXXXX`).                  | no       |
 | `NEXT_PUBLIC_GSC_TOKEN`           | Google Search Console verification token.                            | no       |
 | `NEXT_PUBLIC_ADSENSE_CLIENT`      | AdSense publisher ID (`ca-pub-…`). Enables ad loading.               | no       |

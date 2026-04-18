@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "sanity:seed:generate": "node scripts/generate-sanity-seed.mjs",
-    "sanity:seed:import": "sanity dataset import sanity-seed.ndjson production --replace",
+    "sanity:seed:import": "node scripts/import-sanity-seed.mjs",
     "sanity:dev": "sanity dev",
     "sanity:deploy": "sanity deploy"
   },
@@ -37,6 +37,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
     "tailwindcss": "^4",

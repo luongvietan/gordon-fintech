@@ -2,8 +2,9 @@
  * Sanity environment variables.
  *
  * These are read by both the embedded Studio (/studio) and the Next.js
- * data-fetching layer (lib/sanity.client.ts). Keep everything public —
- * dataset names, project IDs, and API versions are not secrets.
+ * data-fetching layer (`lib/sanity.client.ts`). Project ID, dataset name,
+ * and API version are safe to expose via `NEXT_PUBLIC_*`. API tokens must
+ * stay server-only (never `NEXT_PUBLIC_`).
  */
 
 export const apiVersion =
@@ -19,8 +20,19 @@ export const projectId = assertValue(
   'Missing environment variable: NEXT_PUBLIC_SANITY_PROJECT_ID',
 );
 
-/** Optional — only needed for draft previews / write access from Next.js. */
-export const token = process.env.SANITY_API_READ_TOKEN;
+/**
+ * Optional API token for server-side GROQ fetches (never expose to the browser).
+ *
+ * - Use a **Viewer** token if the dataset is private or you only need reads.
+ * - A **write (Editor)** token also works for reads but has broader permissions —
+ *   prefer a read-only token when possible.
+ *
+ * Resolution order: read token → write token.
+ */
+export const apiToken =
+  process.env.SANITY_API_READ_TOKEN ||
+  process.env.SANITY_API_WRITE_TOKEN ||
+  undefined;
 
 export const useCdn = false;
 
