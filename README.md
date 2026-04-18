@@ -70,6 +70,7 @@ lib/
   calculator.ts           # All financial math (amortization, PSLF, opportunity cost…)
   specialties.ts          # 16 specialty presets (salary + training duration)
   blog.ts                 # MDX frontmatter loader
+  pdf.ts                  # Client-side PDF export (jsPDF + autotable, lazy-loaded)
 
 content/
   blog/                   # Write blog posts here — one .mdx per article
@@ -167,6 +168,24 @@ Edit `lib/calculator.ts`:
 `app/api/subscribe/route.ts` is a stub that returns `{ ok: true }`. Replace the
 handler body with a `fetch()` to ConvertKit / Mailchimp / Resend. A commented
 example lives at the top of the file.
+
+---
+
+### PDF export
+
+The calculator header has a **Download PDF** button that produces a branded,
+multi-page A4 report with:
+
+- KPI summary (monthly payment, payoff time, interest, net-worth crossover)
+- PSLF forgiveness callout (when eligible)
+- Opportunity-cost callout
+- Full input snapshot
+- Year-by-year schedule table
+
+The generator lives in `lib/pdf.ts` and uses `jspdf` + `jspdf-autotable`. It's
+loaded via dynamic `import()` on click, so the ~150 KB library stays out of
+the initial bundle. To customize layout, colors, or sections, edit the
+`downloadResultsPdf()` function — all palette values are defined at the top.
 
 ---
 

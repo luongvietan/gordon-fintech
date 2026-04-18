@@ -193,13 +193,15 @@
    TYPOGRAPHY — WISE DISPLAY SYSTEM
    Weight 900 + line-height 0.85 is the brand identity
    ============================================================ */
+/* Display classes are color-agnostic on purpose — add `text-white`, `text-ink`,
+   or any Tailwind color utility at the call site. This keeps the classes
+   reusable on both light and dark surfaces. */
 .display-mega {
   font-family: var(--font-display);
   font-size: clamp(3.5rem, 10vw, 7.875rem);
   font-weight: 900;
   line-height: 0.85;
   letter-spacing: -0.02em;
-  color: var(--text-primary);
 }
 
 .display-hero {
@@ -208,7 +210,6 @@
   font-weight: 900;
   line-height: 0.85;
   letter-spacing: -0.02em;
-  color: var(--text-primary);
 }
 
 .display-section {
@@ -217,7 +218,6 @@
   font-weight: 900;
   line-height: 0.88;
   letter-spacing: -0.02em;
-  color: var(--text-primary);
 }
 
 .display-sub {
@@ -226,7 +226,6 @@
   font-weight: 900;
   line-height: 0.95;
   letter-spacing: -0.015em;
-  color: var(--text-primary);
 }
 
 .eyebrow {

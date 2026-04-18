@@ -34,28 +34,43 @@ export default function NewsletterSignup() {
   }
 
   return (
-    <section className="container py-14 md:py-20">
-      <div className="relative overflow-hidden rounded-[var(--r-card-lg)] bg-[color:var(--color-near-black)] text-white p-8 md:p-14">
-        {/* Soft lime glow */}
+    <section className="container py-12 sm:py-14 md:py-20">
+      <div
+        className="
+          relative overflow-hidden
+          rounded-[var(--r-card)] md:rounded-[var(--r-card-lg)]
+          bg-[color:var(--color-near-black)] text-white
+          px-6 py-10 sm:px-8 sm:py-12 md:px-14 md:py-14
+        "
+      >
+        {/* Soft lime glow — smaller on mobile so it doesn't dominate */}
         <div
           aria-hidden
-          className="absolute -right-24 -top-24 w-80 h-80 rounded-full opacity-20 blur-3xl"
+          className="
+            pointer-events-none absolute rounded-full opacity-20 blur-3xl
+            -right-16 -top-16 w-52 h-52
+            sm:-right-24 sm:-top-24 sm:w-80 sm:h-80
+          "
           style={{ background: 'var(--color-wise-green)' }}
         />
         <div
           aria-hidden
-          className="absolute -left-16 -bottom-16 w-64 h-64 rounded-full opacity-10 blur-3xl"
+          className="
+            pointer-events-none absolute rounded-full opacity-[0.08] blur-3xl
+            -left-12 -bottom-12 w-40 h-40
+            sm:-left-16 sm:-bottom-16 sm:w-64 sm:h-64
+          "
           style={{ background: 'var(--color-wise-green)' }}
         />
 
         <div className="relative grid md:grid-cols-[1.2fr_1fr] gap-8 md:gap-12 items-center">
           <div>
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--r-pill)] text-xs font-semibold bg-white/10 text-white/80">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--r-pill)] text-[11px] sm:text-xs font-semibold bg-white/10 text-white/80">
               <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-wise-green)]" />
               Doctor Finance Digest
             </span>
             <h2
-              className="display-sub text-white mt-4"
+              className="display-sub text-white mt-4 sm:mt-5"
               style={{ fontWeight: 900 }}
             >
               Smarter money for doctors, delivered monthly.
@@ -66,8 +81,10 @@ export default function NewsletterSignup() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 p-1.5 rounded-[var(--r-pill)] bg-white/10 ring-1 ring-inset ring-white/20 focus-within:ring-white/60 transition-all">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+            {/* Mobile: stacked full-width input + button.
+                ≥sm: combined pill. */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 sm:p-1.5 sm:rounded-[var(--r-pill)] sm:bg-white/10 sm:ring-1 sm:ring-inset sm:ring-white/20 sm:focus-within:ring-white/60 sm:transition-all">
               <input
                 type="email"
                 required
@@ -76,24 +93,52 @@ export default function NewsletterSignup() {
                 placeholder="you@hospital.org"
                 aria-label="Email address"
                 disabled={status === 'submitting'}
-                className="flex-1 bg-transparent border-none outline-none px-4 py-2 text-base font-semibold text-white placeholder:text-white/45 placeholder:font-medium"
+                className="
+                  w-full sm:flex-1 min-w-0
+                  bg-white/10 sm:bg-transparent
+                  border-none outline-none
+                  px-4 py-3 sm:py-2
+                  text-base font-semibold text-white
+                  placeholder:text-white/45 placeholder:font-medium
+                  rounded-[var(--r-pill)]
+                  ring-1 ring-inset ring-white/20 focus:ring-white/60 sm:ring-0
+                  transition-all
+                  disabled:opacity-60 disabled:cursor-not-allowed
+                "
               />
               <button
                 type="submit"
                 disabled={status === 'submitting'}
-                className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-[var(--r-pill)] text-sm font-semibold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95] disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap"
+                className="
+                  inline-flex items-center justify-center gap-1.5
+                  px-5 py-3 sm:py-2.5
+                  rounded-[var(--r-pill)]
+                  text-sm font-semibold
+                  bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]
+                  transition-transform duration-200
+                  hover:scale-[1.04] active:scale-[0.96]
+                  disabled:opacity-50 disabled:pointer-events-none
+                  whitespace-nowrap
+                  w-full sm:w-auto
+                "
               >
                 {status === 'submitting' ? 'Joining…' : 'Subscribe'}
               </button>
             </div>
 
             {status === 'success' && (
-              <p className="text-sm font-semibold text-[color:var(--color-wise-green)]">
+              <p
+                role="status"
+                className="text-sm font-semibold text-[color:var(--color-wise-green)]"
+              >
                 {message}
               </p>
             )}
             {status === 'error' && (
-              <p className="text-sm font-semibold text-[color:var(--color-danger)]">
+              <p
+                role="alert"
+                className="text-sm font-semibold text-[color:var(--color-danger)]"
+              >
                 {message}
               </p>
             )}

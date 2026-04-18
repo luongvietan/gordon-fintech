@@ -3,12 +3,77 @@
 import { useMemo, useState } from 'react';
 import {
   CalculatorInputs,
+  CalculatorOutputs,
   ScenarioPreset,
   applyScenarioPreset,
   calculateOutputs,
 } from '@/lib/calculator';
 import CalculatorInputsForm from './CalculatorInputs';
 import CalculatorResults from './CalculatorResults';
+
+// ─── Download PDF button ───────────────────────────────────
+// Lazy-load jsPDF only on click so the ~150KB library stays out of the
+// initial bundle. While the import resolves we show a "Preparing…" state.
+type PdfState = 'idle' | 'loading' | 'error';
+
+function DownloadPdfButton({
+  inputs,
+  outputs,
+}: {
+  inputs: CalculatorInputs;
+  outputs: CalculatorOutputs;
+}) {
+  const [state, setState] = useState<PdfState>('idle');
+
+  async function handleClick() {
+    if (state === 'loading') return;
+    setState('loading');
+    try {
+      const { downloadResultsPdf } = await import('@/lib/pdf');
+      downloadResultsPdf(inputs, outputs);
+      setState('idle');
+    } catch (err) {
+      console.error('PDF export failed', err);
+      setState('error');
+      setTimeout(() => setState('idle'), 2500);
+    }
+  }
+
+  const label =
+    state === 'loading'
+      ? 'Preparing PDF…'
+      : state === 'error'
+      ? 'Try again'
+      : 'Download PDF';
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={state === 'loading'}
+      aria-label="Download results as PDF"
+      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold bg-[color:var(--color-near-black)] text-white transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95] disabled:opacity-60 disabled:pointer-events-none"
+    >
+      {state === 'loading' ? (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="animate-spin" aria-hidden="true">
+          <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.25" />
+          <path d="M10.5 6a4.5 4.5 0 0 0-4.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ) : (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path
+            d="M6 1.5v6m0 0L3.5 5m2.5 2.5L8.5 5M2 9.5v.5a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+      {label}
+    </button>
+  );
+}
 
 const DEFAULT_INPUTS: CalculatorInputs = {
   totalDebt: 250000,
@@ -74,9 +139,13 @@ export default function Calculator() {
             PSLF vs standard, net-worth crossover, specialty salary presets
           </p>
         </div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-widest bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-dark-green)] animate-pulse" />
-          Live
+
+        <div className="flex items-center gap-2">
+          <DownloadPdfButton inputs={inputs} outputs={outputs} />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-widest bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-dark-green)] animate-pulse" />
+            Live
+          </div>
         </div>
       </div>
 
