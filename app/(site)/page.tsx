@@ -225,28 +225,68 @@ export default async function HomePage() {
           height so the CTA never gets clipped.
       */}
       <section
-        className="relative overflow-hidden flex items-center"
+        className="relative isolate overflow-hidden flex items-center"
         style={{
           background: 'var(--color-near-black)',
           minHeight: 'calc(100svh - 4rem)',
         }}
       >
+        {/*
+          Background composition — three quiet layers replace the old
+          dual-blob look. Each is decorative and pointer-events:none so
+          they never intercept clicks on the CTAs above.
+
+          1. Dot grid — fine 32px pattern, faded out toward the edges
+             with a radial mask. Adds depth without noise.
+          2. Asymmetric glow — single lime halo bleeding from upper
+             right behind the chart. Replaces the two competing blobs.
+          3. Hairline divider — 1px lime line at the bottom edge gives
+             the section a clean hand-off into the stat band.
+        */}
         <div
           aria-hidden
-          className="absolute -right-40 -top-40 w-[36rem] h-[36rem] rounded-full opacity-[0.18] blur-3xl"
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              'radial-gradient(rgba(255,255,255,0.055) 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
+            maskImage:
+              'radial-gradient(ellipse 75% 65% at 50% 40%, black 30%, transparent 90%)',
+            WebkitMaskImage:
+              'radial-gradient(ellipse 75% 65% at 50% 40%, black 30%, transparent 90%)',
+          }}
+        />
+        <div
+          aria-hidden
+          className="absolute -right-40 -top-32 w-[42rem] h-[42rem] rounded-full opacity-[0.18] blur-[120px] pointer-events-none"
           style={{ background: 'var(--color-wise-green)' }}
         />
         <div
           aria-hidden
-          className="absolute -left-32 -bottom-32 w-[28rem] h-[28rem] rounded-full opacity-[0.10] blur-3xl"
-          style={{ background: 'var(--color-wise-green)' }}
+          className="absolute inset-x-0 bottom-0 h-px pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(to right, transparent, rgba(159,232,112,0.25), transparent)',
+          }}
         />
 
-        <div className="container relative w-full py-10 md:py-12 lg:py-14">
-          <div className="grid lg:grid-cols-[1.2fr_1fr] gap-8 lg:gap-12 xl:gap-16 items-center">
+        <div className="container relative w-full py-12 md:py-16 lg:py-20">
+          <div className="grid lg:grid-cols-[1.15fr_1fr] gap-10 lg:gap-14 xl:gap-20 items-center">
             <div className="max-w-2xl">
-              <div className="inline-flex flex-wrap items-center gap-2 mb-5">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold bg-[color:var(--color-wise-green)]/15 text-[color:var(--color-wise-green)] ring-1 ring-inset ring-[color:var(--color-wise-green)]/30 uppercase tracking-[0.06em]">
+              {/* Eyebrow — pulsing lime dot + uppercase microcopy. Replaces
+                  the chip pill, which felt heavier than the headline below it. */}
+              <div className="inline-flex items-center gap-2.5 mb-6">
+                <span className="relative flex w-1.5 h-1.5" aria-hidden>
+                  <span
+                    className="absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping"
+                    style={{ background: 'var(--color-wise-green)' }}
+                  />
+                  <span
+                    className="relative inline-flex rounded-full h-1.5 w-1.5"
+                    style={{ background: 'var(--color-wise-green)' }}
+                  />
+                </span>
+                <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/55">
                   Built for med students · residents · doctors
                 </span>
               </div>
@@ -258,8 +298,9 @@ export default async function HomePage() {
                   fontWeight: 900,
                   // Smaller top end so the headline never alone fills the viewport on big monitors.
                   fontSize: 'clamp(2.5rem, 6vw, 5.25rem)',
-                  lineHeight: 0.92,
-                  letterSpacing: '-0.03em',
+                  lineHeight: 0.95,
+                  letterSpacing: '-0.035em',
+                  textWrap: 'balance',
                 }}
               >
                 The med school debt calculator{' '}
@@ -268,63 +309,90 @@ export default async function HomePage() {
                 </span>
               </h1>
 
-              <p
-                className="mt-5 md:mt-6 text-base md:text-lg max-w-xl leading-relaxed font-medium"
-                style={{ color: 'rgba(255,255,255,0.72)' }}
-              >
+              <p className="mt-6 md:mt-7 text-base md:text-lg max-w-xl leading-relaxed font-medium text-white/65">
                 See exactly when you&apos;ll be debt-free — by specialty, residency
                 length, and repayment strategy. PSLF vs refinance vs aggressive
                 payoff, side-by-side.
               </p>
 
-              <div className="mt-7 flex flex-col sm:flex-row gap-3">
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <a
                   href="#calculator"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-[15px] font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] shadow-[0_8px_30px_-8px_rgba(159,232,112,0.55)] transition-all duration-200 hover:scale-[1.04] hover:bg-[color:var(--color-pastel-green)] active:scale-[0.97]"
+                  className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[var(--r-pill)] text-[15px] font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] shadow-[0_10px_40px_-12px_rgba(159,232,112,0.7)] transition-all duration-200 hover:bg-[color:var(--color-pastel-green)] hover:-translate-y-0.5 hover:shadow-[0_14px_44px_-10px_rgba(159,232,112,0.8)] active:translate-y-0"
                 >
                   Run my numbers — free
-                  <ArrowRight aria-hidden="true" className="w-4 h-4" strokeWidth={2} />
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                    strokeWidth={2}
+                  />
                 </a>
                 <Link
                   href="/blog/pslf-explained-for-doctors"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-[15px] font-semibold text-white ring-1 ring-inset ring-white/25 hover:ring-white/60 hover:bg-white/5 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[var(--r-pill)] text-[15px] font-semibold text-white/85 ring-1 ring-inset ring-white/15 hover:ring-white/40 hover:text-white hover:bg-white/[0.04] transition-all"
                 >
                   Read the PSLF guide
                 </Link>
               </div>
 
+              {/* Trust row — hairline dividers between items instead of pill
+                  chips reads cleaner and feels less cluttered next to the CTAs. */}
               <ul
-                className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-white/60 font-semibold"
+                className="mt-8 flex flex-wrap items-center gap-y-2 text-[12px] text-white/55 font-semibold"
                 aria-label="Reasons to trust this tool"
               >
-                <li className="inline-flex items-center gap-1.5">
+                <li className="inline-flex items-center gap-1.5 pr-4">
                   <CheckDot />
                   100% in your browser
                 </li>
-                <li className="inline-flex items-center gap-1.5">
+                <li className="inline-flex items-center gap-1.5 px-4 border-l border-white/10">
                   <CheckDot />
                   No login or email
                 </li>
-                <li className="inline-flex items-center gap-1.5">
+                <li className="inline-flex items-center gap-1.5 pl-4 border-l border-white/10">
                   <CheckDot />
                   No affiliate links
                 </li>
               </ul>
             </div>
 
-            {/* Visual anchor — desktop only so mobile hero stays compact. */}
-            <div className="hidden lg:flex items-center justify-center">
-              <HeroChart />
+            {/* Visual anchor — desktop only so mobile hero stays compact.
+                The chart is wrapped in a soft frame with a meta strip
+                ("Live preview · Sample") to read as a real product surface
+                rather than just floating decoration. */}
+            <div className="hidden lg:block">
+              <div className="relative">
+                <div
+                  aria-hidden
+                  className="absolute -inset-x-6 -inset-y-6 rounded-[var(--r-card-lg)] ring-1 ring-white/[0.06] bg-gradient-to-br from-white/[0.035] via-transparent to-transparent"
+                />
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                      Live preview · 10-yr projection
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--color-wise-green)]/85">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-wise-green)]" />
+                      Sample
+                    </span>
+                  </div>
+                  <HeroChart />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Subtle scroll cue — anchors the eye toward the calculator. */}
+          {/* Refined scroll cue — a thin vertical hairline + arrow reads
+              quieter than the old "SCROLL" caps treatment. */}
           <a
             href="#calculator"
             aria-label="Scroll to the calculator"
-            className="hidden md:flex absolute left-1/2 -translate-x-1/2 bottom-5 lg:bottom-6 items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/45 hover:text-white/85 transition-colors"
+            className="hidden md:flex absolute left-1/2 -translate-x-1/2 bottom-6 lg:bottom-7 flex-col items-center gap-2 text-white/35 hover:text-white/80 transition-colors"
           >
-            Scroll
+            <span
+              aria-hidden
+              className="block w-px h-8 bg-gradient-to-b from-transparent to-current opacity-70"
+            />
             <ArrowDown
               aria-hidden="true"
               className="w-3.5 h-3.5 animate-bounce-slow"
