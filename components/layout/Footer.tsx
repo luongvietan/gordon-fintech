@@ -91,6 +91,7 @@ export default function Footer() {
             </h3>
             <ul className="flex flex-col gap-3">
               {[
+                { href: '/about', label: 'About' },
                 { href: '/methodology', label: 'Methodology' },
                 { href: '/privacy', label: 'Privacy Policy' },
                 { href: '/terms', label: 'Terms of Use' },
@@ -119,18 +120,17 @@ export default function Footer() {
               <strong className="text-[color:var(--text-secondary)] font-semibold">
                 Not financial, tax, or legal advice.
               </strong>{' '}
-              The calculator produces projections based on the inputs you
-              provide and general assumptions documented on our{' '}
+              The calculator produces projections from the inputs you provide
+              against the assumptions documented on our{' '}
               <Link href="/methodology" className="underline underline-offset-2 hover:text-[color:var(--text-primary)]">
                 Methodology page
               </Link>
-              . Your actual outcome will differ. Consult a licensed financial
-              advisor, CFP, or CPA for personalized guidance — especially for
-              six-figure decisions like PSLF vs refinance.
+              . Use it as a planning tool, not a verdict. For a six-figure
+              decision like PSLF vs refinance, talk to a CFP or CPA.
             </p>
             <p>
               <strong className="text-[color:var(--text-secondary)] font-semibold">
-                Data sources.
+                Sources.
               </strong>{' '}
               Salary presets triangulated from AAMC, MGMA Provider Compensation
               Survey, and Medscape Physician Compensation Report. Debt averages
@@ -143,15 +143,15 @@ export default function Footer() {
               >
                 studentaid.gov
               </a>
-              . Tax-treatment assumptions reflect current IRS guidance.
+              . Tax assumptions reflect current IRS guidance.
             </p>
             <p>
               <strong className="text-[color:var(--text-secondary)] font-semibold">
-                No affiliation.
+                Independently built.
               </strong>{' '}
-              We are not affiliated with AAMC, MGMA, Medscape, the U.S.
-              Department of Education, or any loan servicer. Ads are served by
-              Google AdSense.
+              No lender partnerships, no affiliate codes, no commissions. Not
+              affiliated with AAMC, MGMA, Medscape, the U.S. Department of
+              Education, or any loan servicer.
             </p>
           </div>
         </div>

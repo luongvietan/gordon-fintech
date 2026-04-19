@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Check,
   Download,
@@ -204,19 +204,70 @@ const PRESETS: PresetMeta[] = [
   },
 ];
 
-export default function Calculator() {
-  const [inputs, setInputs] = useState<CalculatorInputs>(DEFAULT_INPUTS);
+/**
+ * Read shared inputs from `?s=...` lazily, on the very first render. Done
+ * inside the `useState` initializer so we don't trigger an extra render
+ * (which would also trip the react-hooks/set-state-in-effect rule).
+ *
+ * SSR-safe: returns DEFAULT_INPUTS on the server. Client picks up the URL
+ * payload on its first commit. Because the encoded payload is a sparse
+ * diff against DEFAULT_INPUTS, the result is identical between server +
+ * client when no `?s=` param is present.
+ */
+function readInitialInputs(): CalculatorInputs {
+  if (typeof window === 'undefined') return DEFAULT_INPUTS;
+  const params = new URLSearchParams(window.location.search);
+  const payload = params.get(SHARE_PARAM);
+  if (!payload) return DEFAULT_INPUTS;
+  return decodeInputs(payload, DEFAULT_INPUTS) ?? DEFAULT_INPUTS;
+}
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const payload = params.get(SHARE_PARAM);
-    if (!payload) return;
-    const decoded = decodeInputs(payload, DEFAULT_INPUTS);
-    if (decoded) setInputs(decoded);
-  }, []);
+export default function Calculator() {
+  const [inputs, setInputs] = useState<CalculatorInputs>(readInitialInputs);
+
+  // P10: snapshot of the "baseline" inputs against which Quick-Toggle
+  // mutations are diffed, so we can show the "Modified scenario" badge and
+  // a one-click reset to baseline. The baseline tracks any deliberate user
+  // change (typing in a field, choosing a preset, loading from URL) but
+  // NOT changes triggered by quick-toggle buttons themselves.
+  const [baselineInputs, setBaselineInputs] = useState<CalculatorInputs>(readInitialInputs);
+  // True when the most recent state mutation came from a QuickToggle button.
+  // Quick-toggle mutations should NOT advance the baseline.
+  const [transientChange, setTransientChange] = useState(false);
 
   function handleChange(updated: Partial<CalculatorInputs>) {
+    setInputs((prev) => {
+      const next = {
+        ...prev,
+        ...updated,
+        scenarioPreset:
+          'scenarioPreset' in updated ? updated.scenarioPreset : 'custom',
+      };
+      if (!transientChange) {
+        setBaselineInputs(next);
+      }
+      return next;
+    });
+    setTransientChange(false);
+  }
+
+  function handlePreset(preset: ScenarioPreset) {
+    setInputs((prev) => {
+      const next = applyScenarioPreset(prev, preset);
+      setBaselineInputs(next);
+      return next;
+    });
+  }
+
+  function handleReset() {
+    setInputs(DEFAULT_INPUTS);
+    setBaselineInputs(DEFAULT_INPUTS);
+  }
+
+  // QuickToggles drives a transient mutation: the baseline does NOT move,
+  // so the "Modified scenario" badge can appear and Reset-to-baseline works.
+  function handleTransientChange(updated: Partial<CalculatorInputs>) {
+    setTransientChange(true);
     setInputs((prev) => ({
       ...prev,
       ...updated,
@@ -225,12 +276,13 @@ export default function Calculator() {
     }));
   }
 
-  function handlePreset(preset: ScenarioPreset) {
-    setInputs((prev) => applyScenarioPreset(prev, preset));
+  function handleTransientReplace(next: CalculatorInputs) {
+    setTransientChange(true);
+    setInputs(next);
   }
 
-  function handleReset() {
-    setInputs(DEFAULT_INPUTS);
+  function handleResetToBaseline() {
+    setInputs(baselineInputs);
   }
 
   const outputs = useMemo(() => calculateOutputs(inputs), [inputs]);
@@ -387,10 +439,15 @@ export default function Calculator() {
           style={{ background: 'var(--color-off-white)' }}
         >
           <CalculatorResults
+            inputs={inputs}
+            defaults={DEFAULT_INPUTS}
+            baselineInputs={baselineInputs}
             outputs={outputs}
             residencyYears={trainingYears}
             taxRate={inputs.taxRate}
-            pslfEnabled={inputs.pslfEnabled}
+            onChange={handleTransientChange}
+            onReplace={handleTransientReplace}
+            onResetToBaseline={handleResetToBaseline}
           />
         </div>
       </div>

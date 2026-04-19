@@ -1,48 +1,65 @@
 'use client';
 
+import { useMemo } from 'react';
 import {
   ChevronDown,
   Clock,
   Flame,
-  Sparkles,
   TrendingUp,
   Wallet,
 } from 'lucide-react';
 import {
+  CalculatorInputs,
   CalculatorOutputs,
   formatDollars,
   formatDollarsExact,
   formatYears,
 } from '@/lib/calculator';
+import { recommendStrategy } from '@/lib/recommendation';
+import { runAllStrategies } from '@/lib/calculator-scenarios';
+import { getRiskFlags } from '@/lib/risk-flags';
+import { SPECIALTIES } from '@/lib/specialties';
 import BalanceChart from './charts/BalanceChart';
 import NetWorthChart from './charts/NetWorthChart';
 import ComparisonChart from './charts/ComparisonChart';
+import BestStrategyPanel from './BestStrategyPanel';
+import StrategyComparison from './StrategyComparison';
+import QuickToggles from './QuickToggles';
+import RiskFlags from './RiskFlags';
+import PslfDisruptionPanel from './PslfDisruptionPanel';
+import TaxBombCard from './TaxBombCard';
+import InlineEmailCapture from './InlineEmailCapture';
+import PeerBenchmarkNote from './PeerBenchmarkNote';
+import ExplainPopover, { type ExplainData } from './ExplainPopover';
 
 interface Props {
+  inputs: CalculatorInputs;
+  defaults: CalculatorInputs;
+  baselineInputs: CalculatorInputs;
   outputs: CalculatorOutputs;
   residencyYears: number;
   taxRate: number;
-  pslfEnabled: boolean;
+  onChange: (next: Partial<CalculatorInputs>) => void;
+  onReplace: (next: CalculatorInputs) => void;
+  onResetToBaseline: () => void;
 }
 
 // ─── KPI tile ─────────────────────────────────────────────
 //
-// KPI cards do most of the "first 5 seconds" work — they answer the
-// four questions every borrower asks: How long? How much per month?
-// How much interest? When am I in the black? Tone variants give the
-// row visual rhythm without resorting to a wall of identical white
-// boxes (which is what the previous design was trending toward).
+// KPI cards do most of the "first 5 seconds" work. R2.P5 bumped the value
+// typography one tier so the four headline numbers carry across a desk
+// without becoming visually cluttered.
 interface KpiProps {
   label: string;
   value: string;
   sub?: string;
   tone?: 'default' | 'accent' | 'dark';
   icon?: React.ReactNode;
-  /** When true the value renders one tier larger (used for the headline KPI). */
   big?: boolean;
+  explain?: ExplainData;
 }
 
-function KpiCard({ label, value, sub, tone = 'default', icon, big = false }: KpiProps) {
+function KpiCard({ label, value, sub, tone = 'default', icon, big = false, explain }: KpiProps) {
   const surface =
     tone === 'accent'
       ? 'bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]'
@@ -76,7 +93,7 @@ function KpiCard({ label, value, sub, tone = 'default', icon, big = false }: Kpi
 
   return (
     <div
-      className={`${surface} rounded-[var(--r-card-sm)] p-4 md:p-5 lg:p-6 flex flex-col justify-between min-h-[120px] md:min-h-[140px] lg:min-h-[160px] relative overflow-hidden`}
+      className={`${surface} rounded-[var(--r-card-sm)] p-4 md:p-5 lg:p-6 flex flex-col justify-between min-h-[130px] md:min-h-[150px] lg:min-h-[180px] relative overflow-hidden`}
       style={{ boxShadow: tone === 'default' ? 'var(--shadow-ring)' : 'none' }}
     >
       <div className="flex items-start justify-between gap-3">
@@ -95,27 +112,32 @@ function KpiCard({ label, value, sub, tone = 'default', icon, big = false }: Kpi
       <p
         className={`mt-3 ${
           big
-            ? 'text-[2.25rem] md:text-[2.75rem] lg:text-[3.25rem]'
-            : 'text-[1.75rem] md:text-[2.125rem] lg:text-[2.5rem]'
+            ? 'text-[2.5rem] md:text-[3rem] lg:text-[3.5rem]'
+            : 'text-[1.875rem] md:text-[2.25rem] lg:text-[2.625rem]'
         } ${valueColor} tracking-[-0.025em] leading-[0.95] tabular-nums`}
         style={{ fontWeight: 900, fontFamily: 'var(--font-numbers)' }}
       >
         {value}
       </p>
-      {sub && (
-        <p className={`mt-2 text-[12px] font-semibold ${subColor} leading-snug`}>
-          {sub}
-        </p>
-      )}
+      <div className="mt-2 flex items-center justify-between gap-3">
+        {sub ? (
+          <p className={`text-[12px] font-semibold ${subColor} leading-snug min-w-0`}>
+            {sub}
+          </p>
+        ) : (
+          <span />
+        )}
+        {explain && (
+          <div className={tone === 'default' ? '' : '[&_summary]:!text-white/70 [&_summary:hover]:!text-white'}>
+            <ExplainPopover {...explain} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
 // ─── Chart card ───────────────────────────────────────────
-//
-// Each chart sits inside a generous "presentation card" with a clear
-// title + caption. The eyebrow + title pair gives the eye a place to
-// land before parsing the chart itself.
 interface ChartCardProps {
   title: string;
   caption?: string;
@@ -156,103 +178,138 @@ function ChartCard({ title, caption, eyebrow, legend, children }: ChartCardProps
   );
 }
 
-// ─── Headline insight band ────────────────────────────────
-//
-// The single most important line in the whole results pane. We
-// pre-compute one human sentence based on the dominant scenario state
-// (PSLF eligible, crossover hit, or neither) so the user reads insight
-// before they read numbers.
-function HeadlineInsight({
-  outputs,
-  pslfEnabled,
-}: {
-  outputs: CalculatorOutputs;
-  pslfEnabled: boolean;
-}) {
-  const cross = outputs.netWorthCrossoverYear;
-  const payoffLabel = formatYears(outputs.payoffYears);
-
-  let headline: string;
-  let secondary: string;
-  if (pslfEnabled && outputs.pslfEligible) {
-    headline = `${formatDollars(outputs.pslfForgiven)} forgiven tax-free with PSLF.`;
-    secondary = `That's ${formatDollars(outputs.pslfSavings)} less out of pocket vs the standard plan, with payoff in ${formatYears(outputs.pslfYearsToForgiveness)}.`;
-  } else if (cross !== null) {
-    headline = `You break even at year ${cross}.`;
-    secondary = `From that point forward, your projected net worth stays positive. Total payoff lands at ${payoffLabel}.`;
-  } else {
-    headline = `${payoffLabel} to fully repay.`;
-    secondary = `Your net-worth trajectory hasn't hit positive yet on this scenario \u2014 try toggling PSLF or a longer time horizon.`;
-  }
-
-  return (
-    <div className="relative rounded-[var(--r-card)] p-6 md:p-7 lg:p-9 bg-[color:var(--color-near-black)] text-white overflow-hidden">
-      {/* Subtle ambient glow — purely decorative, hidden from a11y. */}
-      <div
-        aria-hidden
-        className="absolute -right-24 -top-24 w-72 h-72 rounded-full blur-3xl opacity-25"
-        style={{ background: 'var(--color-wise-green)' }}
-      />
-      <div
-        aria-hidden
-        className="absolute -left-16 -bottom-16 w-56 h-56 rounded-full blur-3xl opacity-15"
-        style={{ background: 'var(--color-wise-green)' }}
-      />
-      <div className="relative flex flex-col md:flex-row md:items-start gap-5 md:gap-7">
-        <div
-          aria-hidden
-          className="flex-shrink-0 inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]"
-        >
-          <Sparkles aria-hidden="true" className="w-5 h-5 md:w-6 md:h-6" strokeWidth={2.25} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.16em] text-[color:var(--color-wise-green)]">
-            Your headline insight
-          </p>
-          <p
-            className="mt-2 text-[1.625rem] md:text-[2rem] lg:text-[2.5rem] leading-[1.02] text-white tracking-[-0.025em]"
-            style={{ fontWeight: 900 }}
-          >
-            {headline}
-          </p>
-          <p className="mt-3 text-[14px] md:text-[15px] text-white/65 leading-relaxed font-medium max-w-2xl">
-            {secondary}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── KPI ICONS (lucide-react) ────────────────────────────
+// ─── KPI ICONS ────────────────────────────────────────────
 const KPI_ICON_CLASS = 'w-3.5 h-3.5';
 const KPI_ICON_STROKE = 1.75;
-
-function IconClock() {
-  return <Clock aria-hidden="true" className={KPI_ICON_CLASS} strokeWidth={KPI_ICON_STROKE} />;
-}
-function IconCash() {
-  return <Wallet aria-hidden="true" className={KPI_ICON_CLASS} strokeWidth={KPI_ICON_STROKE} />;
-}
-function IconFlame() {
-  return <Flame aria-hidden="true" className={KPI_ICON_CLASS} strokeWidth={KPI_ICON_STROKE} />;
-}
-function IconCrossover() {
-  return <TrendingUp aria-hidden="true" className={KPI_ICON_CLASS} strokeWidth={KPI_ICON_STROKE} />;
-}
+const IconClock = () => <Clock aria-hidden className={KPI_ICON_CLASS} strokeWidth={KPI_ICON_STROKE} />;
+const IconCash = () => <Wallet aria-hidden className={KPI_ICON_CLASS} strokeWidth={KPI_ICON_STROKE} />;
+const IconFlame = () => <Flame aria-hidden className={KPI_ICON_CLASS} strokeWidth={KPI_ICON_STROKE} />;
+const IconCrossover = () => <TrendingUp aria-hidden className={KPI_ICON_CLASS} strokeWidth={KPI_ICON_STROKE} />;
 
 export default function CalculatorResults({
+  inputs,
+  defaults,
+  baselineInputs,
   outputs,
   residencyYears,
   taxRate,
-  pslfEnabled,
+  onChange,
+  onReplace,
+  onResetToBaseline,
 }: Props) {
+  // Identify a specialty id from the current inputs for benchmark + recommendation engines.
+  const specialtyId = useMemo(() => {
+    const totalTraining = inputs.residencyYears + (inputs.fellowshipYears ?? 0);
+    return SPECIALTIES.find(
+      (s) =>
+        s.attendingSalary === inputs.attendingSalary &&
+        s.residencyYears === totalTraining,
+    )?.id;
+  }, [inputs.attendingSalary, inputs.fellowshipYears, inputs.residencyYears]);
+
+  const recommendation = useMemo(
+    () => recommendStrategy(inputs, outputs, specialtyId),
+    [inputs, outputs, specialtyId],
+  );
+
+  const comparison = useMemo(
+    () => runAllStrategies(inputs, recommendation.strategy),
+    [inputs, recommendation.strategy],
+  );
+
+  const riskFlags = useMemo(() => getRiskFlags(inputs, outputs), [inputs, outputs]);
+
+  // Show-your-work payloads — they use real numeric inputs from the current run.
+  const explainPayoff: ExplainData = {
+    title: 'Time to payoff',
+    formula: 'months_to_zero(balance, monthly_payment, interest_rate)',
+    inputsUsed: [
+      { label: 'Total debt', value: formatDollars(inputs.totalDebt) },
+      { label: 'Interest rate', value: `${inputs.interestRate}%` },
+      { label: 'Attending payment', value: `${formatDollars(outputs.monthlyPaymentAttending)}/mo` },
+      { label: 'Training years', value: residencyYears },
+    ],
+    plainEnglish:
+      'We simulate every month of repayment: interest accrues, your payment chips away at principal, repeat until the balance hits zero. Training-phase payments use either your override or the IDR/interest-only floor; attending-phase uses 10-year amortization (or your override).',
+  };
+
+  // Principal entering the attending phase: read the balance at the end of
+  // training from the schedule (capitalization happens during training).
+  const balanceAtAttendingApprox = useMemo(() => {
+    const trainingEnd = outputs.standardSchedule.find(
+      (row) => row.year === residencyYears,
+    );
+    return trainingEnd?.balance ?? inputs.totalDebt;
+  }, [outputs.standardSchedule, residencyYears, inputs.totalDebt]);
+
+  const explainMonthly: ExplainData = {
+    title: 'Monthly payment',
+    formula: 'M = P \u00b7 r \u00b7 (1+r)\u207f / ((1+r)\u207f \u2212 1)',
+    inputsUsed: [
+      { label: 'Principal at attending (P)', value: formatDollars(balanceAtAttendingApprox) },
+      { label: 'Monthly rate (r)', value: `${(inputs.interestRate / 12).toFixed(3)}%` },
+      { label: 'Months (n)', value: 120 },
+    ],
+    plainEnglish:
+      'Standard amortization formula: solve for the fixed monthly payment that drives the balance to zero in 10 years (120 months) at your interest rate.',
+  };
+
+  const explainInterest: ExplainData = {
+    title: 'Total interest',
+    formula: 'sum(monthly_interest_t) for t in 1..months_to_payoff',
+    inputsUsed: [
+      { label: 'Total paid', value: formatDollars(outputs.standardTotalPaid) },
+      { label: 'Original principal', value: formatDollars(inputs.totalDebt) },
+      { label: 'Interest = paid \u2212 principal', value: formatDollars(outputs.totalInterestPaid) },
+    ],
+    plainEnglish:
+      'Each month, interest = current balance \u00d7 (annual rate / 12). We sum every month\u2019s interest charge across the full repayment horizon. Equivalent to total paid minus original principal (assuming no capitalization).',
+  };
+
+  const explainCrossover: ExplainData = {
+    title: 'Net-worth crossover',
+    formula: 'min{ year : net_worth(year) \u2265 0 }',
+    inputsUsed: [
+      { label: 'Effective tax rate', value: `${taxRate}%` },
+      { label: 'Investment return', value: `${inputs.investmentReturn}%` },
+      { label: 'Living expenses (attending)', value: `${formatDollars(inputs.livingExpensesAttending)}/mo` },
+      {
+        label: 'Crossover year',
+        value: outputs.netWorthCrossoverYear ?? '\u2014',
+      },
+    ],
+    plainEnglish:
+      'Net worth = invested assets minus loan balance. Each year we add after-tax income, subtract living expenses and loan payments, invest the leftover at your assumed market return, and check whether the result has cleared zero.',
+  };
+
   return (
     <div className="flex flex-col gap-5 md:gap-6 lg:gap-7">
-      {/* ── HEADLINE INSIGHT ─────────────────────────── */}
-      <HeadlineInsight outputs={outputs} pslfEnabled={pslfEnabled} />
+      {/* ── 1. Verdict (replaces HeadlineInsight) ────────── */}
+      <BestStrategyPanel
+        recommendation={recommendation}
+        inputs={inputs}
+        defaults={defaults}
+      />
 
-      {/* ── KPI ROW (4-up on desktop, with icons + emphasis hierarchy) ─── */}
+      {/* ── 2. Quick what-if scenarios ──────────────────── */}
+      <QuickToggles
+        inputs={inputs}
+        baselineInputs={baselineInputs}
+        onChange={onChange}
+        onReplace={onReplace}
+        onReset={onResetToBaseline}
+      />
+
+      {/* ── 3. Strategy comparison ──────────────────────── */}
+      <StrategyComparison comparison={comparison} />
+
+      {/* ── 4. Inline email capture ─────────────────────── */}
+      <InlineEmailCapture />
+
+      {/* ── 5. Contextual risk / assumption flags ──────── */}
+      <RiskFlags flags={riskFlags} />
+
+      {/* ── 6. KPI ROW (4-up on desktop, with show-your-work) ─── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <KpiCard
           label="Time to payoff"
@@ -264,12 +321,14 @@ export default function CalculatorResults({
           }
           icon={<IconClock />}
           big
+          explain={explainPayoff}
         />
         <KpiCard
           label="Monthly payment"
           value={formatDollars(outputs.monthlyPaymentAttending)}
           sub={`Residency \u2248 ${formatDollars(outputs.monthlyPaymentResidency)}`}
           icon={<IconCash />}
+          explain={explainMonthly}
         />
         <KpiCard
           label="Total interest"
@@ -277,6 +336,7 @@ export default function CalculatorResults({
           sub={`Total paid ${formatDollars(outputs.standardTotalPaid)}`}
           tone="dark"
           icon={<IconFlame />}
+          explain={explainInterest}
         />
         <KpiCard
           label="Net-worth crossover"
@@ -288,10 +348,21 @@ export default function CalculatorResults({
           sub="First year back in the black"
           tone="accent"
           icon={<IconCrossover />}
+          explain={explainCrossover}
         />
       </div>
 
-      {/* ── PSLF callout ────────────────────────────── */}
+      {/* ── 7. Peer benchmark inline note ───────────────── */}
+      <PeerBenchmarkNote
+        specialtyId={specialtyId}
+        attendingSalary={inputs.attendingSalary}
+        payoffYears={
+          outputs.pslfEligible ? outputs.pslfYearsToForgiveness : outputs.payoffYears
+        }
+        isPslf={!!outputs.pslfEligible}
+      />
+
+      {/* ── 8. PSLF callout (legacy band — still informative) ─── */}
       {outputs.pslfEligible && (
         <div
           className="rounded-[var(--r-card)] p-5 md:p-6 lg:p-7 bg-[color:var(--color-light-mint)] grid grid-cols-2 md:grid-cols-[1fr_1fr_auto] gap-5 md:gap-7 items-center"
@@ -325,14 +396,13 @@ export default function CalculatorResults({
         </div>
       )}
 
-      {/* ── CHARTS GRID ─────────────────────────────────────
-        Desktop story:
-        - On 2xl+ we put Balance + Net Worth side-by-side; both are
-          driven by years-on-x so the eye can compare directly.
-        - Below that, the Comparison bar chart (when PSLF is on) gets
-          the full canvas width — it's the "this is what you'd give up
-          by not doing PSLF" moment and earns the real estate.
-      */}
+      {/* ── 9. PSLF disruption stress test ──────────────── */}
+      <PslfDisruptionPanel inputs={inputs} />
+
+      {/* ── 10. IDR Tax Bomb (non-PSLF federal IDR paths) ─── */}
+      <TaxBombCard inputs={inputs} />
+
+      {/* ── 11. CHARTS GRID (R2.P5: 500px desktop) ───────── */}
       <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 md:gap-5 lg:gap-6">
         <ChartCard
           eyebrow="Loan balance"
@@ -343,7 +413,7 @@ export default function CalculatorResults({
             standardSchedule={outputs.standardSchedule}
             pslfSchedule={outputs.pslfSchedule}
             residencyYears={residencyYears}
-            heightDesktop={380}
+            heightDesktop={500}
           />
         </ChartCard>
 
@@ -358,7 +428,7 @@ export default function CalculatorResults({
             residencyYears={residencyYears}
             crossoverYear={outputs.netWorthCrossoverYear}
             taxRate={taxRate}
-            heightDesktop={380}
+            heightDesktop={500}
           />
         </ChartCard>
       </div>
@@ -369,11 +439,11 @@ export default function CalculatorResults({
           title="The forgiveness scoreboard"
           caption="Side-by-side totals over the full payoff horizon."
         >
-          <ComparisonChart outputs={outputs} heightDesktop={360} />
+          <ComparisonChart outputs={outputs} heightDesktop={500} />
         </ChartCard>
       )}
 
-      {/* ── OPPORTUNITY COST ─────────────────────────── */}
+      {/* ── 12. OPPORTUNITY COST ─────────────────────────── */}
       <div
         className="rounded-[var(--r-card)] p-6 md:p-7 lg:p-8 bg-white grid md:grid-cols-[1fr_auto] items-start gap-5"
         style={{ boxShadow: 'var(--shadow-ring)' }}
@@ -399,7 +469,7 @@ export default function CalculatorResults({
         </div>
       </div>
 
-      {/* ── SNAPSHOT TABLE — collapsed by default so the page lead with insight, not data ─── */}
+      {/* ── 13. Audit trail (year-by-year snapshot) ────── */}
       <details
         className="group bg-white rounded-[var(--r-card)] overflow-hidden"
         style={{ boxShadow: 'var(--shadow-ring)' }}
@@ -419,7 +489,7 @@ export default function CalculatorResults({
           <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.10em] text-[color:var(--text-muted)] group-open:text-[color:var(--color-near-black)]">
             <span className="hidden sm:inline">First 12 years</span>
             <ChevronDown
-              aria-hidden="true"
+              aria-hidden
               className="w-3 h-3 transition-transform group-open:rotate-180"
               strokeWidth={2}
             />
