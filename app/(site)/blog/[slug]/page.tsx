@@ -23,6 +23,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPostBySlug(slug);
   if (!post) return {};
 
+  // The dynamic OG/Twitter images are auto-attached by Next from the
+  // sibling `opengraph-image.tsx` + `twitter-image.tsx` files. We don't
+  // need to pass `images` here — that would override the file-based
+  // metadata convention.
   return {
     title: post.title,
     description: post.description,
