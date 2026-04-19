@@ -1,5 +1,13 @@
 'use client';
 
+import {
+  BarChart3,
+  Briefcase,
+  ChevronDown,
+  CircleDollarSign,
+  Home,
+  TrendingUp,
+} from 'lucide-react';
 import { CalculatorInputs } from '@/lib/calculator';
 import { SPECIALTIES } from '@/lib/specialties';
 import Input from '@/components/ui/Input';
@@ -13,47 +21,24 @@ interface Props {
   onChange: (updated: Partial<CalculatorInputs>) => void;
 }
 
-// ── Section icon glyphs ───────────────────────────────────
+// ── Section icon glyphs (lucide-react) ───────────────────
+const SECTION_ICON_CLASS = 'w-3.5 h-3.5';
+const SECTION_ICON_STROKE = 1.75;
+
 function IconBriefcase() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="1.75" y="3.5" width="10.5" height="8" rx="1.25" />
-      <path d="M5 3.5V2.25C5 1.84 5.34 1.5 5.75 1.5h2.5c.41 0 .75.34.75.75V3.5" />
-      <path d="M1.75 7h10.5" />
-    </svg>
-  );
+  return <Briefcase aria-hidden="true" className={SECTION_ICON_CLASS} strokeWidth={SECTION_ICON_STROKE} />;
 }
 function IconLoan() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="7" cy="7" r="5.25" />
-      <path d="M7 4.25v5.5M5.25 5.5h2.62a1.13 1.13 0 0 1 0 2.25H6.13a1.13 1.13 0 0 0 0 2.25h2.62" />
-    </svg>
-  );
+  return <CircleDollarSign aria-hidden="true" className={SECTION_ICON_CLASS} strokeWidth={SECTION_ICON_STROKE} />;
 }
 function IconHome() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M2 6.5 7 2l5 4.5V11.5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5z" />
-      <path d="M5.5 12.5V8h3v4.5" />
-    </svg>
-  );
+  return <Home aria-hidden="true" className={SECTION_ICON_CLASS} strokeWidth={SECTION_ICON_STROKE} />;
 }
 function IconChart() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M2 11.5h10" />
-      <path d="M3.5 11.5V8M6.25 11.5V5M9 11.5V7.5M11.75 11.5V3" />
-    </svg>
-  );
+  return <BarChart3 aria-hidden="true" className={SECTION_ICON_CLASS} strokeWidth={SECTION_ICON_STROKE} />;
 }
 function IconStrategy() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M2 11.5 6 7.5 8.5 10l3.5-4" />
-      <path d="M9 6h3v3" />
-    </svg>
-  );
+  return <TrendingUp aria-hidden="true" className={SECTION_ICON_CLASS} strokeWidth={SECTION_ICON_STROKE} />;
 }
 
 export default function CalculatorInputsForm({ inputs, onChange }: Props) {
@@ -86,10 +71,18 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
   const strategySummary = inputs.pslfEnabled ? 'PSLF on' : 'Standard repayment';
 
   return (
-    <div className="flex flex-col gap-3">
-      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[color:var(--text-muted)] mb-1">
-        Your inputs
-      </p>
+    <div className="flex flex-col gap-2.5">
+      {/* Tight header: a single line tells the user what this column is.
+          We dropped the eyebrow + section step labels here too — the icons
+          on each section already do the wayfinding job. */}
+      <div className="flex items-baseline justify-between mb-1.5">
+        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[color:var(--text-muted)]">
+          Your inputs
+        </p>
+        <p className="text-[11px] font-medium text-[color:var(--text-muted)]">
+          {SPECIALTIES.length} specialty presets
+        </p>
+      </div>
 
       {/* ── Career ──────────────────────────────────────── */}
       <InputSection
@@ -300,7 +293,6 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
           step={1}
           value={inputs.taxRate}
           onChange={(e) => onChange({ taxRate: Number(e.target.value) })}
-          hint="Federal + state blended (typical physician range 28\u201335%)."
         />
         <Slider
           label="CPI inflation"
@@ -310,7 +302,6 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
           step={0.1}
           value={inputs.inflationRate}
           onChange={(e) => onChange({ inflationRate: Number(e.target.value) })}
-          hint="Applied to salaries + expenses. Fed target is 2\u20133%."
         />
         <Slider
           label="Expected market return"
@@ -320,8 +311,13 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
           step={0.5}
           value={inputs.investmentReturn}
           onChange={(e) => onChange({ investmentReturn: Number(e.target.value) })}
-          hint="Used for opportunity cost of paying off vs investing."
         />
+        {/* Single shared hint for the slider trio — repeating one-liner
+            hints under each slider made the section feel busy. */}
+        <p className="text-[11px] text-[color:var(--text-muted)] leading-relaxed -mt-1">
+          Tax + inflation drive after-tax income; market return is the
+          opportunity cost of overpaying loans vs investing.
+        </p>
         <div className="grid grid-cols-2 gap-2.5">
           <Input
             label="Salary growth (training)"
@@ -357,15 +353,15 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
         hint={strategySummary}
         icon={<IconStrategy />}
       >
-        {/* PSLF block */}
+        {/* PSLF block — uses a fill change, not an extra ring, so the
+            section feels lighter when PSLF is off. */}
         <div
           className={`
             p-4 rounded-[var(--r-card-sm)] transition-colors duration-200 flex flex-col gap-3
             ${inputs.pslfEnabled
               ? 'bg-[color:var(--color-light-mint)]'
-              : 'bg-[color:var(--color-off-white)]'}
+              : 'bg-[color:var(--color-off-white)] ring-1 ring-inset ring-[color:var(--border-subtle)]'}
           `}
-          style={{ boxShadow: 'var(--shadow-ring)' }}
         >
           <Toggle
             id="pslf-toggle"
@@ -395,12 +391,9 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
           )}
         </div>
 
-        {/* Capitalization */}
+        {/* Capitalization — federal-only realism toggle. */}
         {inputs.loanType === 'federal' && (
-          <div
-            className="p-4 rounded-[var(--r-card-sm)] bg-[color:var(--color-off-white)]"
-            style={{ boxShadow: 'var(--shadow-ring)' }}
-          >
+          <div className="p-4 rounded-[var(--r-card-sm)] bg-[color:var(--color-off-white)] ring-1 ring-inset ring-[color:var(--border-subtle)]">
             <Toggle
               id="capitalize-after-training"
               checked={inputs.capitalizeOnlyAfterTraining ?? false}
@@ -408,13 +401,13 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
                 onChange({ capitalizeOnlyAfterTraining: checked })
               }
               label="Capitalize interest only after training"
-              description="Realistic federal IDR behavior. Off = worst-case monthly compounding."
+              description="Realistic federal IDR behavior."
             />
           </div>
         )}
 
         {/* Payment overrides — advanced, hidden behind a sub-disclosure */}
-        <details className="group rounded-[var(--r-card-sm)] bg-[color:var(--color-off-white)] p-4" style={{ boxShadow: 'var(--shadow-ring)' }}>
+        <details className="group rounded-[var(--r-card-sm)] bg-[color:var(--color-off-white)] p-4 ring-1 ring-inset ring-[color:var(--border-subtle)]">
           <summary className="flex items-center justify-between cursor-pointer list-none gap-3">
             <span className="text-[13px] font-bold text-[color:var(--color-near-black)]">
               Override monthly payments
@@ -422,9 +415,11 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
             <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[color:var(--text-muted)] group-open:hidden">
               Advanced
             </span>
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true" className="text-[color:var(--text-muted)] transition-transform group-open:rotate-180">
-              <path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <ChevronDown
+              aria-hidden="true"
+              className="w-2.5 h-2.5 text-[color:var(--text-muted)] transition-transform group-open:rotate-180"
+              strokeWidth={2}
+            />
           </summary>
           <div className="mt-4 flex flex-col gap-3">
             <Input
@@ -468,8 +463,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
       </InputSection>
 
       <p className="text-[11px] text-[color:var(--text-muted)] mt-3 leading-relaxed px-1">
-        Estimates only. Forgiveness, tax treatment, and loan-program rules may
-        change. Not financial, tax, or legal advice.
+        Estimates only. Not financial, tax, or legal advice.
       </p>
     </div>
   );

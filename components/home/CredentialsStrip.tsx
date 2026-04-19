@@ -1,5 +1,6 @@
 import { BRAND, DATA_SOURCES } from '@/lib/trust-content';
 import Link from 'next/link';
+import { ArrowRight, Check } from 'lucide-react';
 
 /**
  * Brand-led credibility strip rendered just below the stats row.
@@ -52,15 +53,7 @@ export default function CredentialsStrip() {
                 className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--color-dark-green)] hover:text-[color:var(--color-near-black)] transition-colors"
               >
                 Read the full methodology
-                <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path
-                    d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <ArrowRight aria-hidden="true" className="w-2.5 h-2.5" strokeWidth={2} />
               </Link>
             </div>
           </div>
@@ -74,22 +67,11 @@ export default function CredentialsStrip() {
               {inlineSources.map((src) => {
                 const inner = (
                   <span className="flex items-baseline gap-2 min-w-0">
-                    <svg
-                      width="11"
-                      height="11"
-                      viewBox="0 0 12 12"
-                      fill="none"
+                    <Check
                       aria-hidden="true"
-                      className="flex-shrink-0 mt-1 text-[color:var(--color-dark-green)]"
-                    >
-                      <path
-                        d="M2 6.5 5 9.5l5-7"
-                        stroke="currentColor"
-                        strokeWidth="1.75"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                      className="flex-shrink-0 mt-1 text-[color:var(--color-dark-green)] w-2.5 h-2.5"
+                      strokeWidth={2.5}
+                    />
                     <span className="min-w-0">
                       <span className="text-sm font-bold text-[color:var(--color-near-black)] block leading-snug">
                         {src.name}

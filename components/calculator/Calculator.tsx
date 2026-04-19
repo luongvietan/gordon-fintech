@@ -2,6 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Check,
+  Download,
+  Link2,
+  Loader2,
+  Lock,
+  LineChart,
+  RotateCcw,
+} from 'lucide-react';
+import {
   CalculatorInputs,
   CalculatorOutputs,
   ScenarioPreset,
@@ -60,20 +69,9 @@ function DownloadPdfButton({
       className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[var(--r-pill)] text-xs font-bold bg-[color:var(--color-near-black)] text-white transition-all duration-200 hover:scale-[1.04] hover:bg-[color:var(--color-near-black)]/90 active:scale-[0.96] disabled:opacity-60 disabled:pointer-events-none"
     >
       {state === 'loading' ? (
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="animate-spin" aria-hidden="true">
-          <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.25" />
-          <path d="M10.5 6a4.5 4.5 0 0 0-4.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
+        <Loader2 aria-hidden="true" className="w-3 h-3 animate-spin" strokeWidth={2} />
       ) : (
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <path
-            d="M6 1.5v6m0 0L3.5 5m2.5 2.5L8.5 5M2 9.5v.5a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-.5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <Download aria-hidden="true" className="w-3 h-3" strokeWidth={2} />
       )}
       {label}
     </button>
@@ -157,25 +155,9 @@ function ShareLinkButton({
       className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[var(--r-pill)] text-xs font-bold bg-white text-[color:var(--color-near-black)] ring-1 ring-inset ring-[color:var(--border-default)] transition-all duration-200 hover:scale-[1.04] hover:ring-[color:var(--border-strong)] active:scale-[0.96]"
     >
       {state === 'copied' ? (
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <path
-            d="M2.5 6.5 5 9l4.5-5.5"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <Check aria-hidden="true" className="w-3 h-3" strokeWidth={2.5} />
       ) : (
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <path
-            d="M5 7.5 7.5 5m-3.25.25L3 6.5a2 2 0 0 0 2.83 2.83l1.25-1.25M7 4.5l1.25-1.25A2 2 0 0 1 11.08 6.08L9.83 7.33"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <Link2 aria-hidden="true" className="w-3 h-3" strokeWidth={2} />
       )}
       {label}
     </button>
@@ -256,8 +238,13 @@ export default function Calculator() {
   const trainingYears = inputs.residencyYears + (inputs.fellowshipYears ?? 0);
 
   return (
+    // `overflow-clip` instead of `overflow-hidden` — both clip the rounded
+    // corners visually, but `clip` does NOT establish a scroll container,
+    // so position:sticky on the inputs sidebar (below) still anchors to
+    // the page, not to this card. With `overflow-hidden` here, the sidebar
+    // would never stick because it would think this card is its scroller.
     <div
-      className="overflow-hidden bg-white"
+      className="overflow-clip bg-white"
       style={{
         borderRadius: 'var(--r-card-lg)',
         boxShadow: 'var(--shadow-ring), var(--shadow-float)',
@@ -274,16 +261,7 @@ export default function Calculator() {
             className="flex-shrink-0 w-9 h-9 rounded-[10px] bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] flex items-center justify-center"
             style={{ fontWeight: 900 }}
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path
-                d="M2 13.5 5.5 9 8.5 11 13 4"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path d="M9.5 4H13v3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <LineChart aria-hidden="true" className="w-4 h-4" strokeWidth={2} />
           </div>
           <div className="min-w-0">
             <h3
@@ -345,15 +323,7 @@ export default function Calculator() {
           className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold text-[color:var(--text-muted)] hover:text-[color:var(--color-near-black)] hover:bg-[color:var(--color-near-black)]/[0.05] transition-colors"
           aria-label="Reset all calculator inputs to defaults"
         >
-          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <path
-              d="M2 6a4 4 0 0 1 7-2.65L10 4.5M10 1.5V4.5h-3"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <RotateCcw aria-hidden="true" className="w-2.5 h-2.5" strokeWidth={2} />
           Reset
         </button>
       </div>
@@ -363,21 +333,11 @@ export default function Calculator() {
         className="px-5 md:px-7 lg:px-8 py-2.5 flex items-center gap-2.5 border-b border-[color:var(--border-subtle)]"
         style={{ background: 'var(--color-light-mint)' }}
       >
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.25"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        <Lock
           aria-hidden="true"
-          className="text-[color:var(--color-dark-green)] flex-shrink-0"
-        >
-          <rect x="3" y="11" width="18" height="11" rx="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
+          className="text-[color:var(--color-dark-green)] flex-shrink-0 w-3.5 h-3.5"
+          strokeWidth={2.25}
+        />
         <p className="text-[12px] md:text-[13px] font-semibold text-[color:var(--color-dark-green)] leading-snug">
           <span className="font-bold">Your data never leaves your device.</span>{' '}
           <span className="text-[color:var(--color-dark-green)]/75">
@@ -387,22 +347,43 @@ export default function Calculator() {
       </div>
 
       {/* ── Two-column dashboard ─────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)]">
-        {/* Inputs sidebar */}
+      {/*
+        Desktop sizing strategy:
+        - sidebar settles around ~400px so inputs stay scannable but never
+          dominate; results pane gets the remaining 60-70% of the canvas.
+        - At 2xl we let the sidebar expand slightly (440px) so 4-up KPIs
+          and side-by-side charts on the right still feel airy.
+      */}
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[400px_minmax(0,1fr)] 2xl:grid-cols-[440px_minmax(0,1fr)] items-start">
+        {/*
+          Inputs sidebar — sticks to the top of the viewport on desktop so
+          the user can scroll through the long results pane on the right
+          while keeping their inputs always one click away. We anchor to
+          `top-16` because the site header is h-16 and sticky-top-0 itself.
+
+          - `lg:self-start` is critical: by default grid items stretch to
+            the row's height, which would let the sidebar grow with the
+            results column and prevent sticky from ever kicking in.
+          - `lg:max-h-[calc(100svh-4rem)]` caps the sidebar at viewport
+            minus the header so its own internal scroller takes over when
+            users have lots of input sections expanded.
+          - `svh` (small viewport height) avoids the iOS Safari address-bar
+            jump that `vh` causes during scroll.
+        */}
         <aside
-          className="min-w-0 lg:border-r border-b lg:border-b-0 border-[color:var(--border-subtle)] bg-white"
+          className="min-w-0 lg:border-r border-b lg:border-b-0 border-[color:var(--border-subtle)] bg-white lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100svh-4rem)]"
         >
           <div
-            className="px-5 md:px-6 py-5 md:py-6 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto wise-scroll"
+            className="px-5 md:px-6 lg:px-7 py-5 md:py-6 lg:py-7 lg:max-h-[calc(100svh-4rem)] lg:overflow-y-auto wise-scroll"
             data-lenis-prevent
           >
             <CalculatorInputsForm inputs={inputs} onChange={handleChange} />
           </div>
         </aside>
 
-        {/* Results pane */}
+        {/* Results pane — gets generous padding on desktop so charts feel curated, not crammed. */}
         <div
-          className="min-w-0 px-5 md:px-7 lg:px-8 py-6 md:py-8"
+          className="min-w-0 px-5 md:px-7 lg:px-9 xl:px-10 2xl:px-12 py-6 md:py-8 lg:py-9 xl:py-10"
           style={{ background: 'var(--color-off-white)' }}
         >
           <CalculatorResults

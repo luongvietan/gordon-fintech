@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react';
 import CrossoverChart from './CrossoverChart';
 
 /**
@@ -41,15 +42,7 @@ export default function CrossoverUspSection() {
               className="mt-8 inline-flex items-center gap-2 px-5 py-3 rounded-[var(--r-pill)] text-sm font-semibold bg-[color:var(--color-near-black)] text-white transition-transform duration-200 hover:scale-[1.04] active:scale-[0.96]"
             >
               Find your crossover year
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path
-                  d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <ArrowRight aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
             </a>
           </div>
 

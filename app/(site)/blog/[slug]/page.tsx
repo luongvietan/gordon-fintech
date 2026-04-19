@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { ArrowRight, Plus } from 'lucide-react';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import remarkGfm from 'remark-gfm';
 import { getAllSlugs, getPostBySlug, getRelatedPosts } from '@/lib/blog';
@@ -201,15 +202,11 @@ export default async function BlogPostPage({ params }: Props) {
                             {f.q}
                           </h3>
                           <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-[color:var(--color-near-black)]/[0.06] group-open:bg-[color:var(--color-wise-green)] transition-colors">
-                            <svg
-                              width="9"
-                              height="9"
-                              viewBox="0 0 10 10"
-                              className="transition-transform duration-200 group-open:rotate-45"
+                            <Plus
                               aria-hidden="true"
-                            >
-                              <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-                            </svg>
+                              className="w-2.5 h-2.5 transition-transform duration-200 group-open:rotate-45"
+                              strokeWidth={2}
+                            />
                           </span>
                         </summary>
                         <p className="mt-3 text-[15px] text-[color:var(--text-secondary)] leading-relaxed font-medium">
@@ -238,15 +235,7 @@ export default async function BlogPostPage({ params }: Props) {
                   className="inline-flex items-center justify-center gap-1.5 mt-5 w-full py-3 rounded-[var(--r-pill)] text-sm font-semibold bg-[color:var(--color-near-black)] text-white transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
                 >
                   Try Calculator
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <path
-                      d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                      stroke="currentColor"
-                      strokeWidth="1.75"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <ArrowRight aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
                 </Link>
               </div>
 
@@ -274,15 +263,7 @@ export default async function BlogPostPage({ params }: Props) {
                 className="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--color-dark-green)] hover:text-[color:var(--color-near-black)] transition-colors"
               >
                 All articles
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path
-                    d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <ArrowRight aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 max-w-5xl mx-auto">
@@ -317,15 +298,7 @@ export default async function BlogPostPage({ params }: Props) {
               className="inline-flex items-center gap-2 mt-8 px-6 py-3.5 rounded-[var(--r-pill)] text-base font-semibold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95]"
             >
               Calculate my payoff — free
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path
-                  d="M3 8h10m-5-5 5 5-5 5"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <ArrowRight aria-hidden="true" className="w-4 h-4" strokeWidth={2} />
             </Link>
           </div>
         </div>

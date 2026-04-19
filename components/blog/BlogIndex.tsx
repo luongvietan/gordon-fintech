@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import ArticleCard from './ArticleCard';
 import type { Category, PostMeta } from '@/lib/blog';
 
@@ -115,15 +116,7 @@ export default function BlogIndex({ posts, categories }: Props) {
             className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-[var(--r-pill)] text-sm font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95]"
           >
             Try the calculator
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path
-                d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <ArrowRight aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
           </Link>
         </div>
       </section>

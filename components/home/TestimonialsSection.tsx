@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { Quote } from 'lucide-react';
 import { TESTIMONIALS, type Testimonial } from '@/lib/trust-content';
 
 function initials(name: string) {
@@ -61,19 +62,12 @@ export default function TestimonialsSection() {
               className="flex flex-col gap-5 p-6 md:p-7 rounded-[var(--r-card)] bg-white"
               style={{ boxShadow: 'var(--shadow-ring)' }}
             >
-              <svg
-                width="28"
-                height="22"
-                viewBox="0 0 28 22"
-                fill="none"
+              <Quote
                 aria-hidden="true"
-                className="text-[color:var(--color-wise-green)]"
-              >
-                <path
-                  d="M0 22V12.57C0 5.63 3.71 1.44 11.14 0v4.34c-3.2.85-5.14 2.8-5.14 5.68h5.14V22H0zm16.86 0V12.57C16.86 5.63 20.57 1.44 28 0v4.34c-3.2.85-5.14 2.8-5.14 5.68H28V22H16.86z"
-                  fill="currentColor"
-                />
-              </svg>
+                className="text-[color:var(--color-wise-green)] w-7 h-7"
+                fill="currentColor"
+                strokeWidth={0}
+              />
               <blockquote
                 className="text-[17px] md:text-[18px] text-[color:var(--text-primary)] leading-[1.4] font-medium tracking-[-0.005em]"
               >

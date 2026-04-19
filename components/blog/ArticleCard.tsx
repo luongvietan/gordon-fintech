@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import PostThumbnail from '@/components/home/PostThumbnail';
 import type { PostMeta } from '@/lib/blog';
 
@@ -65,22 +66,11 @@ export default function ArticleCard({ post, variant = 'default' }: Props) {
           </div>
           <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--color-dark-green)] mt-2">
             Read the full guide
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              className="transition-transform duration-200 group-hover:translate-x-1"
+            <ArrowRight
               aria-hidden="true"
-            >
-              <path
-                d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+              className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1"
+              strokeWidth={2}
+            />
           </span>
         </div>
       </Link>
@@ -144,22 +134,11 @@ export default function ArticleCard({ post, variant = 'default' }: Props) {
           )}
           <span className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[color:var(--color-dark-green)]">
             Read
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 14 14"
-              fill="none"
-              className="transition-transform duration-200 group-hover:translate-x-1"
+            <ArrowRight
               aria-hidden="true"
-            >
-              <path
-                d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+              className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-1"
+              strokeWidth={2}
+            />
           </span>
         </div>
       </div>

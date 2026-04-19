@@ -1,6 +1,7 @@
 'use client';
 
 import { SelectHTMLAttributes, forwardRef } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 interface SelectOption {
   value: string;
@@ -58,16 +59,11 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ))}
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path
-                d="M3.5 5.25 7 8.75l3.5-3.5"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-[color:var(--text-secondary)]"
-              />
-            </svg>
+            <ChevronDown
+              aria-hidden="true"
+              className="w-3.5 h-3.5 text-[color:var(--text-secondary)]"
+              strokeWidth={2}
+            />
           </div>
         </div>
         {hint && (

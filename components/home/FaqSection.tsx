@@ -2,6 +2,14 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import {
+  ArrowRight,
+  FileText,
+  HelpCircle,
+  Plus,
+  RefreshCw,
+  ShieldCheck,
+} from 'lucide-react';
 
 export type FaqCategory = 'pslf' | 'refi' | 'tax' | 'general';
 
@@ -26,51 +34,18 @@ const CATEGORIES: { id: FaqCategory | 'all'; label: string }[] = [
 ];
 
 function CategoryIcon({ category }: { category: FaqCategory }) {
-  const common = {
-    width: 14,
-    height: 14,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 2,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    'aria-hidden': true as const,
-  };
+  const className = 'w-3.5 h-3.5';
+  const strokeWidth = 2;
   switch (category) {
     case 'pslf':
-      return (
-        <svg {...common}>
-          <path d="M12 3l8 4v5c0 4.5-3.2 8.5-8 9-4.8-.5-8-4.5-8-9V7l8-4z" />
-          <path d="M9 12l2 2 4-4" />
-        </svg>
-      );
+      return <ShieldCheck aria-hidden="true" className={className} strokeWidth={strokeWidth} />;
     case 'refi':
-      return (
-        <svg {...common}>
-          <path d="M3 12a9 9 0 0 1 15.5-6.3L21 8" />
-          <path d="M21 3v5h-5" />
-          <path d="M21 12a9 9 0 0 1-15.5 6.3L3 16" />
-          <path d="M3 21v-5h5" />
-        </svg>
-      );
+      return <RefreshCw aria-hidden="true" className={className} strokeWidth={strokeWidth} />;
     case 'tax':
-      return (
-        <svg {...common}>
-          <path d="M6 3h9l5 5v13a0 0 0 0 1 0 0H6a0 0 0 0 1 0 0V3z" />
-          <path d="M14 3v6h6" />
-          <path d="M9 14h6M9 18h4" />
-        </svg>
-      );
+      return <FileText aria-hidden="true" className={className} strokeWidth={strokeWidth} />;
     case 'general':
     default:
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-1 .5-1.5 1-1.5 2.2" />
-          <path d="M11.5 17h.01" />
-        </svg>
-      );
+      return <HelpCircle aria-hidden="true" className={className} strokeWidth={strokeWidth} />;
   }
 }
 
@@ -159,20 +134,11 @@ export default function FaqSection({ items }: Props) {
                       </h3>
                     </div>
                     <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-[color:var(--color-near-black)]/[0.06] group-open:bg-[color:var(--color-wise-green)] transition-colors">
-                      <svg
-                        width="10"
-                        height="10"
-                        viewBox="0 0 10 10"
-                        className="transition-transform duration-200 group-open:rotate-45"
+                      <Plus
                         aria-hidden="true"
-                      >
-                        <path
-                          d="M5 1v8M1 5h8"
-                          stroke="currentColor"
-                          strokeWidth="1.75"
-                          strokeLinecap="round"
-                        />
-                      </svg>
+                        className="w-2.5 h-2.5 transition-transform duration-200 group-open:rotate-45"
+                        strokeWidth={2}
+                      />
                     </span>
                   </summary>
                   <p className="mt-4 text-[15px] text-[color:var(--text-secondary)] leading-relaxed font-medium">
@@ -184,15 +150,7 @@ export default function FaqSection({ items }: Props) {
                       className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-[color:var(--color-dark-green)] hover:text-[color:var(--color-near-black)] transition-colors"
                     >
                       {f.learnMore.label}
-                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                        <path
-                          d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                          stroke="currentColor"
-                          strokeWidth="1.75"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
+                      <ArrowRight aria-hidden="true" className="w-3 h-3" strokeWidth={2} />
                     </Link>
                   )}
                 </details>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 const LAST_UPDATED = 'April 2026';
 
@@ -32,15 +33,7 @@ export default function Footer() {
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--color-dark-green)] hover:underline"
             >
               How we compute the numbers
-              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path
-                  d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <ArrowRight aria-hidden="true" className="w-3 h-3" strokeWidth={2} />
             </Link>
           </div>
 

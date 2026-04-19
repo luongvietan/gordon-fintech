@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ArrowRight, Check, Users } from 'lucide-react';
 import { NEWSLETTER_SUBSCRIBER_COUNT } from '@/lib/trust-content';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
@@ -88,22 +89,7 @@ export default function NewsletterSignup() {
               </span>
               {NEWSLETTER_SUBSCRIBER_COUNT !== null && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[11px] sm:text-xs font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]">
-                  <svg
-                    width="11"
-                    height="11"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
+                  <Users aria-hidden="true" className="w-3 h-3" strokeWidth={2.5} />
                   Join {formatSubscriberCount(NEWSLETTER_SUBSCRIBER_COUNT)} physicians
                 </span>
               )}
@@ -132,22 +118,11 @@ export default function NewsletterSignup() {
                   key={p}
                   className="flex items-start gap-2.5 text-[13.5px] text-white/85 font-medium leading-snug"
                 >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
+                  <Check
                     aria-hidden="true"
-                    className="flex-shrink-0 mt-1 text-[color:var(--color-wise-green)]"
-                  >
-                    <path
-                      d="M2.5 7 5.5 10l6-7"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                    className="flex-shrink-0 mt-1 text-[color:var(--color-wise-green)] w-3.5 h-3.5"
+                    strokeWidth={2.5}
+                  />
                   {p}
                 </li>
               ))}
@@ -158,15 +133,7 @@ export default function NewsletterSignup() {
               className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--color-wise-green)] hover:text-white transition-colors"
             >
               See a sample issue
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path
-                  d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <ArrowRight aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
             </Link>
           </div>
 

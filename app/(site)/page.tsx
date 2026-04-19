@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { ArrowDown, ArrowRight, Check } from 'lucide-react';
 import Calculator from '@/components/calculator/Calculator';
 import NewsletterSignup from '@/components/layout/NewsletterSignup';
 import AdSlot from '@/components/ads/AdSlot';
@@ -58,25 +59,13 @@ const STATS = [
   },
 ];
 
-/**
- * Tiny green check mark used inside the hero trust strip.
- * Inline SVG to avoid pulling an icon library for a single glyph.
- */
 function CheckDot() {
   return (
     <span
       aria-hidden
       className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[color:var(--color-wise-green)]/20 text-[color:var(--color-wise-green)]"
     >
-      <svg width="9" height="9" viewBox="0 0 14 14" fill="none">
-        <path
-          d="M2.5 7 5.5 10l6-7"
-          stroke="currentColor"
-          strokeWidth="2.25"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <Check className="w-2.5 h-2.5" strokeWidth={2.5} />
     </span>
   );
 }
@@ -294,15 +283,7 @@ export default async function HomePage() {
                   className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-[15px] font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] shadow-[0_8px_30px_-8px_rgba(159,232,112,0.55)] transition-all duration-200 hover:scale-[1.04] hover:bg-[color:var(--color-pastel-green)] active:scale-[0.97]"
                 >
                   Run my numbers — free
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path
-                      d="M3 8h10m-5-5 5 5-5 5"
-                      stroke="currentColor"
-                      strokeWidth="1.75"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <ArrowRight aria-hidden="true" className="w-4 h-4" strokeWidth={2} />
                 </a>
                 <Link
                   href="/blog/pslf-explained-for-doctors"
@@ -344,15 +325,11 @@ export default async function HomePage() {
             className="hidden md:flex absolute left-1/2 -translate-x-1/2 bottom-5 lg:bottom-6 items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/45 hover:text-white/85 transition-colors"
           >
             Scroll
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="animate-bounce-slow">
-              <path
-                d="M7 2v9m-4-4 4 4 4-4"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <ArrowDown
+              aria-hidden="true"
+              className="w-3.5 h-3.5 animate-bounce-slow"
+              strokeWidth={2}
+            />
           </a>
         </div>
       </section>
@@ -397,12 +374,19 @@ export default async function HomePage() {
       <CredentialsStrip />
 
       {/* ─── CALCULATOR ──────────────────────────────────────── */}
+      {/*
+        The calculator is the centerpiece of the page, so on desktop it
+        breaks out of the standard 1200px container into the wider 1440px
+        canvas. That gives the two-column dashboard real room to breathe
+        and lets charts render at premium widths instead of feeling like
+        a sidebar widget glued to the page.
+      */}
       <section
         id="calculator"
         className="pt-14 md:pt-20 pb-14 md:pb-24"
         style={{ background: 'var(--color-off-white)' }}
       >
-        <div className="container">
+        <div className="container container-wide">
           <div className="max-w-3xl mb-10 md:mb-12">
             <p className="eyebrow mb-4">The tool</p>
             <h2
@@ -521,15 +505,7 @@ export default async function HomePage() {
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--color-near-black)] hover:text-[color:var(--color-dark-green)] transition-colors"
               >
                 View all guides
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path
-                    d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <ArrowRight aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">

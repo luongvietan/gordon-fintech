@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { TRUST_PILLARS } from '@/lib/trust-content';
 
 /**
@@ -24,15 +25,7 @@ export default function TrustBand() {
             className="text-xs font-semibold text-[color:var(--color-dark-green)] hover:text-[color:var(--color-near-black)] transition-colors inline-flex items-center gap-1.5"
           >
             Full methodology
-            <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path
-                d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <ArrowRight aria-hidden="true" className="w-2.5 h-2.5" strokeWidth={2} />
           </Link>
         </div>
 
