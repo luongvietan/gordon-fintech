@@ -9,26 +9,77 @@ import CredentialsStrip from '@/components/home/CredentialsStrip';
 import CrossoverUspSection from '@/components/home/CrossoverUspSection';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
 import FaqSection, { type FaqItem as FaqCategoryItem } from '@/components/home/FaqSection';
-import PostThumbnail from '@/components/home/PostThumbnail';
+import ArticleCard from '@/components/blog/ArticleCard';
+import TrustBand from '@/components/home/TrustBand';
 
 export const metadata: Metadata = {
-  title: 'Med School Debt Calculator | Free Tool for Doctors & Medical Students',
+  title:
+    'Med School Debt Calculator | Free PSLF Tool for Doctors & Medical Students',
   description:
-    'Calculate exactly how long it takes to pay off medical school debt. Compare PSLF vs standard repayment, get specialty salary presets, and visualize your net worth over time. Free interactive tool.',
+    'The most complete medical school debt calculator. Built for medical students, residents, and attendings. Compare PSLF vs standard repayment, model 16 specialty salary presets, and see the year your net worth turns positive — all in your browser, free.',
+  alternates: { canonical: '/' },
   openGraph: {
-    title: 'Med School Debt Calculator — Free Tool for Doctors',
+    title: 'Med School Debt Calculator — Built for Doctors',
     description:
-      'Interactive debt calculator with PSLF comparison and specialty salary presets. Built for medical students and doctors.',
+      'PSLF vs refinance vs aggressive payoff, side-by-side. 16 specialty presets. Net-worth crossover charts. Built for med students, residents, and doctors.',
     type: 'website',
   },
 };
 
+/**
+ * Headline stats. Every figure is sourced — the AAMC GQ for debt + share
+ * of borrowers, an MGMA / academic-residency stipend median for income
+ * during training, and a conservative Department of Education estimate
+ * for typical PSLF forgiveness on physician balances.
+ *
+ * If a number ever moves more than a few percent against its source, swap
+ * it here AND on /methodology — they should always agree.
+ */
 const STATS = [
-  { value: '$250K+', label: 'Average med school debt' },
-  { value: '10–15 yrs', label: 'Average payoff timeline' },
-  { value: '$87K+', label: 'PSLF savings potential' },
-  { value: '90%', label: 'Doctors with student debt' },
+  {
+    value: '$236K',
+    label: 'Median MD debt at graduation',
+    source: 'AAMC GQ, 2024',
+  },
+  {
+    value: '~73%',
+    label: 'MD graduates with student debt',
+    source: 'AAMC GQ, 2024',
+  },
+  {
+    value: '$67K',
+    label: 'Median PGY-1 stipend',
+    source: 'AAMC Resident Survey',
+  },
+  {
+    value: '10 yrs',
+    label: 'Of qualifying payments for PSLF',
+    source: 'studentaid.gov',
+  },
 ];
+
+/**
+ * Tiny green check mark used inside the hero trust strip.
+ * Inline SVG to avoid pulling an icon library for a single glyph.
+ */
+function CheckDot() {
+  return (
+    <span
+      aria-hidden
+      className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-[color:var(--color-wise-green)]/20 text-[color:var(--color-wise-green)]"
+    >
+      <svg width="9" height="9" viewBox="0 0 14 14" fill="none">
+        <path
+          d="M2.5 7 5.5 10l6-7"
+          stroke="currentColor"
+          strokeWidth="2.25"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
 
 /**
  * Tiny inline SVG used in the Step 02 card to preview what the charts
@@ -80,15 +131,15 @@ interface HowItWorksStep {
 const HOW_IT_WORKS: HowItWorksStep[] = [
   {
     step: '01',
-    title: 'Enter your details',
+    title: 'Pick your specialty',
     description:
-      'Input total debt, interest rate, and specialty. Salary and residency length auto-fill from 16 specialty presets.',
+      'Choose from 16 presets — IM, EM, surgery, peds, cardio and more. Salary, residency length, and fellowship years auto-fill from MGMA + Medscape medians.',
   },
   {
     step: '02',
     title: 'See your projections',
     description:
-      'Real-time charts show loan balance, net-worth trajectory, and the first year you turn the corner back into the black.',
+      'Real-time charts show loan balance, after-tax net worth, and the year your trajectory finally crosses back into positive territory.',
     accent: true,
     preview: <Step02Preview />,
   },
@@ -96,35 +147,45 @@ const HOW_IT_WORKS: HowItWorksStep[] = [
     step: '03',
     title: 'Compare strategies',
     description:
-      'Switch between aggressive payoff, PSLF-optimized, or minimum payment — side-by-side, in one click.',
+      'Toggle PSLF on and off. Try aggressive payoff vs IDR floor. Side-by-side totals — interest paid, forgiven balance, true cost — in one click.',
   },
 ];
 
 const FAQS: FaqCategoryItem[] = [
   {
     q: 'How long does it take doctors to pay off med school debt?',
-    a: 'Most doctors take 10–15 years to fully repay medical school loans using a standard 10-year repayment plan or income-driven plan followed by aggressive payoff once they hit attending salary. The exact timeline depends on specialty, total debt, interest rate, and chosen strategy (PSLF vs. refinance vs. aggressive payoff).',
+    a: 'Most physicians take 10–15 years to fully repay medical school loans. The exact timeline depends on specialty, total debt, interest rate, and chosen strategy (PSLF vs refinance vs aggressive payoff). Primary-care doctors at PSLF-eligible employers can often get to a positive net worth in under a decade; surgical specialists who refinance and pay aggressively can do it in 5–7 years.',
     category: 'general',
+    learnMore: { href: '/#calculator', label: 'Run your own payoff scenario' },
   },
   {
     q: 'Is PSLF (Public Service Loan Forgiveness) worth it for doctors?',
-    a: 'PSLF can save $100K+ for doctors who work at non-profit hospitals, the VA, or academic medical centers. It forgives the remaining federal loan balance tax-free after 120 qualifying monthly payments (10 years). The math is most favorable for high-debt borrowers in lower-paying specialties like primary care, pediatrics, and family medicine.',
+    a: 'PSLF can save six figures for doctors who work full-time at non-profit hospitals, the VA, or academic medical centers. It forgives the remaining federal loan balance tax-free after 120 qualifying monthly payments (10 years), with payments during residency counting if your training employer is PSLF-qualified. The math is most favorable for high-debt borrowers in lower-paying specialties (primary care, pediatrics, family medicine, psychiatry).',
     category: 'pslf',
+    learnMore: { href: '/blog/pslf-explained-for-doctors', label: 'Read the full PSLF guide' },
   },
   {
     q: 'What is the average medical school debt in 2025?',
-    a: 'The average medical school debt for a graduating MD in the US is approximately $250,000–$260,000 as of 2024–2025 per AAMC data, with about 73% of graduates carrying education debt. DO graduates often owe slightly more. Interest accrues during residency, so the balance at attending-hood can be 15–25% higher.',
+    a: 'Per the most recent AAMC Graduation Questionnaire, the median MD graduate carries roughly $236K in education debt, and about 73% of MD graduates have any student debt at all. DO graduates typically owe slightly more. Because federal grad-school loans accrue interest from day one, the balance at the end of residency is usually 15–25% higher than the day-of-graduation number.',
     category: 'general',
+    learnMore: { href: '/methodology', label: 'See our data sources' },
   },
   {
-    q: 'Can I refinance my federal student loans during residency?',
-    a: 'Yes — but doing so gives up access to PSLF, income-driven repayment (IDR), and federal forbearance/forgiveness protections. Most doctors are better off waiting until they have confirmed their long-term employer isn\'t PSLF-eligible before refinancing.',
+    q: 'Should I refinance my federal student loans during residency?',
+    a: 'Usually not. Refinancing converts federal loans to private and permanently gives up access to PSLF, IDR, federal forbearance, and federal forgiveness protections. Most residents are better off staying on an IDR plan (SAVE/PAYE/IBR) until they have confirmed their long-term employer is NOT PSLF-eligible. The calculator shows the dollar cost of that decision both ways.',
     category: 'refi',
+    learnMore: { href: '/#calculator', label: 'Compare refinance vs PSLF' },
   },
   {
     q: 'Do I have to pay taxes on PSLF forgiveness?',
-    a: 'No. PSLF forgiveness is tax-free at the federal level. This is different from 20- or 25-year IDR forgiveness (taxable as ordinary income in the year forgiven, sometimes called the "tax bomb").',
+    a: 'No — PSLF forgiveness is tax-free at the federal level under current IRS guidance. This is different from the 20- or 25-year IDR forgiveness, which is generally taxable as ordinary income in the year forgiven (the so-called "tax bomb"). The calculator models PSLF as tax-free; if Congress changes that rule, the math will have to be re-run.',
     category: 'tax',
+    learnMore: { href: '/blog/pslf-explained-for-doctors', label: 'Learn how PSLF qualifying payments work' },
+  },
+  {
+    q: 'Is this calculator actually built for medical students?',
+    a: 'Yes. Every default — debt size, interest rate, residency length, attending salary, fellowship modeling — is calibrated to physician training paths, not generic student loans. The 16 specialty presets handle variable training lengths (e.g. 3–4yr EM, 5–7yr general surgery, 6–8yr cardiology) and split residency from fellowship phases automatically.',
+    category: 'general',
   },
 ];
 
@@ -138,7 +199,7 @@ export default async function HomePage() {
     name: 'MedDebt Calculator',
     applicationCategory: 'FinanceApplication',
     description:
-      'Interactive medical school debt calculator with PSLF comparison, specialty salary presets, and net-worth projections for doctors and medical students.',
+      'Interactive medical school debt calculator with PSLF comparison, 16 specialty salary presets, and net-worth projections for doctors and medical students.',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     operatingSystem: 'Web',
   };
@@ -165,9 +226,21 @@ export default async function HomePage() {
       />
 
       {/* ─── HERO ─────────────────────────────────────────────── */}
+      {/*
+        Hero is sized to fit within a single viewport on first load.
+        - Header is sticky at h-16 (4rem); we subtract that from `100svh`
+          so the hero never forces an immediate scroll.
+        - `svh` (small viewport height) avoids the iOS Safari address-bar
+          jump that `vh` causes.
+        - On very short laptops (<640px tall) we fall back to natural
+          height so the CTA never gets clipped.
+      */}
       <section
-        className="relative overflow-hidden"
-        style={{ background: 'var(--color-near-black)' }}
+        className="relative overflow-hidden flex items-center"
+        style={{
+          background: 'var(--color-near-black)',
+          minHeight: 'calc(100svh - 4rem)',
+        }}
       >
         <div
           aria-hidden
@@ -176,30 +249,17 @@ export default async function HomePage() {
         />
         <div
           aria-hidden
-          className="absolute -left-32 -bottom-32 w-[28rem] h-[28rem] rounded-full opacity-[0.12] blur-3xl"
+          className="absolute -left-32 -bottom-32 w-[28rem] h-[28rem] rounded-full opacity-[0.10] blur-3xl"
           style={{ background: 'var(--color-wise-green)' }}
         />
 
-        <div className="container relative pt-16 md:pt-24 pb-20 md:pb-24">
-          <div className="grid lg:grid-cols-[1.3fr_1fr] gap-10 lg:gap-12 items-center">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold bg-white/10 text-white/85 mb-6 md:mb-8 ring-1 ring-inset ring-white/15">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.25"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                  className="text-[color:var(--color-wise-green)]"
-                >
-                  <rect x="3" y="11" width="18" height="11" rx="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                100% client-side · your numbers never leave your device
+        <div className="container relative w-full py-10 md:py-12 lg:py-14">
+          <div className="grid lg:grid-cols-[1.2fr_1fr] gap-8 lg:gap-12 xl:gap-16 items-center">
+            <div className="max-w-2xl">
+              <div className="inline-flex flex-wrap items-center gap-2 mb-5">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold bg-[color:var(--color-wise-green)]/15 text-[color:var(--color-wise-green)] ring-1 ring-inset ring-[color:var(--color-wise-green)]/30 uppercase tracking-[0.06em]">
+                  Built for med students · residents · doctors
+                </span>
               </div>
 
               <h1
@@ -207,32 +267,33 @@ export default async function HomePage() {
                 style={{
                   fontFamily: 'var(--font-display)',
                   fontWeight: 900,
-                  fontSize: 'clamp(2.75rem, 7vw, 7rem)',
-                  lineHeight: 0.88,
+                  // Smaller top end so the headline never alone fills the viewport on big monitors.
+                  fontSize: 'clamp(2.5rem, 6vw, 5.25rem)',
+                  lineHeight: 0.92,
                   letterSpacing: '-0.03em',
                 }}
               >
-                The debt calculator{' '}
+                The med school debt calculator{' '}
                 <span style={{ color: 'var(--color-wise-green)' }}>
-                  built for doctors.
+                  doctors actually use.
                 </span>
               </h1>
 
               <p
-                className="mt-6 md:mt-8 text-lg md:text-xl max-w-2xl leading-relaxed font-medium"
-                style={{ color: 'rgba(255,255,255,0.7)' }}
+                className="mt-5 md:mt-6 text-base md:text-lg max-w-xl leading-relaxed font-medium"
+                style={{ color: 'rgba(255,255,255,0.72)' }}
               >
-                Stop guessing. See exactly when you&apos;ll be debt-free — by specialty,
-                residency length, and strategy. PSLF comparison + net-worth crossover
-                included.
+                See exactly when you&apos;ll be debt-free — by specialty, residency
+                length, and repayment strategy. PSLF vs refinance vs aggressive
+                payoff, side-by-side.
               </p>
 
-              <div className="mt-8 md:mt-10 flex flex-col sm:flex-row gap-3">
+              <div className="mt-7 flex flex-col sm:flex-row gap-3">
                 <a
                   href="#calculator"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-base font-semibold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95]"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-[15px] font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] shadow-[0_8px_30px_-8px_rgba(159,232,112,0.55)] transition-all duration-200 hover:scale-[1.04] hover:bg-[color:var(--color-pastel-green)] active:scale-[0.97]"
                 >
-                  Run my numbers
+                  Run my numbers — free
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path
                       d="M3 8h10m-5-5 5 5-5 5"
@@ -245,46 +306,86 @@ export default async function HomePage() {
                 </a>
                 <Link
                   href="/blog/pslf-explained-for-doctors"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-base font-semibold text-white ring-1 ring-inset ring-white/25 hover:ring-white/60 hover:bg-white/5 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-[var(--r-pill)] text-[15px] font-semibold text-white ring-1 ring-inset ring-white/25 hover:ring-white/60 hover:bg-white/5 transition-all"
                 >
-                  Learn about PSLF
+                  Read the PSLF guide
                 </Link>
               </div>
+
+              <ul
+                className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-white/60 font-semibold"
+                aria-label="Reasons to trust this tool"
+              >
+                <li className="inline-flex items-center gap-1.5">
+                  <CheckDot />
+                  100% in your browser
+                </li>
+                <li className="inline-flex items-center gap-1.5">
+                  <CheckDot />
+                  No login or email
+                </li>
+                <li className="inline-flex items-center gap-1.5">
+                  <CheckDot />
+                  No affiliate links
+                </li>
+              </ul>
             </div>
 
-            {/* Visual anchor */}
+            {/* Visual anchor — desktop only so mobile hero stays compact. */}
             <div className="hidden lg:flex items-center justify-center">
               <HeroChart />
             </div>
           </div>
+
+          {/* Subtle scroll cue — anchors the eye toward the calculator. */}
+          <a
+            href="#calculator"
+            aria-label="Scroll to the calculator"
+            className="hidden md:flex absolute left-1/2 -translate-x-1/2 bottom-5 lg:bottom-6 items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/45 hover:text-white/85 transition-colors"
+          >
+            Scroll
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" className="animate-bounce-slow">
+              <path
+                d="M7 2v9m-4-4 4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </a>
         </div>
       </section>
 
-      {/* ─── TRUST STRIP / STATS ─────────────────────────────── */}
+      {/* ─── STAT BAND ─────────────────────────────────────────── */}
       <section
         className="py-10 md:py-14"
         style={{ background: 'var(--color-light-mint)' }}
+        aria-label="Headline statistics on US medical school debt"
       >
         <div className="container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
             {STATS.map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-[var(--r-card-sm)] bg-white p-5 md:p-6"
+                className="rounded-[var(--r-card-sm)] bg-white p-5 md:p-6 flex flex-col gap-2"
                 style={{ boxShadow: 'var(--shadow-ring)' }}
               >
                 <p
-                  className="text-[color:var(--color-near-black)] tracking-[-0.02em] leading-none tabular-nums"
+                  className="text-[color:var(--color-near-black)] tracking-[-0.025em] leading-none tabular-nums"
                   style={{
                     fontFamily: 'var(--font-numbers)',
                     fontWeight: 900,
-                    fontSize: 'clamp(1.625rem, 3.5vw, 2.25rem)',
+                    fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)',
                   }}
                 >
                   {stat.value}
                 </p>
-                <p className="text-sm font-semibold text-[color:var(--text-secondary)] mt-2 leading-snug">
+                <p className="text-sm font-semibold text-[color:var(--text-primary)] leading-snug mt-1">
                   {stat.label}
+                </p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.10em] text-[color:var(--text-muted)] mt-auto pt-1">
+                  {stat.source}
                 </p>
               </div>
             ))}
@@ -295,15 +396,14 @@ export default async function HomePage() {
       {/* ─── CREDENTIALS STRIP ───────────────────────────────── */}
       <CredentialsStrip />
 
-      {/* ─── AD SLOT ─────────────────────────────────────────── */}
-      <div className="container pt-8 md:pt-10">
-        <AdSlot variant="banner" slot={process.env.NEXT_PUBLIC_ADSENSE_BANNER_SLOT} />
-      </div>
-
       {/* ─── CALCULATOR ──────────────────────────────────────── */}
-      <section id="calculator" className="py-14 md:py-20">
+      <section
+        id="calculator"
+        className="pt-14 md:pt-20 pb-14 md:pb-24"
+        style={{ background: 'var(--color-off-white)' }}
+      >
         <div className="container">
-          <div className="max-w-3xl mb-10 md:mb-14">
+          <div className="max-w-3xl mb-10 md:mb-12">
             <p className="eyebrow mb-4">The tool</p>
             <h2
               className="display-section text-[color:var(--color-near-black)]"
@@ -312,14 +412,14 @@ export default async function HomePage() {
               Calculate your payoff.
             </h2>
             <p className="mt-4 text-lg text-[color:var(--text-secondary)] max-w-xl font-medium">
-              Drag the sliders. Flip PSLF on and off. The charts update the
-              moment you change a number — no recalculate button needed.
+              Drag a slider, flip PSLF on, switch specialty — the charts redraw
+              the moment you change a number. No recalculate button, no sign-up.
             </p>
           </div>
 
-          <div className="max-w-6xl mx-auto">
-            <Calculator />
-          </div>
+          <TrustBand />
+
+          <Calculator />
         </div>
       </section>
 
@@ -330,7 +430,6 @@ export default async function HomePage() {
       <section
         id="how-it-works"
         className="py-14 md:py-20"
-        style={{ background: 'var(--color-off-white)' }}
       >
         <div className="container">
           <div className="max-w-3xl mb-10 md:mb-14">
@@ -366,7 +465,7 @@ export default async function HomePage() {
                   </span>
                   {item.accent && (
                     <span className="text-[10px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded-[var(--r-pill)] bg-[color:var(--color-dark-green)] text-[color:var(--color-wise-green)]">
-                      Aha moment
+                      The aha moment
                     </span>
                   )}
                 </div>
@@ -384,11 +483,7 @@ export default async function HomePage() {
                   {item.description}
                 </p>
                 {item.preview && (
-                  <div
-                    className={`
-                      mt-auto pt-2 text-[color:var(--color-dark-green)]
-                    `}
-                  >
+                  <div className="mt-auto pt-2 text-[color:var(--color-dark-green)]">
                     {item.preview}
                   </div>
                 )}
@@ -439,51 +534,7 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
               {previewPosts.map((post) => (
-                <Link
-                  key={post.slug}
-                  href={`/blog/${post.slug}`}
-                  className="group flex flex-col gap-4 p-4 md:p-5 rounded-[var(--r-card)] bg-white transition-transform duration-200 hover:scale-[1.01]"
-                  style={{ boxShadow: 'var(--shadow-ring)' }}
-                >
-                  <PostThumbnail
-                    slug={post.slug}
-                    title={post.coverImageAlt ?? post.title}
-                    coverImageUrl={post.coverImageUrl}
-                  />
-                  <div className="flex flex-col gap-3 px-1.5 pb-2 md:px-2">
-                    <span className="inline-flex self-start px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-wider bg-[color:var(--color-light-mint)] text-[color:var(--color-dark-green)]">
-                      {post.readingTime}
-                    </span>
-                    <h3
-                      className="text-xl text-[color:var(--color-near-black)] leading-[1.05] tracking-[-0.01em]"
-                      style={{ fontWeight: 900 }}
-                    >
-                      {post.title}
-                    </h3>
-                    <p className="text-sm text-[color:var(--text-secondary)] leading-relaxed line-clamp-3 font-medium">
-                      {post.description}
-                    </p>
-                    <span className="mt-auto pt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--color-dark-green)]">
-                      Read article
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 14 14"
-                        fill="none"
-                        className="transition-transform duration-200 group-hover:translate-x-1"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
-                          stroke="currentColor"
-                          strokeWidth="1.75"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                  </div>
-                </Link>
+                <ArticleCard key={post.slug} post={post} />
               ))}
             </div>
           </div>
@@ -492,6 +543,11 @@ export default async function HomePage() {
 
       {/* ─── NEWSLETTER ──────────────────────────────────────── */}
       <NewsletterSignup />
+
+      {/* AdSlot only renders if a real AdSense slot is configured. */}
+      <div className="container pb-10">
+        <AdSlot variant="banner" slot={process.env.NEXT_PUBLIC_ADSENSE_BANNER_SLOT} />
+      </div>
     </>
   );
 }

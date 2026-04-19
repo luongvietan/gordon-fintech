@@ -3,8 +3,9 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import remarkGfm from 'remark-gfm';
-import { getPostBySlug, getAllSlugs } from '@/lib/blog';
+import { getAllSlugs, getPostBySlug, getRelatedPosts } from '@/lib/blog';
 import AdSlot from '@/components/ads/AdSlot';
+import ArticleCard from '@/components/blog/ArticleCard';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -46,6 +47,8 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await getPostBySlug(slug);
 
   if (!post) notFound();
+
+  const related = await getRelatedPosts(slug);
 
   const articleLd = {
     '@context': 'https://schema.org',
@@ -119,7 +122,16 @@ export default async function BlogPostPage({ params }: Props) {
               <span className="text-[color:var(--color-near-black)] truncate">{post.title}</span>
             </nav>
 
-            <div className="flex items-center gap-3 mb-5">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-5">
+              {(post.categories ?? []).map((cat) => (
+                <Link
+                  key={cat.slug}
+                  href={`/blog#${cat.slug}`}
+                  className="inline-flex px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-wider bg-[color:var(--color-near-black)] text-[color:var(--color-wise-green)] hover:bg-[color:var(--color-dark-green)] transition-colors"
+                >
+                  {cat.title}
+                </Link>
+              ))}
               <span className="inline-flex px-2.5 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-wider bg-[color:var(--color-light-mint)] text-[color:var(--color-dark-green)]">
                 {post.readingTime}
               </span>
@@ -239,6 +251,44 @@ export default async function BlogPostPage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {related.length > 0 && (
+        <section className="py-14 md:py-20 bg-[color:var(--color-off-white)] border-t border-[color:var(--border-subtle)]">
+          <div className="container">
+            <div className="flex items-end justify-between gap-4 mb-8 md:mb-10 max-w-5xl mx-auto">
+              <div>
+                <p className="eyebrow mb-2">Keep reading</p>
+                <h2
+                  className="text-2xl md:text-3xl text-[color:var(--color-near-black)] tracking-[-0.015em] leading-[1.05]"
+                  style={{ fontWeight: 900, fontFamily: 'var(--font-display)' }}
+                >
+                  Related guides
+                </h2>
+              </div>
+              <Link
+                href="/blog"
+                className="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--color-dark-green)] hover:text-[color:var(--color-near-black)] transition-colors"
+              >
+                All articles
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path
+                    d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 max-w-5xl mx-auto">
+              {related.map((p) => (
+                <ArticleCard key={p.slug} post={p} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section style={{ background: 'var(--color-near-black)' }} className="py-16 md:py-24">
         <div className="container">

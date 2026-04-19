@@ -83,6 +83,25 @@ export const post = defineType({
       description: 'Optional — your target keyword for internal tracking.',
     }),
     defineField({
+      name: 'categories',
+      title: 'Categories',
+      type: 'array',
+      group: 'content',
+      description:
+        'Pick one or more buckets so the post shows up under the right pill on the blog index and links to related articles. Add new categories from the Studio sidebar.',
+      of: [{ type: 'reference', to: [{ type: 'category' }] }],
+      validation: (rule) => rule.unique(),
+    }),
+    defineField({
+      name: 'featured',
+      title: 'Feature on blog index',
+      type: 'boolean',
+      group: 'content',
+      description:
+        'When enabled, this post is pinned to the top of the blog index as the lead article. Only the most-recent featured post is rendered as the hero.',
+      initialValue: false,
+    }),
+    defineField({
       name: 'coverImage',
       title: 'Cover image',
       type: 'image',

@@ -1,5 +1,6 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import SmoothScroll from "@/components/layout/SmoothScroll";
 
 /**
  * Public-site layout — wraps every page under the `(site)` route group
@@ -7,13 +8,14 @@ import Footer from "@/components/layout/Footer";
  *
  * Other top-level routes like `/studio` and `/api/*` intentionally sit
  * outside this group so the embedded Sanity Studio can own the full
- * viewport with no site chrome.
+ * viewport with no site chrome (and no Lenis interference).
  */
 export default function SiteLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="min-h-full flex flex-col">
+      <SmoothScroll />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />

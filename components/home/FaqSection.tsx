@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 export type FaqCategory = 'pslf' | 'refi' | 'tax' | 'general';
@@ -8,6 +9,8 @@ export interface FaqItem {
   q: string;
   a: string;
   category: FaqCategory;
+  /** Optional in-depth guide. Renders a "Read the full guide" link inline. */
+  learnMore?: { href: string; label: string };
 }
 
 interface Props {
@@ -175,6 +178,23 @@ export default function FaqSection({ items }: Props) {
                   <p className="mt-4 text-[15px] text-[color:var(--text-secondary)] leading-relaxed font-medium">
                     {f.a}
                   </p>
+                  {f.learnMore && (
+                    <Link
+                      href={f.learnMore.href}
+                      className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-bold text-[color:var(--color-dark-green)] hover:text-[color:var(--color-near-black)] transition-colors"
+                    >
+                      {f.learnMore.label}
+                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                        <path
+                          d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
+                          stroke="currentColor"
+                          strokeWidth="1.75"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </Link>
+                  )}
                 </details>
               ))}
             </div>

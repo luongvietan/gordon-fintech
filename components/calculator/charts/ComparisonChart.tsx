@@ -54,38 +54,29 @@ export default function ComparisonChart({ outputs }: Props) {
   ];
 
   return (
-    <div>
-      <div className="flex items-baseline justify-between mb-4">
-        <h3
-          className="text-[1.125rem] text-[color:var(--text-primary)] tracking-[-0.01em]"
-          style={{ fontWeight: 900 }}
-        >
-          PSLF vs Standard
-        </h3>
-        <span className="text-xs font-semibold text-[color:var(--text-muted)]">
-          Side-by-side totals
-        </span>
-      </div>
-      <ResponsiveContainer width="100%" height={280}>
+    <div className="-ml-3 md:-ml-2">
+      <ResponsiveContainer width="100%" height={320}>
         <BarChart
           data={data}
-          margin={{ top: 24, right: 12, left: 0, bottom: 4 }}
-          barCategoryGap="28%"
+          margin={{ top: 32, right: 12, left: 0, bottom: 8 }}
+          barCategoryGap="32%"
           barGap={6}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(14,15,12,0.06)" vertical={false} />
+          <CartesianGrid strokeDasharray="3 6" stroke="rgba(14,15,12,0.07)" vertical={false} />
           <XAxis
             dataKey="name"
             tick={{ fontSize: 12, fill: '#0e0f0c', fontWeight: 700 }}
             tickLine={false}
             axisLine={{ stroke: 'rgba(14,15,12,0.12)' }}
+            tickMargin={8}
           />
           <YAxis
             tickFormatter={fmtY}
             tick={{ fontSize: 11, fill: '#868685', fontWeight: 600 }}
             tickLine={false}
             axisLine={false}
-            width={56}
+            width={62}
+            tickMargin={4}
           />
           <Tooltip
             formatter={(v) => fmtTip(v)}
@@ -93,8 +84,8 @@ export default function ComparisonChart({ outputs }: Props) {
               fontSize: 12,
               fontWeight: 600,
               border: 'none',
-              borderRadius: 16,
-              boxShadow: 'rgba(14,15,12,0.12) 0 0 0 1px, 0 4px 24px rgba(14,15,12,0.08)',
+              borderRadius: 14,
+              boxShadow: 'rgba(14,15,12,0.12) 0 0 0 1px, 0 8px 30px rgba(14,15,12,0.10)',
               padding: '10px 14px',
             }}
             itemStyle={{ padding: 0 }}
@@ -102,21 +93,22 @@ export default function ComparisonChart({ outputs }: Props) {
           />
           <Legend
             verticalAlign="top"
-            height={32}
+            align="right"
+            height={28}
             iconType="circle"
             iconSize={8}
             wrapperStyle={{
               fontSize: 11,
               fontWeight: 700,
               color: '#0e0f0c',
-              paddingBottom: 8,
+              paddingBottom: 4,
             }}
           />
           <Bar
             dataKey="Standard"
             fill="#0e0f0c"
-            radius={[8, 8, 0, 0]}
-            maxBarSize={44}
+            radius={[10, 10, 0, 0]}
+            maxBarSize={48}
           >
             <LabelList
               dataKey="Standard"
@@ -132,8 +124,8 @@ export default function ComparisonChart({ outputs }: Props) {
           <Bar
             dataKey="PSLF"
             fill="#9fe870"
-            radius={[8, 8, 0, 0]}
-            maxBarSize={44}
+            radius={[10, 10, 0, 0]}
+            maxBarSize={48}
           >
             <LabelList
               dataKey="PSLF"
@@ -148,10 +140,10 @@ export default function ComparisonChart({ outputs }: Props) {
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      <p className="text-[11px] text-[color:var(--text-muted)] mt-3 leading-relaxed font-medium">
-        <strong className="text-[color:var(--text-primary)] font-bold">Out of pocket</strong> —
-        total $ you actually pay. <strong className="text-[color:var(--text-primary)] font-bold">Interest paid</strong> —
-        portion that went to interest. <strong className="text-[color:var(--text-primary)] font-bold">Forgiven</strong> —
+      <p className="text-[11px] text-[color:var(--text-muted)] mt-3 leading-relaxed font-medium px-1">
+        <strong className="text-[color:var(--text-primary)] font-bold">Out of pocket</strong> &mdash;
+        total $ you actually pay. <strong className="text-[color:var(--text-primary)] font-bold">Interest paid</strong> &mdash;
+        portion that went to interest. <strong className="text-[color:var(--text-primary)] font-bold">Forgiven</strong> &mdash;
         remaining balance wiped tax-free after 120 qualifying payments.
       </p>
     </div>

@@ -1,8 +1,18 @@
 import { MetadataRoute } from 'next';
 import { getAllPosts } from '@/lib/blog';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
+const BASE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
 
+/**
+ * Sitemap covers:
+ * 1. Homepage (priority 1.0) — the calculator and primary entry point.
+ * 2. Blog index (priority 0.8) — content hub.
+ * 3. Static informational pages (priority 0.5) — methodology, privacy, terms.
+ * 4. Each blog post (priority 0.7).
+ *
+ * `lastModified` uses the post `date` so search engines see real freshness signals.
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await getAllPosts();
 
@@ -11,6 +21,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(post.date),
     changeFrequency: 'monthly',
     priority: 0.7,
+  }));
+
+  const staticPages: MetadataRoute.Sitemap = [
+    { path: '/methodology', priority: 0.6 },
+    { path: '/privacy', priority: 0.4 },
+    { path: '/terms', priority: 0.4 },
+  ].map(({ path, priority }) => ({
+    url: `${BASE_URL}${path}`,
+    lastModified: new Date(),
+    changeFrequency: 'yearly',
+    priority,
   }));
 
   return [
@@ -26,6 +47,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
+    ...staticPages,
     ...blogEntries,
   ];
 }

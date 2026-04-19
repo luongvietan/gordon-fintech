@@ -11,9 +11,15 @@ function formatSubscriberCount(n: number): string {
     const thousands = Math.floor(n / 1000);
     return `${thousands.toLocaleString('en-US')},000+`;
   }
-  // Round down to the nearest 100 for a conservative display.
   return `${(Math.floor(n / 100) * 100).toLocaleString('en-US')}+`;
 }
+
+const PROMISES = [
+  'One email a month — never more',
+  'Specific PSLF, IDR, refi, and tax-bomb tactics',
+  'Written for residents and attendings, not the general public',
+  'Unsubscribe with one click, any time',
+];
 
 export default function NewsletterSignup() {
   const [email, setEmail] = useState('');
@@ -51,10 +57,9 @@ export default function NewsletterSignup() {
           relative overflow-hidden
           rounded-[var(--r-card)] md:rounded-[var(--r-card-lg)]
           bg-[color:var(--color-near-black)] text-white
-          px-6 py-10 sm:px-8 sm:py-12 md:px-14 md:py-14
+          px-6 py-10 sm:px-8 sm:py-12 md:px-14 md:py-16
         "
       >
-        {/* Soft lime glow — smaller on mobile so it doesn't dominate */}
         <div
           aria-hidden
           className="
@@ -74,10 +79,10 @@ export default function NewsletterSignup() {
           style={{ background: 'var(--color-wise-green)' }}
         />
 
-        <div className="relative grid md:grid-cols-[1.2fr_1fr] gap-8 md:gap-12 items-center">
+        <div className="relative grid md:grid-cols-[1.15fr_1fr] gap-10 md:gap-16 items-center">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--r-pill)] text-[11px] sm:text-xs font-semibold bg-white/10 text-white/80">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-[var(--r-pill)] text-[11px] sm:text-xs font-bold bg-white/10 text-white/80 uppercase tracking-[0.10em]">
                 <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-wise-green)]" />
                 Doctor Finance Digest
               </span>
@@ -104,18 +109,53 @@ export default function NewsletterSignup() {
               )}
             </div>
             <h2
-              className="display-sub text-white mt-4 sm:mt-5"
-              style={{ fontWeight: 900 }}
+              className="text-white mt-5"
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 900,
+                fontSize: 'clamp(1.875rem, 4vw, 3rem)',
+                lineHeight: 0.95,
+                letterSpacing: '-0.02em',
+              }}
             >
-              Smarter money for doctors, delivered monthly.
+              Smarter money for doctors,{' '}
+              <span style={{ color: 'var(--color-wise-green)' }}>monthly</span>.
             </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-white/70 max-w-md font-medium">
-              One email a month. Actionable strategies on PSLF, refi, and net worth —
-              written for residents and attendings. No spam, unsubscribe any time.
+            <p className="mt-5 text-[15px] md:text-base leading-relaxed text-white/72 max-w-md font-medium">
+              The one newsletter that talks to physicians like adults with
+              six-figure debt and complicated tax situations.
             </p>
+
+            <ul className="mt-6 grid grid-cols-1 gap-2.5 max-w-md">
+              {PROMISES.map((p) => (
+                <li
+                  key={p}
+                  className="flex items-start gap-2.5 text-[13.5px] text-white/85 font-medium leading-snug"
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    aria-hidden="true"
+                    className="flex-shrink-0 mt-1 text-[color:var(--color-wise-green)]"
+                  >
+                    <path
+                      d="M2.5 7 5.5 10l6-7"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {p}
+                </li>
+              ))}
+            </ul>
+
             <Link
               href="/blog"
-              className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--color-wise-green)] hover:text-white transition-colors"
+              className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--color-wise-green)] hover:text-white transition-colors"
             >
               See a sample issue
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -131,8 +171,6 @@ export default function NewsletterSignup() {
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
-            {/* Mobile: stacked full-width input + button.
-                ≥sm: combined pill. */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 sm:p-1.5 sm:rounded-[var(--r-pill)] sm:bg-white/10 sm:ring-1 sm:ring-inset sm:ring-white/20 sm:focus-within:ring-white/60 sm:transition-all">
               <input
                 type="email"
@@ -146,8 +184,8 @@ export default function NewsletterSignup() {
                   w-full sm:flex-1 min-w-0
                   bg-white/10 sm:bg-transparent
                   border-none outline-none
-                  px-4 py-3 sm:py-2
-                  text-base font-semibold text-white
+                  px-4 py-3.5 sm:py-2.5
+                  text-base font-bold text-white
                   placeholder:text-white/45 placeholder:font-medium
                   rounded-[var(--r-pill)]
                   ring-1 ring-inset ring-white/20 focus:ring-white/60 sm:ring-0
@@ -160,25 +198,25 @@ export default function NewsletterSignup() {
                 disabled={status === 'submitting'}
                 className="
                   inline-flex items-center justify-center gap-1.5
-                  px-5 py-3 sm:py-2.5
+                  px-6 py-3.5 sm:py-2.5
                   rounded-[var(--r-pill)]
-                  text-sm font-semibold
+                  text-sm font-bold
                   bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]
-                  transition-transform duration-200
-                  hover:scale-[1.04] active:scale-[0.96]
+                  transition-all duration-200
+                  hover:scale-[1.04] hover:bg-[color:var(--color-pastel-green)] active:scale-[0.96]
                   disabled:opacity-50 disabled:pointer-events-none
                   whitespace-nowrap
                   w-full sm:w-auto
                 "
               >
-                {status === 'submitting' ? 'Joining…' : 'Subscribe'}
+                {status === 'submitting' ? 'Joining\u2026' : 'Subscribe — free'}
               </button>
             </div>
 
             {status === 'success' && (
               <p
                 role="status"
-                className="text-sm font-semibold text-[color:var(--color-wise-green)]"
+                className="text-sm font-bold text-[color:var(--color-wise-green)]"
               >
                 {message}
               </p>
@@ -186,14 +224,19 @@ export default function NewsletterSignup() {
             {status === 'error' && (
               <p
                 role="alert"
-                className="text-sm font-semibold text-[color:var(--color-danger)]"
+                className="text-sm font-bold text-[color:var(--color-danger)]"
               >
                 {message}
               </p>
             )}
             {status === 'idle' && (
-              <p className="text-xs text-white/50 leading-relaxed">
-                By subscribing you agree to receive monthly emails. See our privacy practices.
+              <p className="text-[11.5px] text-white/45 leading-relaxed font-medium">
+                We&apos;ll only email the digest. We never sell, share, or rent your address.
+                See our{' '}
+                <Link href="/privacy" className="underline hover:text-white">
+                  privacy practices
+                </Link>
+                .
               </p>
             )}
           </form>

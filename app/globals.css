@@ -10,6 +10,29 @@
 @plugin "@tailwindcss/typography";
 
 /* ============================================================
+   LENIS SMOOTH SCROLL
+   The `lenis` class is added to <html> automatically when the
+   provider mounts. We disable native smooth scroll while Lenis
+   drives the animation, otherwise the two engines fight.
+   ============================================================ */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* ============================================================
    DESIGN TOKENS
    ============================================================ */
 :root {
@@ -541,6 +564,19 @@
   to {
     stroke-dashoffset: 0;
   }
+}
+
+/* Slow vertical bounce used by the hero scroll cue. */
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 2.2s ease-in-out infinite;
 }
 
 /* ============================================================

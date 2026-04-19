@@ -1,112 +1,130 @@
-import Image from 'next/image';
-import { FOUNDER, REVIEWED_BY } from '@/lib/trust-content';
+import { BRAND, DATA_SOURCES } from '@/lib/trust-content';
+import Link from 'next/link';
 
 /**
- * Trust strip rendered just below the stat cards. Surfaces:
- *  1. Who built the tool + their credential (left)
- *  2. Who has reviewed / vouched for it (right, optional)
+ * Brand-led credibility strip rendered just below the stats row.
  *
- * Both sides gracefully degrade:
- *  - no `FOUNDER.photoUrl` → monogram initial
- *  - empty `REVIEWED_BY`   → column hidden, left side takes the row
+ * Three things we want a first-time visitor to absorb in <3 seconds:
+ *   1. Who built this (an independent brand, not a lender)
+ *   2. We use real, named data sources you can verify
+ *   3. There is a link to a full methodology page if they want to dig in
+ *
+ * Critically — we never put a fake "Founder Name CFP®" badge here. If/when
+ * a real, named, credentialed person attaches their name we can swap this
+ * back to a personal-byline shape.
  */
 export default function CredentialsStrip() {
-  const hasReviewers = REVIEWED_BY.length > 0;
-  const initial = FOUNDER.name.replace(/[^A-Za-z]/g, '').charAt(0) || 'M';
+  // Show the four most important sources inline — the rest live on /methodology.
+  const inlineSources = DATA_SOURCES.slice(0, 4);
 
   return (
     <section
-      className="py-8 md:py-10 border-y border-[color:var(--border-subtle)]"
+      className="py-10 md:py-14 border-y border-[color:var(--border-subtle)]"
       style={{ background: 'var(--color-off-white)' }}
-      aria-label="Who built and reviewed this tool"
+      aria-label="What this tool is and where its numbers come from"
     >
       <div className="container">
-        <div
-          className={`flex flex-col ${
-            hasReviewers ? 'md:flex-row md:items-center md:justify-between' : ''
-          } gap-6 md:gap-10`}
-        >
-          {/* Founder */}
-          <div className="flex items-center gap-4">
-            {FOUNDER.photoUrl ? (
-              <Image
-                src={FOUNDER.photoUrl}
-                alt={FOUNDER.name}
-                width={56}
-                height={56}
-                className="rounded-full object-cover flex-shrink-0"
-              />
-            ) : (
-              <div
-                aria-hidden
-                className="flex-shrink-0 w-14 h-14 rounded-full bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] flex items-center justify-center"
-                style={{ fontWeight: 900, fontSize: '1.5rem' }}
-              >
-                {initial}
-              </div>
-            )}
+        <div className="grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-8 md:gap-12 items-start">
+          {/* Brand identity — replaces the old fake-founder block */}
+          <div className="flex items-start gap-4">
+            <div
+              aria-hidden
+              className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-[14px] bg-[color:var(--color-near-black)] text-[color:var(--color-wise-green)] flex items-center justify-center"
+              style={{ fontWeight: 900, fontSize: '1.5rem', letterSpacing: '-0.04em' }}
+            >
+              M
+            </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[color:var(--text-muted)]">
-                Built by
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)]">
+                Built &amp; maintained by
               </p>
-              <p className="mt-0.5 text-[15px] md:text-base font-bold text-[color:var(--color-near-black)] leading-snug">
-                {FOUNDER.name}
-                <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[color:var(--color-light-mint)] text-[color:var(--color-dark-green)] align-middle">
-                  {FOUNDER.credential}
-                </span>
-                {FOUNDER.linkedin && (
-                  <a
-                    href={FOUNDER.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-2 inline-flex align-middle text-[color:var(--text-muted)] hover:text-[color:var(--color-near-black)] transition-colors"
-                    aria-label={`${FOUNDER.name} on LinkedIn`}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.44-2.13 2.94v5.67H9.36V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" />
-                    </svg>
-                  </a>
-                )}
+              <p
+                className="mt-1 text-[17px] md:text-lg text-[color:var(--color-near-black)] leading-tight tracking-[-0.01em]"
+                style={{ fontWeight: 900 }}
+              >
+                {BRAND.name}
               </p>
-              <p className="text-sm text-[color:var(--text-secondary)] font-medium leading-snug mt-0.5">
-                {FOUNDER.blurb}
+              <p className="text-sm text-[color:var(--text-secondary)] font-medium leading-snug mt-1.5 max-w-sm">
+                {BRAND.blurb}
               </p>
+              <Link
+                href="/methodology"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--color-dark-green)] hover:text-[color:var(--color-near-black)] transition-colors"
+              >
+                Read the full methodology
+                <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path
+                    d="M2.5 7h9m-4-4.5L11.5 7 7.5 11.5"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Link>
             </div>
           </div>
 
-          {/* Reviewed by */}
-          {hasReviewers && (
-            <div className="flex items-center gap-4 md:gap-5">
-              <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[color:var(--text-muted)] whitespace-nowrap">
-                Reviewed by
-              </p>
-              <ul className="flex items-center gap-4 md:gap-6 flex-wrap">
-                {REVIEWED_BY.map((org) => {
-                  const inner = (
-                    <Image
-                      src={org.logoUrl}
-                      alt={org.name}
-                      width={100}
-                      height={28}
-                      className="opacity-70 hover:opacity-100 transition-opacity"
-                      style={{ height: '24px', width: 'auto' }}
-                    />
-                  );
-                  return (
-                    <li key={org.name}>
-                      {org.url ? (
-                        <a href={org.url} target="_blank" rel="noopener noreferrer">
-                          {inner}
-                        </a>
-                      ) : (
-                        inner
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
+          {/* Data sources column — concrete, verifiable, linkable */}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-3">
+              Numbers traced to
+            </p>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
+              {inlineSources.map((src) => {
+                const inner = (
+                  <span className="flex items-baseline gap-2 min-w-0">
+                    <svg
+                      width="11"
+                      height="11"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      aria-hidden="true"
+                      className="flex-shrink-0 mt-1 text-[color:var(--color-dark-green)]"
+                    >
+                      <path
+                        d="M2 6.5 5 9.5l5-7"
+                        stroke="currentColor"
+                        strokeWidth="1.75"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span className="min-w-0">
+                      <span className="text-sm font-bold text-[color:var(--color-near-black)] block leading-snug">
+                        {src.name}
+                        {src.year ? (
+                          <span className="font-semibold text-[color:var(--text-muted)] ml-1.5">
+                            {src.year}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="block text-[12.5px] text-[color:var(--text-secondary)] font-medium leading-snug mt-0.5">
+                        {src.use}
+                      </span>
+                    </span>
+                  </span>
+                );
+
+                return (
+                  <li key={src.name}>
+                    {src.url ? (
+                      <a
+                        href={src.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block hover:bg-white rounded-lg -mx-1.5 px-1.5 py-1 transition-colors"
+                      >
+                        {inner}
+                      </a>
+                    ) : (
+                      <div className="px-1.5 py-1">{inner}</div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </div>
       </div>
     </section>

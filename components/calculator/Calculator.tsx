@@ -19,8 +19,6 @@ import CalculatorResults from './CalculatorResults';
 import { RESIDENT_SALARY } from '@/lib/specialties';
 
 // ─── Download PDF button ───────────────────────────────────
-// Lazy-load jsPDF only on click so the ~150KB library stays out of the
-// initial bundle. While the import resolves we show a "Preparing…" state.
 type PdfState = 'idle' | 'loading' | 'error';
 
 function DownloadPdfButton({
@@ -59,7 +57,7 @@ function DownloadPdfButton({
       onClick={handleClick}
       disabled={state === 'loading'}
       aria-label="Download results as PDF"
-      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold bg-[color:var(--color-near-black)] text-white transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95] disabled:opacity-60 disabled:pointer-events-none"
+      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[var(--r-pill)] text-xs font-bold bg-[color:var(--color-near-black)] text-white transition-all duration-200 hover:scale-[1.04] hover:bg-[color:var(--color-near-black)]/90 active:scale-[0.96] disabled:opacity-60 disabled:pointer-events-none"
     >
       {state === 'loading' ? (
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="animate-spin" aria-hidden="true">
@@ -83,9 +81,6 @@ function DownloadPdfButton({
 }
 
 // ─── Share link button ────────────────────────────────────
-// Copies a URL that encodes the current calculator inputs. Recipients who open
-// the link get the same scenario loaded locally — nothing round-trips through
-// a server, it's just a self-contained payload in the query string.
 type ShareState = 'idle' | 'copied' | 'error';
 
 function ShareLinkButton({
@@ -113,8 +108,6 @@ function ShareLinkButton({
         }
       }
 
-      // Fallback for older browsers / non-secure contexts where the async
-      // clipboard API is unavailable or throws.
       if (!copied && typeof document !== 'undefined') {
         const ta = document.createElement('textarea');
         ta.value = url;
@@ -154,14 +147,14 @@ function ShareLinkButton({
       ? 'Link copied'
       : state === 'error'
       ? 'Copy failed'
-      : 'Share link';
+      : 'Share scenario';
 
   return (
     <button
       type="button"
       onClick={handleClick}
       aria-label="Copy a shareable link to these calculator results"
-      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold bg-[color:var(--color-near-black)]/[0.06] text-[color:var(--color-near-black)] transition-transform duration-200 hover:scale-[1.05] hover:bg-[color:var(--color-near-black)]/[0.10] active:scale-[0.95]"
+      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[var(--r-pill)] text-xs font-bold bg-white text-[color:var(--color-near-black)] ring-1 ring-inset ring-[color:var(--border-default)] transition-all duration-200 hover:scale-[1.04] hover:ring-[color:var(--border-strong)] active:scale-[0.96]"
     >
       {state === 'copied' ? (
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -213,22 +206,25 @@ const DEFAULT_INPUTS: CalculatorInputs = {
   scenarioPreset: 'custom',
 };
 
-const PRESETS: { id: ScenarioPreset; label: string; description: string }[] = [
-  { id: 'aggressive', label: 'Aggressive payoff', description: 'Pay 1.5× standard — knock it out fast' },
+interface PresetMeta {
+  id: ScenarioPreset;
+  label: string;
+  description: string;
+}
+
+const PRESETS: PresetMeta[] = [
+  { id: 'aggressive', label: 'Aggressive payoff', description: 'Pay 1.5\u00d7 standard \u2014 knock it out fast' },
   { id: 'pslf-optimized', label: 'PSLF-optimized', description: '10 years of qualifying service, then forgiveness' },
   {
     id: 'minimum',
     label: 'Minimum payment',
-    description: 'Federal: IDR-style floor; private: interest-only — lowest modeled payment',
+    description: 'Federal: IDR-style floor; private: interest-only \u2014 lowest modeled payment',
   },
 ];
 
 export default function Calculator() {
   const [inputs, setInputs] = useState<CalculatorInputs>(DEFAULT_INPUTS);
 
-  // Rehydrate from a share link once on mount. We can't read window in the
-  // useState initializer because this component is SSR'd with defaults first;
-  // a hash-driven effect avoids hydration mismatches.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
@@ -242,7 +238,6 @@ export default function Calculator() {
     setInputs((prev) => ({
       ...prev,
       ...updated,
-      // user-edit outside a preset → mark as custom
       scenarioPreset:
         'scenarioPreset' in updated ? updated.scenarioPreset : 'custom',
     }));
@@ -252,10 +247,13 @@ export default function Calculator() {
     setInputs((prev) => applyScenarioPreset(prev, preset));
   }
 
+  function handleReset() {
+    setInputs(DEFAULT_INPUTS);
+  }
+
   const outputs = useMemo(() => calculateOutputs(inputs), [inputs]);
   const activePreset = inputs.scenarioPreset ?? 'custom';
-  const trainingYears =
-    inputs.residencyYears + (inputs.fellowshipYears ?? 0);
+  const trainingYears = inputs.residencyYears + (inputs.fellowshipYears ?? 0);
 
   return (
     <div
@@ -265,33 +263,104 @@ export default function Calculator() {
         boxShadow: 'var(--shadow-ring), var(--shadow-float)',
       }}
     >
-      {/* ── Header ───────────────────────────────────────── */}
-      <div className="px-5 md:px-7 py-4 md:py-5 flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--border-subtle)] bg-[color:var(--color-off-white)]">
-        <div>
-          <h3
-            className="text-xl md:text-2xl text-[color:var(--text-primary)] tracking-[-0.015em] leading-none"
+      {/* ── Header bar ───────────────────────────────────── */}
+      <div
+        className="px-5 md:px-7 lg:px-8 py-4 md:py-5 flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--border-subtle)]"
+        style={{ background: 'var(--color-near-black)' }}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div
+            aria-hidden
+            className="flex-shrink-0 w-9 h-9 rounded-[10px] bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] flex items-center justify-center"
             style={{ fontWeight: 900 }}
           >
-            Med School Debt Simulator
-          </h3>
-          <p className="text-xs md:text-sm text-[color:var(--text-secondary)] mt-1.5 font-medium">
-            PSLF vs standard, net-worth crossover, specialty salary presets
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <ShareLinkButton inputs={inputs} defaults={DEFAULT_INPUTS} />
-          <DownloadPdfButton inputs={inputs} outputs={outputs} />
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold uppercase tracking-widest bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-dark-green)] animate-pulse" />
-            Live
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path
+                d="M2 13.5 5.5 9 8.5 11 13 4"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M9.5 4H13v3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="min-w-0">
+            <h3
+              className="text-base md:text-lg text-white tracking-[-0.015em] leading-none"
+              style={{ fontWeight: 900 }}
+            >
+              Med School Debt Simulator
+            </h3>
+            <p className="text-[12px] md:text-[13px] text-white/55 mt-1.5 font-medium">
+              PSLF vs standard &middot; net-worth crossover &middot; 16 specialty presets
+            </p>
           </div>
         </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <ShareLinkButton inputs={inputs} defaults={DEFAULT_INPUTS} />
+          <DownloadPdfButton inputs={inputs} outputs={outputs} />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[10px] font-bold uppercase tracking-widest bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--color-dark-green)] animate-pulse" />
+            Live
+          </span>
+        </div>
+      </div>
+
+      {/* ── Scenario chip row ────────────────────────────── */}
+      <div className="px-5 md:px-7 lg:px-8 py-3 md:py-3.5 flex flex-wrap items-center gap-2 border-b border-[color:var(--border-subtle)] bg-white">
+        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mr-2">
+          Strategy
+        </span>
+        {PRESETS.map((p) => {
+          const active = activePreset === p.id;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => handlePreset(p.id)}
+              title={p.description}
+              className={`
+                px-3.5 py-1.5 rounded-[var(--r-pill)] text-xs font-bold
+                transition-all duration-200
+                hover:scale-[1.04] active:scale-[0.96]
+                ${active
+                  ? 'bg-[color:var(--color-near-black)] text-white shadow-[0_4px_14px_-4px_rgba(14,15,12,0.4)]'
+                  : 'bg-[color:var(--color-near-black)]/[0.06] text-[color:var(--color-near-black)] hover:bg-[color:var(--color-near-black)]/[0.10]'}
+              `}
+            >
+              {p.label}
+            </button>
+          );
+        })}
+        {activePreset === 'custom' && (
+          <span className="px-3.5 py-1.5 rounded-[var(--r-pill)] text-xs font-bold bg-[color:var(--color-light-mint)] text-[color:var(--color-dark-green)]">
+            Custom
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={handleReset}
+          className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold text-[color:var(--text-muted)] hover:text-[color:var(--color-near-black)] hover:bg-[color:var(--color-near-black)]/[0.05] transition-colors"
+          aria-label="Reset all calculator inputs to defaults"
+        >
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path
+              d="M2 6a4 4 0 0 1 7-2.65L10 4.5M10 1.5V4.5h-3"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Reset
+        </button>
       </div>
 
       {/* ── Privacy strip ────────────────────────────────── */}
       <div
-        className="px-5 md:px-7 py-2.5 flex items-center gap-2.5 border-b border-[color:var(--border-subtle)]"
+        className="px-5 md:px-7 lg:px-8 py-2.5 flex items-center gap-2.5 border-b border-[color:var(--border-subtle)]"
         style={{ background: 'var(--color-light-mint)' }}
       >
         <svg
@@ -317,52 +386,30 @@ export default function Calculator() {
         </p>
       </div>
 
-      {/* ── Preset chips ─────────────────────────────────── */}
-      <div className="px-5 md:px-7 py-3 md:py-4 flex flex-wrap items-center gap-2 border-b border-[color:var(--border-subtle)] bg-white">
-        <span className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--text-muted)] mr-1">
-          Scenario
-        </span>
-        {PRESETS.map((p) => {
-          const active = activePreset === p.id;
-          return (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => handlePreset(p.id)}
-              title={p.description}
-              className={`
-                px-3.5 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold
-                transition-transform duration-200
-                hover:scale-[1.04] active:scale-[0.96]
-                ${active
-                  ? 'bg-[color:var(--color-near-black)] text-white'
-                  : 'bg-[color:var(--color-near-black)]/[0.06] text-[color:var(--color-near-black)] hover:bg-[color:var(--color-near-black)]/[0.10]'}
-              `}
-            >
-              {p.label}
-            </button>
-          );
-        })}
-        {activePreset === 'custom' && (
-          <span className="px-3.5 py-1.5 rounded-[var(--r-pill)] text-xs font-semibold bg-[color:var(--color-light-mint)] text-[color:var(--color-dark-green)]">
-            Custom
-          </span>
-        )}
-      </div>
+      {/* ── Two-column dashboard ─────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)]">
+        {/* Inputs sidebar */}
+        <aside
+          className="min-w-0 lg:border-r border-b lg:border-b-0 border-[color:var(--border-subtle)] bg-white"
+        >
+          <div
+            className="px-5 md:px-6 py-5 md:py-6 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto wise-scroll"
+            data-lenis-prevent
+          >
+            <CalculatorInputsForm inputs={inputs} onChange={handleChange} />
+          </div>
+        </aside>
 
-      {/* ── Two-column layout ────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[400px_minmax(0,1fr)]">
-        {/* Inputs */}
-        <div className="min-w-0 p-5 md:p-6 lg:border-r border-b lg:border-b-0 border-[color:var(--border-subtle)] max-h-none lg:max-h-[min(90vh,800px)] overflow-y-auto wise-scroll">
-          <CalculatorInputsForm inputs={inputs} onChange={handleChange} />
-        </div>
-
-        {/* Results */}
-        <div className="min-w-0 p-5 md:p-6 bg-[color:var(--color-off-white)] max-h-none lg:max-h-[min(90vh,800px)] overflow-y-auto wise-scroll">
+        {/* Results pane */}
+        <div
+          className="min-w-0 px-5 md:px-7 lg:px-8 py-6 md:py-8"
+          style={{ background: 'var(--color-off-white)' }}
+        >
           <CalculatorResults
             outputs={outputs}
             residencyYears={trainingYears}
             taxRate={inputs.taxRate}
+            pslfEnabled={inputs.pslfEnabled}
           />
         </div>
       </div>

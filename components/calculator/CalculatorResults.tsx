@@ -14,68 +14,151 @@ interface Props {
   outputs: CalculatorOutputs;
   residencyYears: number;
   taxRate: number;
+  pslfEnabled: boolean;
 }
 
+// ─── KPI tile ─────────────────────────────────────────────
 interface KpiProps {
   label: string;
   value: string;
   sub?: string;
-  accent?: boolean;
-  dark?: boolean;
+  tone?: 'default' | 'accent' | 'dark';
+  big?: boolean;
 }
 
-function KpiCard({ label, value, sub, accent, dark }: KpiProps) {
-  const bg = accent
-    ? 'bg-[color:var(--color-wise-green)]'
-    : dark
-    ? 'bg-[color:var(--color-near-black)] text-white'
-    : 'bg-white';
-  const label_color = accent
-    ? 'text-[color:var(--color-dark-green)]/80'
-    : dark
-    ? 'text-white/60'
-    : 'text-[color:var(--text-muted)]';
-  const value_color = accent
-    ? 'text-[color:var(--color-dark-green)]'
-    : dark
-    ? 'text-white'
-    : 'text-[color:var(--text-primary)]';
-  const sub_color = accent
-    ? 'text-[color:var(--color-dark-green)]/70'
-    : dark
-    ? 'text-white/60'
-    : 'text-[color:var(--text-muted)]';
+function KpiCard({ label, value, sub, tone = 'default', big = false }: KpiProps) {
+  const surface =
+    tone === 'accent'
+      ? 'bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]'
+      : tone === 'dark'
+      ? 'bg-[color:var(--color-near-black)] text-white'
+      : 'bg-white';
+  const labelColor =
+    tone === 'accent'
+      ? 'text-[color:var(--color-dark-green)]/70'
+      : tone === 'dark'
+      ? 'text-white/55'
+      : 'text-[color:var(--text-muted)]';
+  const valueColor =
+    tone === 'accent'
+      ? 'text-[color:var(--color-dark-green)]'
+      : tone === 'dark'
+      ? 'text-white'
+      : 'text-[color:var(--color-near-black)]';
+  const subColor =
+    tone === 'accent'
+      ? 'text-[color:var(--color-dark-green)]/65'
+      : tone === 'dark'
+      ? 'text-white/55'
+      : 'text-[color:var(--text-muted)]';
 
   return (
     <div
-      className={`${bg} rounded-[var(--r-card-sm)] p-4 md:p-5 flex flex-col justify-between min-h-[96px]`}
-      style={{ boxShadow: accent || dark ? 'none' : 'var(--shadow-ring)' }}
+      className={`${surface} rounded-[var(--r-card-sm)] p-4 md:p-5 flex flex-col justify-between min-h-[112px] md:min-h-[124px]`}
+      style={{ boxShadow: tone === 'default' ? 'var(--shadow-ring)' : 'none' }}
     >
-      <p
-        className={`text-[10px] font-bold uppercase tracking-[0.10em] ${label_color}`}
-      >
+      <p className={`text-[10px] font-bold uppercase tracking-[0.12em] ${labelColor}`}>
         {label}
       </p>
       <p
-        className={`mt-2 text-2xl md:text-[1.75rem] ${value_color} tracking-[-0.02em] leading-none tabular-nums`}
+        className={`mt-2 ${big ? 'text-[2rem] md:text-[2.5rem]' : 'text-[1.625rem] md:text-[2rem]'} ${valueColor} tracking-[-0.025em] leading-[0.95] tabular-nums`}
         style={{ fontWeight: 900, fontFamily: 'var(--font-numbers)' }}
       >
         {value}
       </p>
       {sub && (
-        <p className={`mt-1.5 text-xs font-semibold ${sub_color}`}>{sub}</p>
+        <p className={`mt-2 text-[12px] font-semibold ${subColor} leading-snug`}>{sub}</p>
       )}
     </div>
   );
 }
 
-function ChartCard({ children }: { children: React.ReactNode }) {
+// ─── Chart card ───────────────────────────────────────────
+interface ChartCardProps {
+  title: string;
+  caption?: string;
+  legend?: React.ReactNode;
+  children: React.ReactNode;
+}
+
+function ChartCard({ title, caption, legend, children }: ChartCardProps) {
+  return (
+    <section
+      className="bg-white rounded-[var(--r-card)] p-5 md:p-7"
+      style={{ boxShadow: 'var(--shadow-ring), var(--shadow-float)' }}
+    >
+      <header className="flex flex-wrap items-baseline justify-between gap-3 mb-4 md:mb-5">
+        <div className="min-w-0">
+          <h3
+            className="text-[1.125rem] md:text-[1.25rem] text-[color:var(--color-near-black)] tracking-[-0.015em] leading-tight"
+            style={{ fontWeight: 900 }}
+          >
+            {title}
+          </h3>
+          {caption && (
+            <p className="text-[12px] text-[color:var(--text-muted)] font-medium mt-1">
+              {caption}
+            </p>
+          )}
+        </div>
+        {legend}
+      </header>
+      {children}
+    </section>
+  );
+}
+
+// ─── Headline insight band ────────────────────────────────
+function HeadlineInsight({
+  outputs,
+  pslfEnabled,
+}: {
+  outputs: CalculatorOutputs;
+  pslfEnabled: boolean;
+}) {
+  const cross = outputs.netWorthCrossoverYear;
+  const payoffLabel = formatYears(outputs.payoffYears);
+
+  // Pick the single most-actionable headline depending on scenario state.
+  let headline: string;
+  let secondary: string;
+  if (pslfEnabled && outputs.pslfEligible) {
+    headline = `${formatDollars(outputs.pslfForgiven)} forgiven tax-free with PSLF.`;
+    secondary = `That's ${formatDollars(outputs.pslfSavings)} less out of pocket vs the standard plan, with payoff in ${formatYears(outputs.pslfYearsToForgiveness)}.`;
+  } else if (cross !== null) {
+    headline = `You break even at year ${cross}.`;
+    secondary = `From that point forward, your projected net worth stays positive. Total payoff lands at ${payoffLabel}.`;
+  } else {
+    headline = `${payoffLabel} to fully repay.`;
+    secondary = `Your net-worth trajectory hasn't hit positive yet on this scenario \u2014 try toggling PSLF or a longer time horizon.`;
+  }
+
   return (
     <div
-      className="bg-white rounded-[var(--r-card)] p-5 md:p-6"
-      style={{ boxShadow: 'var(--shadow-ring)' }}
+      className="rounded-[var(--r-card)] p-5 md:p-6 bg-[color:var(--color-near-black)] text-white flex flex-col md:flex-row md:items-center gap-4 md:gap-6"
     >
-      {children}
+      <div
+        aria-hidden
+        className="flex-shrink-0 inline-flex items-center justify-center w-11 h-11 rounded-full bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+        </svg>
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--color-wise-green)]">
+          Your headline insight
+        </p>
+        <p
+          className="mt-1.5 text-[1.5rem] md:text-[1.875rem] leading-[1.05] text-white tracking-[-0.02em]"
+          style={{ fontWeight: 900 }}
+        >
+          {headline}
+        </p>
+        <p className="mt-2 text-[14px] text-white/65 leading-relaxed font-medium max-w-xl">
+          {secondary}
+        </p>
+      </div>
     </div>
   );
 }
@@ -84,78 +167,52 @@ export default function CalculatorResults({
   outputs,
   residencyYears,
   taxRate,
+  pslfEnabled,
 }: Props) {
   return (
-    <div className="flex flex-col gap-5">
-      {/* ── KPI ROW ──────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard
-          label="Monthly payment"
-          value={formatDollars(outputs.monthlyPaymentAttending)}
-          sub={`Residency ≈ ${formatDollars(outputs.monthlyPaymentResidency)}`}
-        />
+    <div className="flex flex-col gap-5 md:gap-6">
+      {/* ── HEADLINE INSIGHT ─────────────────────────── */}
+      <HeadlineInsight outputs={outputs} pslfEnabled={pslfEnabled} />
+
+      {/* ── KPI ROW (4-up on desktop) ────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <KpiCard
           label="Time to payoff"
           value={formatYears(outputs.payoffYears)}
           sub={
             outputs.pslfEligible
               ? `PSLF: ${formatYears(outputs.pslfYearsToForgiveness)}`
-              : undefined
+              : 'Standard 10-yr amortization'
           }
+          big
+        />
+        <KpiCard
+          label="Monthly payment"
+          value={formatDollars(outputs.monthlyPaymentAttending)}
+          sub={`Residency \u2248 ${formatDollars(outputs.monthlyPaymentResidency)}`}
         />
         <KpiCard
           label="Total interest"
           value={formatDollars(outputs.totalInterestPaid)}
           sub={`Total paid ${formatDollars(outputs.standardTotalPaid)}`}
-          dark
+          tone="dark"
         />
-        <div className="relative">
-          {/* Annotated callout — surfaces the most valuable insight the tool
-              produces. Hidden on small viewports to avoid crowding the KPI. */}
-          <div
-            aria-hidden
-            className="hidden xl:block absolute -top-7 right-0 translate-y-[-100%] pointer-events-none"
-          >
-            <div className="flex items-end gap-2">
-              <span className="inline-block px-2.5 py-1 rounded-[var(--r-pill)] text-[10px] font-bold uppercase tracking-wider bg-[color:var(--color-near-black)] text-white whitespace-nowrap">
-                The insight most doctors miss
-              </span>
-              <svg
-                width="24"
-                height="36"
-                viewBox="0 0 24 36"
-                fill="none"
-                aria-hidden="true"
-                className="text-[color:var(--color-near-black)] -mb-1"
-              >
-                <path
-                  d="M12 2 C 18 10, 18 22, 12 32 M12 32 L7 26 M12 32 L17 26"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-              </svg>
-            </div>
-          </div>
-          <KpiCard
-            label="Net-worth crossover"
-            value={
-              outputs.netWorthCrossoverYear !== null
-                ? `Yr ${outputs.netWorthCrossoverYear}`
-                : '—'
-            }
-            sub="First year back in the black"
-            accent
-          />
-        </div>
+        <KpiCard
+          label="Net-worth crossover"
+          value={
+            outputs.netWorthCrossoverYear !== null
+              ? `Yr ${outputs.netWorthCrossoverYear}`
+              : '\u2014'
+          }
+          sub="First year back in the black"
+          tone="accent"
+        />
       </div>
 
       {/* ── PSLF callout ────────────────────────────── */}
       {outputs.pslfEligible && (
         <div
-          className="rounded-[var(--r-card-sm)] p-4 md:p-5 bg-[color:var(--color-light-mint)] flex flex-wrap items-baseline gap-x-6 gap-y-2"
+          className="rounded-[var(--r-card-sm)] p-4 md:p-5 bg-[color:var(--color-light-mint)] grid grid-cols-2 md:grid-cols-[1fr_1fr_auto] gap-4 md:gap-6 items-center"
           style={{ boxShadow: 'var(--shadow-ring)' }}
         >
           <div>
@@ -163,7 +220,7 @@ export default function CalculatorResults({
               PSLF Forgiveness
             </p>
             <p
-              className="text-2xl text-[color:var(--color-dark-green)] leading-none tabular-nums mt-1.5"
+              className="text-[1.5rem] text-[color:var(--color-dark-green)] leading-none tabular-nums mt-1.5"
               style={{ fontWeight: 900, fontFamily: 'var(--font-numbers)' }}
             >
               {formatDollars(outputs.pslfForgiven)}
@@ -174,105 +231,114 @@ export default function CalculatorResults({
               PSLF Savings
             </p>
             <p
-              className="text-2xl text-[color:var(--color-dark-green)] leading-none tabular-nums mt-1.5"
+              className="text-[1.5rem] text-[color:var(--color-dark-green)] leading-none tabular-nums mt-1.5"
               style={{ fontWeight: 900, fontFamily: 'var(--font-numbers)' }}
             >
               {formatDollars(outputs.pslfSavings)}
             </p>
           </div>
-          <p className="text-xs text-[color:var(--color-dark-green)]/80 max-w-xs font-medium">
-            Based on 120 qualifying payments at a 501(c)(3) / government employer.
+          <p className="col-span-2 md:col-span-1 text-[12px] text-[color:var(--color-dark-green)]/85 max-w-xs font-medium leading-relaxed">
+            Based on 120 qualifying payments at a 501(c)(3) or government employer.
           </p>
         </div>
       )}
 
-      {/* ── CHARTS ───────────────────────────────────── */}
-      <ChartCard>
-        <BalanceChart
-          standardSchedule={outputs.standardSchedule}
-          pslfSchedule={outputs.pslfSchedule}
-          residencyYears={residencyYears}
-        />
-      </ChartCard>
+      {/* ── CHARTS GRID ─────────────────────────────── */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-5">
+        <ChartCard
+          title="Loan balance over time"
+          caption="What you owe, year by year"
+        >
+          <BalanceChart
+            standardSchedule={outputs.standardSchedule}
+            pslfSchedule={outputs.pslfSchedule}
+            residencyYears={residencyYears}
+          />
+        </ChartCard>
 
-      <ChartCard>
-        <NetWorthChart
-          schedule={outputs.standardSchedule}
-          pslfSchedule={outputs.pslfSchedule}
-          residencyYears={residencyYears}
-          crossoverYear={outputs.netWorthCrossoverYear}
-          taxRate={taxRate}
-        />
-      </ChartCard>
+        <ChartCard
+          title="Net worth over time"
+          caption={`After ${taxRate ?? 30}% tax \u00b7 minus living expenses \u00b7 minus loan payments`}
+        >
+          <NetWorthChart
+            schedule={outputs.standardSchedule}
+            pslfSchedule={outputs.pslfSchedule}
+            residencyYears={residencyYears}
+            crossoverYear={outputs.netWorthCrossoverYear}
+            taxRate={taxRate}
+          />
+        </ChartCard>
+      </div>
 
       {outputs.pslfEligible && (
-        <ChartCard>
+        <ChartCard title="PSLF vs Standard" caption="Side-by-side totals over the full payoff horizon">
           <ComparisonChart outputs={outputs} />
         </ChartCard>
       )}
 
       {/* ── OPPORTUNITY COST ─────────────────────────── */}
-      <div
-        className="rounded-[var(--r-card)] p-5 md:p-6 bg-[color:var(--color-near-black)] text-white grid md:grid-cols-[1fr_auto] items-start gap-4"
-      >
+      <div className="rounded-[var(--r-card)] p-5 md:p-6 bg-white grid md:grid-cols-[1fr_auto] items-start gap-4" style={{ boxShadow: 'var(--shadow-ring)' }}>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.10em] text-white/60 mb-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[color:var(--text-muted)] mb-2">
             Opportunity cost
           </p>
           <p
-            className="text-3xl md:text-4xl text-white leading-none tabular-nums"
+            className="text-[2rem] md:text-[2.25rem] text-[color:var(--color-near-black)] leading-none tabular-nums tracking-[-0.025em]"
             style={{ fontWeight: 900, fontFamily: 'var(--font-numbers)' }}
           >
             {formatDollars(outputs.opportunityCost)}
           </p>
-          <p className="text-sm text-white/70 mt-3 max-w-sm leading-relaxed font-medium">
+          <p className="text-[14px] text-[color:var(--text-secondary)] mt-3 max-w-md leading-relaxed font-medium">
             If the {formatDollars(outputs.extraDollarsPaid)} you paid above IDR
             minimums had been invested instead, it would grow to roughly this
             over the payoff horizon.
           </p>
         </div>
-        <div className="text-xs text-white/60 font-medium md:text-right md:max-w-[160px] leading-relaxed">
-          Estimate assumes monthly contribution of the &ldquo;extra&rdquo; and compound growth.
+        <div className="text-[11px] text-[color:var(--text-muted)] font-medium md:text-right md:max-w-[180px] leading-relaxed">
+          Assumes monthly contribution of the &ldquo;extra&rdquo; and compound growth at your assumed market return.
         </div>
       </div>
 
       {/* ── SNAPSHOT TABLE ───────────────────────────── */}
       <div
-        className="bg-white rounded-[var(--r-card-sm)] overflow-hidden"
+        className="bg-white rounded-[var(--r-card)] overflow-hidden"
         style={{ boxShadow: 'var(--shadow-ring)' }}
       >
-        <div className="px-4 md:px-5 py-3 border-b border-[color:var(--border-subtle)]">
+        <div className="px-5 md:px-6 py-3.5 border-b border-[color:var(--border-subtle)] flex items-center justify-between gap-3">
           <h4
-            className="text-sm text-[color:var(--text-primary)] tracking-[-0.005em]"
+            className="text-[14px] text-[color:var(--color-near-black)] tracking-[-0.005em]"
             style={{ fontWeight: 900 }}
           >
             Year-by-year snapshot
           </h4>
+          <span className="text-[10px] font-bold uppercase tracking-[0.10em] text-[color:var(--text-muted)]">
+            First 12 years
+          </span>
         </div>
         <div className="overflow-x-auto wise-scroll">
-          <table className="w-full text-xs font-semibold">
+          <table className="w-full text-[12.5px] font-semibold">
             <thead className="bg-[color:var(--color-off-white)] text-[10px] uppercase tracking-[0.10em] text-[color:var(--text-muted)]">
               <tr>
-                <th className="text-left px-4 py-2.5">Year</th>
-                <th className="text-right px-4 py-2.5">Income</th>
-                <th className="text-right px-4 py-2.5">Paid</th>
-                <th className="text-right px-4 py-2.5">Balance</th>
-                <th className="text-right px-4 py-2.5">Net worth</th>
-                <th className="text-left pl-4 pr-4 py-2.5">Phase</th>
+                <th className="text-left px-4 py-3">Year</th>
+                <th className="text-right px-4 py-3">Income</th>
+                <th className="text-right px-4 py-3">Paid</th>
+                <th className="text-right px-4 py-3">Balance</th>
+                <th className="text-right px-4 py-3">Net worth</th>
+                <th className="text-left pl-4 pr-4 py-3">Phase</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[color:var(--border-subtle)]">
               {outputs.standardSchedule.slice(0, 12).map((row) => (
                 <tr
                   key={row.year}
-                  className="text-[color:var(--text-primary)] tabular-nums hover:bg-[color:var(--color-light-mint)] transition-colors"
+                  className="text-[color:var(--text-primary)] tabular-nums hover:bg-[color:var(--color-light-mint)]/60 transition-colors"
                 >
                   <td className="px-4 py-2.5">{row.label}</td>
                   <td className="text-right px-4 py-2.5">
-                    {row.annualIncome > 0 ? formatDollarsExact(row.annualIncome) : '—'}
+                    {row.annualIncome > 0 ? formatDollarsExact(row.annualIncome) : '\u2014'}
                   </td>
                   <td className="text-right px-4 py-2.5">
-                    {row.annualPayment > 0 ? formatDollarsExact(row.annualPayment) : '—'}
+                    {row.annualPayment > 0 ? formatDollarsExact(row.annualPayment) : '\u2014'}
                   </td>
                   <td className="text-right px-4 py-2.5">{formatDollarsExact(row.balance)}</td>
                   <td

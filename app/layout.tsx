@@ -54,14 +54,53 @@ export const metadata: Metadata = {
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
+/**
+ * Site-wide structured data. Exposes the Organization + WebSite identity
+ * so Google can collapse our search results under a single brand and
+ * surface a sitelinks search box. Per-page schema (Article, FAQPage,
+ * SoftwareApplication, BreadcrumbList) is added in each route.
+ */
+const ORGANIZATION_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "MedDebt Calculator",
+  url: SITE_URL,
+  description:
+    "An independent, evidence-based debt-planning tool built specifically for medical students, residents, and attending physicians.",
+  logo: `${SITE_URL}/icon.png`,
+};
+
+const WEBSITE_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "MedDebt Calculator",
+  url: SITE_URL,
+  description:
+    "Med school debt calculator with PSLF comparison and net-worth projections for doctors.",
+  publisher: { "@type": "Organization", name: "MedDebt Calculator" },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full scroll-smooth`}>
+    <html lang="en" className={`${inter.variable} h-full`}>
       <body className="min-h-full antialiased bg-white text-[color:var(--text-primary)]">
+        <Script
+          id="ld-organization"
+          type="application/ld+json"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_LD) }}
+        />
+        <Script
+          id="ld-website"
+          type="application/ld+json"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBSITE_LD) }}
+        />
+
         {children}
 
         {GA_ID && <GoogleAnalytics gaId={GA_ID} />}

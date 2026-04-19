@@ -2,14 +2,25 @@ import type { SanityImageSource } from '@sanity/image-url';
 import { sanityClient } from './sanity.client';
 import { coverImageUrl } from './sanity.image';
 import {
+  allCategoriesQuery,
   allPostsQuery,
   allSlugsQuery,
   postBySlugQuery,
+  relatedPostsQuery,
 } from './sanity.queries';
 
 export interface FaqItem {
   q: string;
   a: string;
+}
+
+export interface CategoryRef {
+  slug: string;
+  title: string;
+}
+
+export interface Category extends CategoryRef {
+  description?: string | null;
 }
 
 export interface PostMeta {
@@ -20,6 +31,10 @@ export interface PostMeta {
   readingTime: string;
   /** Optional focus keyword (used for light SEO metadata). */
   keyword?: string;
+  /** When true, this post is pinned as the lead article on the blog index. */
+  featured?: boolean;
+  /** Categories the post belongs to (denormalized references). */
+  categories?: CategoryRef[];
   /** Optional cover image URL resolved from Sanity. Null when the post has no cover. */
   coverImageUrl?: string | null;
   /** Alt text for the cover image, when present. */
@@ -57,6 +72,7 @@ function hydrateCover<T extends PostMetaRaw>(raw: T): PostMeta {
   void _omit;
   return {
     ...rest,
+    categories: raw.categories ?? [],
     coverImageUrl: cover ? coverImageUrl(cover as SanityImageSource) : null,
     coverImageAlt: cover?.alt ?? null,
   };
@@ -91,6 +107,24 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
     content: post.body ?? '',
     faqs: post.faqs,
   };
+}
+
+export async function getRelatedPosts(slug: string): Promise<PostMeta[]> {
+  const posts = await sanityClient.fetch<PostMetaRaw[]>(
+    relatedPostsQuery,
+    { slug },
+    { next: { revalidate: REVALIDATE_SECONDS, tags: ['post', `post:${slug}`] } },
+  );
+  return (posts ?? []).map(hydrateCover);
+}
+
+export async function getAllCategories(): Promise<Category[]> {
+  const cats = await sanityClient.fetch<Category[]>(
+    allCategoriesQuery,
+    {},
+    { next: { revalidate: REVALIDATE_SECONDS, tags: ['category'] } },
+  );
+  return cats ?? [];
 }
 
 export async function getAllSlugs(): Promise<string[]> {

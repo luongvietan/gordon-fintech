@@ -11,23 +11,19 @@ interface AdSlotProps {
   slot?: string;
   /** Extra className for layout. */
   className?: string;
-  /** Label shown in placeholder mode. */
-  label?: string;
 }
 
 /**
  * Ad placement that renders a real AdSense `<ins class="adsbygoogle">` unit
- * when `NEXT_PUBLIC_ADSENSE_CLIENT` + a `slot` are both provided; otherwise
- * renders a neutral placeholder with the Wise ring-shadow style.
- *
- * The `<Script>` loader for AdSense lives in `app/layout.tsx` (also gated on
- * the env var) so we only initialise if it's actually available.
+ * when `NEXT_PUBLIC_ADSENSE_CLIENT` + a `slot` are both provided. When no
+ * ad is configured we render NOTHING — no "Advertisement" placeholder
+ * shipped to production. Empty placeholders read as broken-product to
+ * first-time visitors and torch credibility.
  */
 export default function AdSlot({
   variant = 'banner',
   slot,
   className = '',
-  label = 'Advertisement',
 }: AdSlotProps) {
   const insRef = useRef<HTMLModElement | null>(null);
   const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
@@ -44,20 +40,14 @@ export default function AdSlot({
     }
   }, [enabled]);
 
+  if (!enabled) return null;
+
   const slotClass =
     variant === 'banner'
       ? 'ad-slot ad-slot--banner'
       : variant === 'sidebar'
       ? 'ad-slot ad-slot--sidebar'
       : 'ad-slot ad-slot--inline';
-
-  if (!enabled) {
-    return (
-      <div className={`${slotClass} ${className}`} aria-hidden="true">
-        {label}
-      </div>
-    );
-  }
 
   return (
     <div className={`${slotClass} ${className}`} aria-label="Advertisement">

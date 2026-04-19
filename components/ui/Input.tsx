@@ -23,19 +23,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-xs font-semibold text-[color:var(--text-primary)] tracking-[-0.005em]"
+            className="text-[11.5px] font-bold text-[color:var(--text-primary)] tracking-[-0.005em] uppercase tracking-[0.04em]"
           >
             {label}
           </label>
         )}
-        {hint && (
-          <p className="text-[11px] text-[color:var(--text-muted)] leading-snug">
-            {hint}
-          </p>
-        )}
         <div className="relative flex items-center">
           {prefix && (
-            <span className="absolute left-3 text-sm font-semibold text-[color:var(--text-muted)] pointer-events-none select-none">
+            <span className="absolute left-3.5 text-[14px] font-bold text-[color:var(--text-muted)] pointer-events-none select-none">
               {prefix}
             </span>
           )}
@@ -43,31 +38,36 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={`
-              w-full h-11 px-3.5 text-sm font-semibold
+              w-full h-11 px-3.5 text-[14px] font-bold tabular-nums
               bg-white text-[color:var(--text-primary)]
-              placeholder:text-[color:var(--text-muted)] placeholder:font-normal
+              placeholder:text-[color:var(--text-muted)] placeholder:font-medium
               rounded-[var(--r-input)]
               shadow-[var(--shadow-ring)]
               transition-shadow duration-150 ease-out
               outline-none
               hover:shadow-[var(--shadow-ring-strong)]
-              focus:shadow-[var(--shadow-ring-inset)]
+              focus:shadow-[rgba(159,232,112,0.6)_0_0_0_2px,rgba(14,15,12,0.24)_0_0_0_1px]
               disabled:bg-[color:var(--color-light-surface)] disabled:cursor-not-allowed
               ${prefix ? 'pl-7' : ''}
-              ${suffix ? 'pr-12' : ''}
+              ${suffix ? 'pr-14' : ''}
               ${error ? 'shadow-[rgba(208,50,56,0.8)_0_0_0_1px]' : ''}
               ${className}
             `}
             {...props}
           />
           {suffix && (
-            <span className="absolute right-3 text-sm font-semibold text-[color:var(--text-muted)] pointer-events-none select-none">
+            <span className="absolute right-3.5 text-[12px] font-bold text-[color:var(--text-muted)] pointer-events-none select-none uppercase tracking-wider">
               {suffix}
             </span>
           )}
         </div>
+        {hint && (
+          <p className="text-[11px] text-[color:var(--text-muted)] leading-snug font-medium">
+            {hint}
+          </p>
+        )}
         {error && (
-          <p className="text-xs font-semibold text-[color:var(--color-danger)]">
+          <p className="text-[11px] font-semibold text-[color:var(--color-danger)]">
             {error}
           </p>
         )}

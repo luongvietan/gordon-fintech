@@ -23,20 +23,20 @@ const Slider = forwardRef<HTMLInputElement, SliderProps>(
     const progress = ((numValue - min) / (max - min)) * 100;
 
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         {(label || displayValue) && (
           <div className="flex items-baseline justify-between gap-2">
             {label && (
               <label
                 htmlFor={sliderId}
-                className="text-xs font-semibold text-[color:var(--text-primary)] tracking-[-0.005em]"
+                className="text-[11.5px] font-bold text-[color:var(--text-primary)] uppercase tracking-[0.04em]"
               >
                 {label}
               </label>
             )}
             {displayValue && (
               <span
-                className="text-sm font-bold tabular-nums text-[color:var(--text-primary)]"
+                className="inline-flex items-center px-2 py-0.5 rounded-[var(--r-pill)] text-[12px] font-black tabular-nums bg-[color:var(--color-near-black)] text-white"
                 style={{ fontFamily: 'var(--font-numbers)' }}
               >
                 {displayValue}
@@ -58,14 +58,14 @@ const Slider = forwardRef<HTMLInputElement, SliderProps>(
             background: `linear-gradient(to right,
               var(--color-wise-green) 0%,
               var(--color-wise-green) ${progress}%,
-              rgba(14,15,12,0.10) ${progress}%,
-              rgba(14,15,12,0.10) 100%)`,
+              rgba(14,15,12,0.08) ${progress}%,
+              rgba(14,15,12,0.08) 100%)`,
           }}
           {...props}
         />
 
         {hint && (
-          <p className="text-[11px] text-[color:var(--text-muted)] leading-snug">
+          <p className="text-[11px] text-[color:var(--text-muted)] leading-snug font-medium">
             {hint}
           </p>
         )}
@@ -75,7 +75,7 @@ const Slider = forwardRef<HTMLInputElement, SliderProps>(
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 6px;
+            height: 8px;
             border-radius: 9999px;
             outline: none;
             cursor: pointer;
@@ -84,29 +84,30 @@ const Slider = forwardRef<HTMLInputElement, SliderProps>(
           .wise-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            background: var(--color-near-black);
-            border: 3px solid #ffffff;
-            box-shadow: var(--shadow-ring);
+            background: #ffffff;
+            border: 3px solid var(--color-near-black);
+            box-shadow: 0 2px 8px rgba(14, 15, 12, 0.25);
             cursor: grab;
-            transition: transform 150ms ease-out;
+            transition: transform 150ms ease-out, box-shadow 150ms ease-out;
           }
           .wise-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.12);
+            transform: scale(1.14);
+            box-shadow: 0 4px 14px rgba(14, 15, 12, 0.30);
           }
           .wise-slider::-webkit-slider-thumb:active {
             cursor: grabbing;
             transform: scale(0.96);
           }
           .wise-slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
-            background: var(--color-near-black);
-            border: 3px solid #ffffff;
-            box-shadow: var(--shadow-ring);
+            background: #ffffff;
+            border: 3px solid var(--color-near-black);
+            box-shadow: 0 2px 8px rgba(14, 15, 12, 0.25);
             cursor: grab;
             transition: transform 150ms ease-out;
           }
