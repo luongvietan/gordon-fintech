@@ -364,19 +364,19 @@ export default function Calculator() {
           - `lg:self-start` is critical: by default grid items stretch to
             the row's height, which would let the sidebar grow with the
             results column and prevent sticky from ever kicking in.
-          - `lg:max-h-[calc(100svh-4rem)]` caps the sidebar at viewport
-            minus the header so its own internal scroller takes over when
-            users have lots of input sections expanded.
-          - `svh` (small viewport height) avoids the iOS Safari address-bar
-            jump that `vh` causes during scroll.
+          - We intentionally do NOT cap the sidebar with `max-h` + an
+            internal scrollbar. The form is short enough at typical
+            viewport heights that letting it size to its content keeps
+            things calm and scrollbar-free. If a user expands every
+            section AND has a short laptop screen, the bottom of the
+            sidebar will be hidden once it sticks; in practice the
+            collapsible input sections (most are closed by default) keep
+            the column well within viewport height.
         */}
         <aside
-          className="min-w-0 lg:border-r border-b lg:border-b-0 border-[color:var(--border-subtle)] bg-white lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100svh-4rem)]"
+          className="min-w-0 lg:border-r border-b lg:border-b-0 border-[color:var(--border-subtle)] bg-white lg:sticky lg:top-16 lg:self-start"
         >
-          <div
-            className="px-5 md:px-6 lg:px-7 py-5 md:py-6 lg:py-7 lg:max-h-[calc(100svh-4rem)] lg:overflow-y-auto wise-scroll"
-            data-lenis-prevent
-          >
+          <div className="px-5 md:px-6 lg:px-7 py-5 md:py-6 lg:py-7">
             <CalculatorInputsForm inputs={inputs} onChange={handleChange} />
           </div>
         </aside>
