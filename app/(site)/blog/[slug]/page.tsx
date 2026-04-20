@@ -231,7 +231,7 @@ export default async function BlogPostPage({ params }: Props) {
                   Specialty presets, PSLF comparison, net-worth crossover — free.
                 </p>
                 <Link
-                  href="/#calculator"
+                  href="/calculator"
                   className="inline-flex items-center justify-center gap-1.5 mt-5 w-full py-3 rounded-[var(--r-pill)] text-sm font-semibold bg-[color:var(--color-near-black)] text-white transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
                 >
                   Try Calculator
@@ -294,7 +294,7 @@ export default async function BlogPostPage({ params }: Props) {
               Enter your specialty, residency, and loan details. Get a customized projection in seconds.
             </p>
             <Link
-              href="/#calculator"
+              href="/calculator"
               className="inline-flex items-center gap-2 mt-8 px-6 py-3.5 rounded-[var(--r-pill)] text-base font-semibold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95]"
             >
               Calculate my payoff — free

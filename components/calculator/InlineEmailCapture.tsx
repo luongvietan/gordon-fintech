@@ -81,17 +81,17 @@ export default function InlineEmailCapture() {
   return (
     <section
       aria-label="Email a summary of these results"
-      className="rounded-[var(--r-card)] bg-white p-5 md:p-6 lg:p-7 flex flex-col md:flex-row md:items-center gap-5 md:gap-7"
+      className="rounded-[var(--r-card)] bg-white p-5 md:p-6 lg:p-7 flex flex-col 2xl:flex-row 2xl:items-center gap-5 2xl:gap-7"
       style={{ boxShadow: 'var(--shadow-ring)' }}
     >
-      <div className="flex-1 min-w-0 flex items-start gap-3 md:gap-4">
+      <div className="w-full 2xl:flex-1 min-w-0 flex items-start gap-3 md:gap-4">
         <span
           aria-hidden
           className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full bg-[color:var(--color-light-mint)] text-[color:var(--color-dark-green)]"
         >
           <Mail className="w-4 h-4" strokeWidth={2} aria-hidden />
         </span>
-        <div className="min-w-0">
+        <div className="flex-1 min-w-0 max-w-[36rem]">
           <p
             className="text-[15px] md:text-[16px] text-[color:var(--color-near-black)] tracking-[-0.005em]"
             style={{ fontWeight: 900 }}
@@ -107,7 +107,7 @@ export default function InlineEmailCapture() {
 
       <form
         onSubmit={handleSubmit}
-        className="flex-shrink-0 w-full md:w-auto md:min-w-[420px] flex flex-col sm:flex-row gap-2"
+        className="w-full max-w-none 2xl:flex-shrink-0 2xl:w-auto 2xl:min-w-[380px] 2xl:max-w-[420px] flex flex-col sm:flex-row gap-2"
       >
         <input
           type="text"

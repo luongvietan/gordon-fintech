@@ -42,15 +42,29 @@ export default function StrategyComparison({ comparison }: Props) {
       </header>
 
       {/* ── Desktop table ──────────────────────────── */}
+      {/*
+        `overflow-x-auto` lets the table scroll horizontally inside the
+        card when the viewport is narrow. The explicit `min-w-[880px]`
+        on the table guarantees every column — including the rightmost
+        "Monthly" — keeps a sensible width instead of being clipped.
+      */}
       <div className="hidden md:block overflow-x-auto wise-scroll border-t border-[color:var(--border-subtle)]">
-        <table className="w-full text-[13px] font-semibold">
+        <table className="w-full min-w-[980px] text-[13px] font-semibold">
+          <colgroup>
+            <col className="w-[22%]" />
+            <col className="w-[14%]" />
+            <col className="w-[16%]" />
+            <col className="w-[12%]" />
+            <col className="w-[12%]" />
+            <col className="w-[24%]" />
+          </colgroup>
           <thead className="bg-[color:var(--color-off-white)] text-[10px] uppercase tracking-[0.10em] text-[color:var(--text-muted)]">
             <tr>
               <th className="text-left px-6 py-3.5">Strategy</th>
               <th className="text-right px-4 py-3.5">Total paid</th>
               <th className="text-right px-4 py-3.5">True total cost</th>
               <th className="text-right px-4 py-3.5">Time to done</th>
-              <th className="text-right px-4 py-3.5">Monthly</th>
+              <th className="text-right px-4 py-3.5 whitespace-nowrap">Monthly</th>
               <th className="text-left pl-4 pr-6 py-3.5">Outcome</th>
             </tr>
           </thead>
@@ -80,11 +94,17 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
     <tr
       className={`
         text-[color:var(--text-primary)] tabular-nums
-        ${isRec ? 'bg-[color:var(--color-light-mint)]/55 ring-1 ring-inset ring-[color:var(--color-wise-green)]' : ''}
+        ${isRec ? 'bg-[color:var(--color-light-mint)]' : ''}
         ${isUnavail ? 'opacity-55' : ''}
       `}
     >
-      <td className="text-left px-6 py-4">
+      <td
+        className={`text-left px-6 py-4 relative ${
+          isRec
+            ? 'before:content-[""] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[color:var(--color-wise-green)]'
+            : ''
+        }`}
+      >
         <div className="flex items-center gap-2.5">
           <span
             className={`text-[14px] ${
@@ -102,7 +122,7 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
           )}
         </div>
       </td>
-      <td className="text-right px-4 py-4">
+      <td className="text-right px-4 py-4 whitespace-nowrap">
         {isUnavail ? <span className="text-[color:var(--text-muted)]">&mdash;</span> : (
           <div className="inline-flex flex-col items-end gap-1">
             <span>{formatDollars(strategy.totalPaid)}</span>
@@ -120,7 +140,7 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
           </div>
         )}
       </td>
-      <td className="text-right px-4 py-4 font-bold">
+      <td className="text-right px-4 py-4 font-bold whitespace-nowrap">
         {isUnavail ? (
           <span className="text-[color:var(--text-muted)]">&mdash;</span>
         ) : (
@@ -140,10 +160,10 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
           </div>
         )}
       </td>
-      <td className="text-right px-4 py-4">
+      <td className="text-right px-4 py-4 whitespace-nowrap">
         {isUnavail ? <span className="text-[color:var(--text-muted)]">&mdash;</span> : formatYears(strategy.yearsToDone)}
       </td>
-      <td className="text-right px-4 py-4">
+      <td className="text-right px-4 py-4 whitespace-nowrap">
         {isUnavail ? <span className="text-[color:var(--text-muted)]">&mdash;</span> : formatDollars(strategy.monthlyPayment) + '/mo'}
       </td>
       <td className="text-left pl-4 pr-6 py-4">

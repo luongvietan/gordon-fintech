@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { ArrowRight, Menu, X } from 'lucide-react';
 
 const NAV = [
-  { href: '/#calculator', label: 'Calculator' },
+  { href: '/calculator', label: 'Calculator' },
   { href: '/blog', label: 'Guides' },
   { href: '/#how-it-works', label: 'How it works' },
   { href: '/about', label: 'About' },
@@ -54,7 +54,7 @@ export default function Header() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             <Link
-              href="/#calculator"
+              href="/calculator"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-pill)] text-sm font-semibold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95]"
             >
               Try Calculator
@@ -94,7 +94,7 @@ export default function Header() {
               </Link>
             ))}
             <Link
-              href="/#calculator"
+              href="/calculator"
               onClick={() => setOpen(false)}
               className="mt-2 inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-[var(--r-pill)] text-sm font-semibold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]"
             >

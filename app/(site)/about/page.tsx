@@ -145,14 +145,14 @@ export default function AboutPage() {
               </h1>
 
               <p className="mt-6 md:mt-7 text-base md:text-lg max-w-xl leading-relaxed font-medium text-white/65">
-                A free, transparent calculator built for medical students,
+                We built a free, transparent calculator for medical students,
                 residents, and attendings making six-figure financial
                 decisions. Not a refi ad in disguise.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Link
-                  href="/#calculator"
+                  href="/calculator"
                   className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[var(--r-pill)] text-[15px] font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] shadow-[0_10px_40px_-12px_rgba(159,232,112,0.7)] transition-all duration-200 hover:bg-[color:var(--color-pastel-green)] hover:-translate-y-0.5 active:translate-y-0"
                 >
                   Open the calculator
@@ -256,40 +256,41 @@ export default function AboutPage() {
                   className="text-[1.25rem] md:text-[1.5rem] lg:text-[1.75rem] text-[color:var(--color-near-black)] leading-[1.35] tracking-[-0.012em] max-w-2xl"
                   style={{ fontWeight: 700 }}
                 >
-                  Every calculator I found was either too generic or buried
-                  inside a site trying to sell you a refinancing product. So I
+                  Every calculator we found was either too generic or buried
+                  inside a site trying to sell you a refinancing product. So we
                   built one that wasn&rsquo;t.
                 </p>
 
                 <div className="mt-7 md:mt-8 space-y-4 text-[15px] md:text-[16px] text-[color:var(--text-secondary)] leading-relaxed font-medium max-w-2xl">
                   <p>
-                    I&rsquo;m a current premed student. I became obsessed with
+                    We&rsquo;re two premed students who became obsessed with
                     the medical school debt problem after seeing how little
                     clarity existed for doctors making six-figure financial
-                    decisions.
+                    decisions. We built this tool because every calculator we
+                    found was either too generic or buried inside a site trying
+                    to sell you a refinancing product.
                   </p>
                   <p>
-                    Every number you see here traces to a published source.
-                    There are no affiliate links, no lender partnerships, no
-                    upsells. The tool exists to model your scenario &mdash; not
-                    to sell you one.
+                    Every number here traces to a published source. We have no
+                    affiliate links, no lender partnerships, and no upsells.
+                    This tool has no agenda &mdash; it&rsquo;s just the math.
                   </p>
                 </div>
 
                 <figcaption className="mt-7 md:mt-8 flex items-center gap-3 text-[12px] font-semibold text-[color:var(--text-muted)] tracking-[-0.005em]">
                   <span
                     aria-hidden
-                    className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[color:var(--color-near-black)] text-[color:var(--color-wise-green)]"
+                    className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[color:var(--color-near-black)] text-[color:var(--color-wise-green)] text-[11px] tabular-nums"
                     style={{ fontWeight: 900 }}
                   >
-                    M
+                    SN
                   </span>
                   <span className="flex flex-col">
                     <span className="text-[color:var(--color-near-black)] font-bold tracking-[-0.005em]">
-                      Built independently
+                      Suhin Nallagatla &amp; Kevin Ren
                     </span>
                     <span className="text-[11.5px] text-[color:var(--text-muted)] font-medium">
-                      No lender backing &middot; Last reviewed April 2026
+                      Built independently by two premed students
                     </span>
                   </span>
                 </figcaption>
@@ -521,7 +522,7 @@ export default function AboutPage() {
 
               <div className="flex flex-col sm:flex-row md:flex-col items-stretch md:items-end gap-3 md:min-w-[220px]">
                 <Link
-                  href="/#calculator"
+                  href="/calculator"
                   className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[var(--r-pill)] text-[15px] font-bold bg-[color:var(--color-near-black)] text-white transition-all duration-200 hover:scale-[1.04] active:scale-[0.96]"
                 >
                   Open the calculator

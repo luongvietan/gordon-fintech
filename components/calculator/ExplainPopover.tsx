@@ -37,15 +37,16 @@ export default function ExplainPopover({
       <summary
         className={`
           inline-flex items-center gap-1 cursor-pointer select-none list-none
-          text-[10.5px] font-bold uppercase tracking-[0.10em] text-[color:var(--text-muted)]
-          hover:text-[color:var(--color-near-black)] transition-colors
+          text-[11px] font-semibold text-[color:var(--color-dark-green)]
+          underline underline-offset-2 opacity-90
+          hover:text-[color:var(--color-near-black)] hover:opacity-100 transition-colors
           [&::-webkit-details-marker]:hidden
         `}
       >
-        Show your work
+        See breakdown
         <ChevronDown
-          className="w-2.5 h-2.5 transition-transform duration-200 group-open:rotate-180"
-          strokeWidth={2.5}
+          className="w-3 h-3 transition-transform duration-200 group-open:rotate-180"
+          strokeWidth={2.25}
           aria-hidden
         />
       </summary>

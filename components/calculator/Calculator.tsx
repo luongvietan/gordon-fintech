@@ -425,8 +425,21 @@ export default function Calculator() {
             collapsible input sections (most are closed by default) keep
             the column well within viewport height.
         */}
+        {/*
+          Independent scrolling on desktop: the sidebar becomes sticky,
+          capped to the viewport height (minus the 4rem site header),
+          and any overflow scrolls internally. The results pane scrolls
+          the outer page as usual, so users can browse the long results
+          column while the inputs stay pinned and fully reachable.
+
+          `data-lenis-prevent` tells our site-wide smooth-scroll wrapper
+          NOT to hijack wheel events that originate inside the sidebar —
+          without this, Lenis would consume the wheel and scroll the
+          outer page instead of the inner aside.
+        */}
         <aside
-          className="min-w-0 lg:border-r border-b lg:border-b-0 border-[color:var(--border-subtle)] bg-white lg:sticky lg:top-16 lg:self-start"
+          data-lenis-prevent
+          className="min-w-0 lg:border-r border-b lg:border-b-0 border-[color:var(--border-subtle)] bg-white lg:sticky lg:top-16 lg:self-start lg:max-h-[calc(100svh-4rem)] lg:overflow-y-auto wise-scroll"
         >
           <div className="px-5 md:px-6 lg:px-7 py-5 md:py-6 lg:py-7">
             <CalculatorInputsForm inputs={inputs} onChange={handleChange} />

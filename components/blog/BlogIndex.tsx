@@ -112,7 +112,7 @@ export default function BlogIndex({ posts, categories }: Props) {
             </p>
           </div>
           <Link
-            href="/#calculator"
+            href="/calculator"
             className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-[var(--r-pill)] text-sm font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95]"
           >
             Try the calculator

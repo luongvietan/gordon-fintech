@@ -44,8 +44,8 @@ export default function Footer() {
             </h3>
             <ul className="flex flex-col gap-3">
               {[
-                { href: '/#calculator', label: 'Debt Calculator' },
-                { href: '/#calculator', label: 'PSLF Comparison' },
+                { href: '/calculator', label: 'Debt Calculator' },
+                { href: '/calculator', label: 'PSLF Comparison' },
                 { href: '/#crossover', label: 'Net Worth Crossover' },
               ].map((item) => (
                 <li key={item.label}>
