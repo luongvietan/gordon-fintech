@@ -88,6 +88,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full`}>
       <body className="min-h-full antialiased bg-white text-[color:var(--text-primary)]">
+        {/* WCAG 2.4.1 bypass block — lets keyboard users jump past the
+            nav straight to the page's main landmark. Hidden off-screen
+            until focused (see `.skip-link` in globals.css). */}
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+
         <Script
           id="ld-organization"
           type="application/ld+json"

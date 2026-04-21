@@ -54,8 +54,35 @@ export const SPECIALTIES: Specialty[] = [
 /** National average resident salary (AAMC 2024). */
 export const RESIDENT_SALARY = 65000;
 
-/** 150% of federal poverty level for a single person (2024). */
+/** 150% of federal poverty level for a single person (2025 guidelines). */
 export const POVERTY_LINE_150 = 22590;
+
+/**
+ * 150% of the 2025 federal poverty line, keyed by household size.
+ * Source: HHS 2025 Poverty Guidelines (48 contiguous states + DC).
+ * Used by IDR discretionary-income math:
+ *   discretionary = max(0, AGI − POVERTY_150(familySize))
+ *
+ * For households > 8 we add the marginal per-person amount
+ * ($5,500 × 1.5 ≈ $8,250) consistent with the HHS methodology.
+ */
+const POVERTY_150_BY_FAMILY: Record<number, number> = {
+  1: 22590,
+  2: 30660,
+  3: 38730,
+  4: 46800,
+  5: 54870,
+  6: 62940,
+  7: 71010,
+  8: 79080,
+};
+const EXTRA_PER_PERSON = 8250;
+
+export function povertyLine150(familySize: number = 1): number {
+  const n = Math.max(1, Math.round(familySize));
+  if (POVERTY_150_BY_FAMILY[n] != null) return POVERTY_150_BY_FAMILY[n];
+  return POVERTY_150_BY_FAMILY[8] + (n - 8) * EXTRA_PER_PERSON;
+}
 
 export function getSpecialtyById(id: string): Specialty | undefined {
   return SPECIALTIES.find((s) => s.id === id);

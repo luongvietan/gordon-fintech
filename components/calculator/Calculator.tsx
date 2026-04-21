@@ -25,7 +25,9 @@ import {
 } from '@/lib/calculator-share';
 import CalculatorInputsForm from './CalculatorInputs';
 import CalculatorResults from './CalculatorResults';
+import SaveScenarioButton from './SaveScenarioButton';
 import { RESIDENT_SALARY } from '@/lib/specialties';
+import { bucketDollars, track } from '@/lib/analytics';
 
 // ─── Download PDF button ───────────────────────────────────
 type PdfState = 'idle' | 'loading' | 'error';
@@ -45,6 +47,11 @@ function DownloadPdfButton({
     try {
       const { downloadResultsPdf } = await import('@/lib/pdf');
       downloadResultsPdf(inputs, outputs);
+      track('pdf_downloaded', {
+        pslf_enabled: !!inputs.pslfEnabled,
+        loan_type: inputs.loanType,
+        debt_bucket: bucketDollars(inputs.totalDebt),
+      });
       setState('idle');
     } catch (err) {
       console.error('PDF export failed', err);
@@ -127,6 +134,10 @@ function ShareLinkButton({
       }
 
       if (copied) {
+        track('share_link_copied', {
+          pslf_enabled: !!inputs.pslfEnabled,
+          loan_type: inputs.loanType,
+        });
         setState('copied');
         setTimeout(() => setState('idle'), 1800);
       } else {
@@ -186,6 +197,19 @@ const DEFAULT_INPUTS: CalculatorInputs = {
   investmentReturn: 7,
   capitalizeOnlyAfterTraining: true,
   scenarioPreset: 'custom',
+  refinanceEnabled: false,
+  refinanceRate: 4.5,
+  refinanceTermYears: 10,
+  refinanceOrigFeePct: 0,
+  spouseEnabled: false,
+  spouseIncome: 80000,
+  spouseIncomeGrowthRate: 3,
+  filingStatus: 'single',
+  familySize: 1,
+  jobChangeEnabled: false,
+  jobChangeYear: 3,
+  jobChangeAttendingSalary: 300000,
+  jobChangePslfQualifies: false,
 };
 
 interface PresetMeta {
@@ -214,28 +238,77 @@ const PRESETS: PresetMeta[] = [
  * diff against DEFAULT_INPUTS, the result is identical between server +
  * client when no `?s=` param is present.
  */
-function readInitialInputs(): CalculatorInputs {
-  if (typeof window === 'undefined') return DEFAULT_INPUTS;
+/**
+ * Per-render initial-input resolver. Seed order, highest priority first:
+ *   1. A `?s=...` share payload from the current URL (user explicitly
+ *      opened a shared link; always wins).
+ *   2. The page-level `initialInputs` override (e.g. a specialty profile
+ *      route pre-seeding Dermatology defaults).
+ *   3. `DEFAULT_INPUTS` fallback.
+ *
+ * Note: the share payload is a *sparse diff* against DEFAULT_INPUTS, so
+ * when both a share payload and an override exist, we decode on top of
+ * the override — the specialty becomes the baseline and the share diff
+ * layers over it. That matches the intuition "open this dermatologist's
+ * shared scenario on the dermatology page".
+ */
+function readInitialInputs(override?: Partial<CalculatorInputs>): CalculatorInputs {
+  const base: CalculatorInputs = override
+    ? { ...DEFAULT_INPUTS, ...override }
+    : DEFAULT_INPUTS;
+  if (typeof window === 'undefined') return base;
   const params = new URLSearchParams(window.location.search);
   const payload = params.get(SHARE_PARAM);
-  if (!payload) return DEFAULT_INPUTS;
-  return decodeInputs(payload, DEFAULT_INPUTS) ?? DEFAULT_INPUTS;
+  if (!payload) return base;
+  return decodeInputs(payload, base) ?? base;
 }
 
-export default function Calculator() {
-  const [inputs, setInputs] = useState<CalculatorInputs>(readInitialInputs);
+interface CalculatorProps {
+  /**
+   * Optional initial-input override (used by specialty landing pages to
+   * pre-seed the calculator with, e.g., dermatology salary + 4y training
+   * without asking the user to enter it). Merged on top of DEFAULT_INPUTS;
+   * any share payload in the URL still wins.
+   */
+  initialInputs?: Partial<CalculatorInputs>;
+}
+
+export default function Calculator({ initialInputs }: CalculatorProps = {}) {
+  const [inputs, setInputs] = useState<CalculatorInputs>(() =>
+    readInitialInputs(initialInputs),
+  );
 
   // P10: snapshot of the "baseline" inputs against which Quick-Toggle
   // mutations are diffed, so we can show the "Modified scenario" badge and
   // a one-click reset to baseline. The baseline tracks any deliberate user
   // change (typing in a field, choosing a preset, loading from URL) but
   // NOT changes triggered by quick-toggle buttons themselves.
-  const [baselineInputs, setBaselineInputs] = useState<CalculatorInputs>(readInitialInputs);
+  const [baselineInputs, setBaselineInputs] = useState<CalculatorInputs>(() =>
+    readInitialInputs(initialInputs),
+  );
   // True when the most recent state mutation came from a QuickToggle button.
   // Quick-toggle mutations should NOT advance the baseline.
   const [transientChange, setTransientChange] = useState(false);
 
   function handleChange(updated: Partial<CalculatorInputs>) {
+    // Emit discrete events for the high-signal toggles so GA4 can build
+    // clean funnels (e.g. "% of users who enable PSLF"). The generic
+    // `calculator_input_changed` event is debounced into the noise by
+    // only firing when a field actually changed value — we leave field
+    // names out to keep payloads tight and PII-free.
+    if ('pslfEnabled' in updated) {
+      track('pslf_toggled', { enabled: !!updated.pslfEnabled });
+    }
+    if ('spouseEnabled' in updated) {
+      track('spouse_toggled', { enabled: !!updated.spouseEnabled });
+    }
+    if ('refinanceEnabled' in updated) {
+      track('refi_toggled', { enabled: !!updated.refinanceEnabled });
+    }
+    if ('jobChangeEnabled' in updated) {
+      track('jobchange_toggled', { enabled: !!updated.jobChangeEnabled });
+    }
+
     setInputs((prev) => {
       const next = {
         ...prev,
@@ -252,6 +325,7 @@ export default function Calculator() {
   }
 
   function handlePreset(preset: ScenarioPreset) {
+    track('preset_selected', { preset });
     setInputs((prev) => {
       const next = applyScenarioPreset(prev, preset);
       setBaselineInputs(next);
@@ -260,8 +334,14 @@ export default function Calculator() {
   }
 
   function handleReset() {
-    setInputs(DEFAULT_INPUTS);
-    setBaselineInputs(DEFAULT_INPUTS);
+    // "Reset" returns to the same seed this Calculator was mounted with,
+    // not the bare DEFAULT_INPUTS — on a specialty page that means back to
+    // the specialty defaults, not back to Primary Care.
+    const resetBase: CalculatorInputs = initialInputs
+      ? { ...DEFAULT_INPUTS, ...initialInputs }
+      : DEFAULT_INPUTS;
+    setInputs(resetBase);
+    setBaselineInputs(resetBase);
   }
 
   // QuickToggles drives a transient mutation: the baseline does NOT move,
@@ -329,6 +409,7 @@ export default function Calculator() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <SaveScenarioButton inputs={inputs} outputs={outputs} />
           <ShareLinkButton inputs={inputs} defaults={DEFAULT_INPUTS} />
           <DownloadPdfButton inputs={inputs} outputs={outputs} />
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[10px] font-bold uppercase tracking-widest bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]">

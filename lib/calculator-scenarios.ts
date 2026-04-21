@@ -19,13 +19,13 @@ import {
   calculateOutputs,
   formatDollars,
 } from './calculator';
-import { POVERTY_LINE_150 } from './specialties';
+import { povertyLine150 } from './specialties';
 
 // ============================================================
 // 1) ALL-STRATEGY COMPARISON
 // ============================================================
 
-export type StrategyId = 'pslf' | 'standard' | 'aggressive';
+export type StrategyId = 'pslf' | 'standard' | 'aggressive' | 'refinance';
 
 export interface StrategyOutcome {
   id: StrategyId;
@@ -101,6 +101,14 @@ export function runAllStrategies(
   }
 
   const strategies: StrategyOutcome[] = [pslf, std, agg];
+
+  // Optional fourth strategy: private refinance. Only modeled when the user
+  // opts in — the warning about giving up federal protections is loud in
+  // the UI, so we don't force this into the table by default.
+  if (inputs.refinanceEnabled) {
+    strategies.push(buildRefinanceOutcome(inputs, stdOut));
+  }
+
   if (recommended) {
     for (const s of strategies) s.recommended = s.id === recommended;
   }
@@ -189,6 +197,82 @@ function buildPslfNotEligibleOutcome(): StrategyOutcome {
     taxLiability: 0,
     opportunityCost: 0,
     trueCostNote: 'Private loans are not eligible for PSLF.',
+  };
+}
+
+/**
+ * Build the private-refinance outcome.
+ *
+ * Physicians rarely refinance mid-training because they lose federal IDR
+ * protections with no income to support market-rate payments. The
+ * realistic pattern is: keep federal loans through residency + fellowship
+ * (making the IDR floor), then refinance the post-training balance at
+ * the start of the attending phase. That's what we model here.
+ *
+ * We deliberately take the standard-path balance at the end of training
+ * (which already accounts for capitalization rules the user toggled) as
+ * the refi principal. Training-phase payments are counted toward
+ * totalPaid so the column is comparable to the others.
+ */
+function buildRefinanceOutcome(
+  inputs: CalculatorInputs,
+  stdOut: CalculatorOutputs,
+): StrategyOutcome {
+  const trainingYears =
+    inputs.residencyYears + (inputs.fellowshipYears ?? 0);
+  const refiRate = inputs.refinanceRate ?? 4.5;
+  const refiTerm = Math.max(1, inputs.refinanceTermYears ?? 10);
+  const origFeePct = Math.max(0, inputs.refinanceOrigFeePct ?? 0);
+
+  // Find the balance at the end of training on the standard path. That's
+  // what actually gets refinanced. The standard schedule is keyed by year,
+  // with year 0 being the day-of-training-start snapshot.
+  const balanceAtTrainingEnd =
+    stdOut.standardSchedule.find((row) => row.year === trainingYears)
+      ?.balance ?? stdOut.standardSchedule[stdOut.standardSchedule.length - 1]?.balance ?? inputs.totalDebt;
+
+  // Sum training-phase payments (years 1..trainingYears) to preserve an
+  // honest totalPaid figure (the user really did hand over that money
+  // before they refinanced).
+  let trainingPaid = 0;
+  for (const row of stdOut.standardSchedule) {
+    if (row.year >= 1 && row.year <= trainingYears) {
+      trainingPaid += row.annualPayment;
+    }
+  }
+
+  // Apply origination fee by rolling it into principal (most physician
+  // refi offers are 0% fee; we support non-zero for completeness).
+  const feeAmount = balanceAtTrainingEnd * (origFeePct / 100);
+  const refiPrincipal = balanceAtTrainingEnd + feeAmount;
+
+  const months = refiTerm * 12;
+  const monthlyPayment = refiPrincipal > 0
+    ? amortizationPayment(refiPrincipal, refiRate, months)
+    : 0;
+  const refiTotalPaid = monthlyPayment * months;
+
+  const totalPaid = Math.round(trainingPaid + refiTotalPaid);
+  const yearsToDone = trainingYears + refiTerm;
+
+  const taxLiability = 0;
+  // Opportunity cost is already baked into stdOut if refi rate < standard
+  // rate, but we don't double-count here — refinancing lowers payments
+  // which could free cash for investment. Simplify: treat as 0 for the
+  // comparison column. The user can reason about that themselves.
+  const opportunityCost = 0;
+
+  return {
+    id: 'refinance',
+    label: 'Refinance (private)',
+    totalPaid,
+    yearsToDone,
+    monthlyPayment: Math.round(monthlyPayment),
+    outcomeLabel: 'Fully paid off \u2014 no federal protections',
+    trueTotalCost: totalPaid + taxLiability + opportunityCost,
+    taxLiability,
+    opportunityCost,
+    trueCostNote: `Total paid = ${Math.round(trainingPaid / 1000)}K training-phase IDR + ${refiTerm}-yr refi at ${refiRate}% on ${Math.round(balanceAtTrainingEnd / 1000)}K. Refinancing converts federal loans to private, permanently forfeiting PSLF, IDR, and federal forbearance protections.`,
   };
 }
 
@@ -424,6 +508,19 @@ export function calculateIdrTaxBomb(
   let balance = totalDebt;
   let totalPaid = 0;
 
+  // Household-aware IDR inputs: MFJ counts spouse income, MFS/single
+  // don't. Family size adjusts the 150% FPL floor.
+  const spouseOn = !!inputs.spouseEnabled;
+  const filingIncludesSpouse =
+    spouseOn && (inputs.filingStatus ?? 'mfj') === 'mfj';
+  const spouseIncome = spouseOn ? Math.max(0, inputs.spouseIncome ?? 0) : 0;
+  const spouseGrowth = inputs.spouseIncomeGrowthRate ?? 3;
+  const familySize = Math.max(
+    1,
+    inputs.familySize ?? (spouseOn ? 2 : 1),
+  );
+  const fpl = povertyLine150(familySize);
+
   for (let yr = 1; yr <= totalYears; yr++) {
     if (balance <= 0) break;
     const inTraining = yr <= trainingYears;
@@ -435,8 +532,14 @@ export function calculateIdrTaxBomb(
         Math.pow(1 + inputs.inflationRate / 100, yr - 1) *
         Math.pow(1 + inputs.attendingSalaryGrowthRate / 100, yr - trainingYears - 1);
 
-    const annualIdr =
-      Math.max(0, grossSalary - POVERTY_LINE_150) * 0.10;
+    const spouseYearIncome = spouseIncome
+      ? spouseIncome *
+        Math.pow(1 + inputs.inflationRate / 100, yr - 1) *
+        Math.pow(1 + spouseGrowth / 100, yr - 1)
+      : 0;
+    const agi =
+      grossSalary + (filingIncludesSpouse ? spouseYearIncome : 0);
+    const annualIdr = Math.max(0, agi - fpl) * 0.10;
     const monthlyIdr = annualIdr / 12;
 
     for (let m = 0; m < 12; m++) {

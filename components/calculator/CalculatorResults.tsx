@@ -283,7 +283,18 @@ export default function CalculatorResults({
   };
 
   return (
-    <div className="flex flex-col gap-5 md:gap-6 lg:gap-7">
+    // `role="region"` + aria-label gives assistive tech a stable
+    // landmark for the results, and `aria-live="polite"` lets screen
+    // readers announce updated numbers without stealing focus. We
+    // deliberately use `polite` (not `assertive`) because users are
+    // typing into inputs — loud announcements would interrupt typing.
+    <div
+      role="region"
+      aria-label="Calculator results"
+      aria-live="polite"
+      aria-atomic="false"
+      className="flex flex-col gap-5 md:gap-6 lg:gap-7"
+    >
       {/* ── 1. Verdict (replaces HeadlineInsight) ────────── */}
       <BestStrategyPanel
         recommendation={recommendation}

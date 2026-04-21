@@ -580,6 +580,63 @@ html.lenis body {
 }
 
 /* ============================================================
+   ACCESSIBILITY UTILITIES
+   ============================================================ */
+
+/* sr-only: visually hidden, still read by screen readers.
+   Standard pattern, matches Tailwind's default `sr-only` but we
+   define it here so `globals.css` ships it without relying on the
+   plugin surface. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip-to-main-content link. Lives at the top of <body> and is
+   visually hidden until focused via keyboard — a baseline WCAG 2.4.1
+   bypass block requirement. Uses the brand focus ring so the
+   appearance matches other focused controls. */
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 2147483647; /* above overlays, modals, and ads */
+  background: var(--color-near-black);
+  color: var(--color-wise-green);
+  padding: 0.6rem 1rem;
+  border-radius: var(--r-pill);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: translateY(-200%);
+  transition: transform 160ms ease-out;
+  text-decoration: none;
+}
+.skip-link:focus {
+  transform: translateY(0);
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Focus-visible ring for any interactive element that doesn't
+   already ship one. We key off :focus-visible (not :focus) so a
+   mouse click doesn't leave a ring on buttons, but tab navigation
+   always does. Keeps keyboard users oriented without clutter. */
+:where(a, button, [role="button"], summary, input, select, textarea):focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--r-pill);
+}
+
+/* ============================================================
    REDUCED MOTION
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {

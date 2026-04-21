@@ -44,12 +44,13 @@ export default function StrategyComparison({ comparison }: Props) {
       {/* ── Desktop table ──────────────────────────── */}
       {/*
         `overflow-x-auto` lets the table scroll horizontally inside the
-        card when the viewport is narrow. The explicit `min-w-[880px]`
-        on the table guarantees every column — including the rightmost
-        "Monthly" — keeps a sensible width instead of being clipped.
+        card when the viewport is narrow. The explicit `min-w-[980px]`
+        baseline grows to `min-w-[1100px]` when the refi strategy is
+        present, so the extra row still gets comfortable column widths
+        instead of cramming numbers into tiny cells.
       */}
       <div className="hidden md:block overflow-x-auto wise-scroll border-t border-[color:var(--border-subtle)]">
-        <table className="w-full min-w-[980px] text-[13px] font-semibold">
+        <table className={`w-full ${strategies.length >= 4 ? 'min-w-[1100px]' : 'min-w-[980px]'} text-[13px] font-semibold`}>
           <colgroup>
             <col className="w-[22%]" />
             <col className="w-[14%]" />

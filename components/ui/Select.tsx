@@ -22,6 +22,10 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ) => {
     const selectId =
       id ?? (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    const hintId = hint && selectId ? `${selectId}-hint` : undefined;
+    const errorId = error && selectId ? `${selectId}-err` : undefined;
+    const describedBy =
+      [hintId, errorId].filter(Boolean).join(' ') || undefined;
 
     return (
       <div className="flex flex-col gap-1.5">
@@ -37,6 +41,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           <select
             ref={ref}
             id={selectId}
+            aria-describedby={describedBy}
+            aria-invalid={error ? true : undefined}
             className={`
               w-full h-11 pl-3.5 pr-10 text-[14px] font-bold appearance-none
               bg-white text-[color:var(--text-primary)]
@@ -67,12 +73,19 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           </div>
         </div>
         {hint && (
-          <p className="text-[11px] text-[color:var(--text-muted)] leading-snug font-medium">
+          <p
+            id={hintId}
+            className="text-[11px] text-[color:var(--text-muted)] leading-snug font-medium"
+          >
             {hint}
           </p>
         )}
         {error && (
-          <p className="text-[11px] font-semibold text-[color:var(--color-danger)]">
+          <p
+            id={errorId}
+            role="alert"
+            className="text-[11px] font-semibold text-[color:var(--color-danger)]"
+          >
             {error}
           </p>
         )}

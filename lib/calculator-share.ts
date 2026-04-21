@@ -40,6 +40,19 @@ const ALLOWED_KEYS = [
   'investmentReturn',
   'capitalizeOnlyAfterTraining',
   'scenarioPreset',
+  'refinanceEnabled',
+  'refinanceRate',
+  'refinanceTermYears',
+  'refinanceOrigFeePct',
+  'spouseEnabled',
+  'spouseIncome',
+  'spouseIncomeGrowthRate',
+  'filingStatus',
+  'familySize',
+  'jobChangeEnabled',
+  'jobChangeYear',
+  'jobChangeAttendingSalary',
+  'jobChangePslfQualifies',
 ] as const satisfies readonly (keyof CalculatorInputs)[];
 
 type AllowedKey = (typeof ALLOWED_KEYS)[number];

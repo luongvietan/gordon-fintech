@@ -18,6 +18,7 @@ export default function Toggle({
   id,
 }: ToggleProps) {
   const toggleId = id ?? 'toggle';
+  const descriptionId = description ? `${toggleId}-desc` : undefined;
 
   return (
     <div className="flex items-start gap-3">
@@ -26,6 +27,8 @@ export default function Toggle({
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-label={label}
+        aria-describedby={descriptionId}
         disabled={disabled}
         onClick={() => !disabled && onChange(!checked)}
         className={`
@@ -64,6 +67,7 @@ export default function Toggle({
           )}
           {description && (
             <p
+              id={descriptionId}
               className={`text-xs leading-snug ${
                 disabled
                   ? 'text-[color:var(--text-muted)]/60'

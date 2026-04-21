@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getAllPosts } from '@/lib/blog';
+import { SPECIALTIES } from '@/lib/specialties';
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
@@ -24,6 +25,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const staticPages: MetadataRoute.Sitemap = [
+    { path: '/calculator', priority: 0.9 },
+    { path: '/specialty', priority: 0.85 },
     { path: '/methodology', priority: 0.6 },
     { path: '/privacy', priority: 0.4 },
     { path: '/terms', priority: 0.4 },
@@ -32,6 +35,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
     changeFrequency: 'yearly',
     priority,
+  }));
+
+  // Every specialty profile gets its own SEO surface. These are the
+  // long-tail entry points ("dermatology student loan repayment"), so
+  // they get a higher priority than the static info pages.
+  const specialtyEntries: MetadataRoute.Sitemap = SPECIALTIES.map((s) => ({
+    url: `${BASE_URL}/specialty/${s.id}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.75,
   }));
 
   return [
@@ -48,6 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     ...staticPages,
+    ...specialtyEntries,
     ...blogEntries,
   ];
 }

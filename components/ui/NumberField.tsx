@@ -45,6 +45,14 @@ interface NumberFieldProps
   nonNegative?: boolean;
   /** Allow decimal values. Default: step-based detection. */
   allowDecimals?: boolean;
+  /**
+   * When true, clearing the field does NOT snap to `min` / 0 on blur. The
+   * field stays empty and `onClear` is fired instead of `onValueChange`.
+   * Useful for optional-override inputs where "no value" is a meaningful
+   * state distinct from "zero".
+   */
+  clearable?: boolean;
+  onClear?: () => void;
 }
 
 const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
@@ -64,6 +72,8 @@ const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
       step,
       nonNegative,
       allowDecimals,
+      clearable,
+      onClear,
       placeholder,
       onBlur,
       onFocus,
@@ -73,6 +83,8 @@ const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
   ) => {
     const inputId =
       id ?? (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+    const hintId = inputId ? `${inputId}-hint` : undefined;
+    const errId = inputId ? `${inputId}-err` : undefined;
 
     const effectiveNonNegative =
       nonNegative ?? (typeof min === 'number' ? min >= 0 : true);
@@ -124,6 +136,15 @@ const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
 
     function commit(raw: string) {
       if (raw === '' || raw === '-' || raw === '.') {
+        // Clearable fields keep the empty state instead of snapping to
+        // `min` — that's the contract downstream consumers rely on to
+        // distinguish "no value set" from "explicit zero".
+        if (clearable) {
+          setText('');
+          setRangeWarning(null);
+          onClear?.();
+          return;
+        }
         // User wiped the field — fall back to min (or 0).
         const fallback = typeof min === 'number' ? min : 0;
         setText(String(fallback));
@@ -264,6 +285,9 @@ const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
             inputMode={decimals ? 'decimal' : 'numeric'}
             autoComplete="off"
             aria-invalid={displayError ? 'true' : undefined}
+            aria-describedby={
+              displayError ? errId : hint ? hintId : undefined
+            }
             className={`
               w-full h-11 px-3.5 text-[14px] font-bold tabular-nums
               bg-white text-[color:var(--text-primary)]
@@ -294,12 +318,20 @@ const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
           )}
         </div>
         {hint && !displayError && (
-          <p className="text-[11px] text-[color:var(--text-muted)] leading-snug font-medium">
+          <p
+            id={hintId}
+            className="text-[11px] text-[color:var(--text-muted)] leading-snug font-medium"
+          >
             {hint}
           </p>
         )}
         {displayError && (
-          <p className="text-[11px] font-semibold text-[color:var(--color-danger)]">
+          <p
+            id={errId}
+            role="alert"
+            aria-live="polite"
+            className="text-[11px] font-semibold text-[color:var(--color-danger)]"
+          >
             {displayError}
           </p>
         )}

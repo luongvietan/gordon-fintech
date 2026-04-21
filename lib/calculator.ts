@@ -1,4 +1,4 @@
-import { POVERTY_LINE_150 } from './specialties';
+import { povertyLine150 } from './specialties';
 
 // ============================================================
 // TYPES
@@ -25,6 +25,14 @@ export interface CalculatorInputs {
   fellowshipSalary?: number;
   /** Annual stipend / PGY salary at start of training (PDF default ~$65k). */
   residencyStartingSalary: number;
+  /**
+   * Optional per-PGY-year salary override. When present and non-empty,
+   * training-phase income is read from this array (index 0 = PGY-1,
+   * index 1 = PGY-2, etc.) instead of compounding from
+   * `residencyStartingSalary` via the growth + inflation formula.
+   * Entries can be undefined to fall back to the formula for that year.
+   */
+  residencySalaryByYear?: Array<number | undefined>;
   attendingSalary: number;
   /** % annual raise during residency & fellowship (PDF ~2%). */
   residentSalaryGrowthRate: number;
@@ -62,6 +70,75 @@ export interface CalculatorInputs {
   capitalizeOnlyAfterTraining?: boolean;
   /** Chosen scenario preset (UI hint — math derives from the other fields). */
   scenarioPreset?: ScenarioPreset;
+
+  // ── Spouse / filing status (optional dual-income mode) ───
+  /**
+   * Enables dual-income modeling. When off, all "spouse*" fields below
+   * are ignored and the calculator behaves as single-income.
+   */
+  spouseEnabled?: boolean;
+  /** Spouse gross annual income today (USD). */
+  spouseIncome?: number;
+  /** Spouse annual raise % (compounded alongside CPI). Typical 2–4%. */
+  spouseIncomeGrowthRate?: number;
+  /**
+   * Tax filing status. Only meaningful when `spouseEnabled` is true.
+   *   - 'single' : no spouse (default when `spouseEnabled` is false)
+   *   - 'mfj'    : Married Filing Jointly — spouse income is included
+   *                in the IDR AGI, raising the required payment.
+   *   - 'mfs'    : Married Filing Separately — spouse income is NOT
+   *                included in the IDR AGI (lower payment), but the
+   *                borrower typically loses some credits and falls into
+   *                narrower tax brackets; we surface this trade-off in
+   *                the UI rather than modeling it automatically.
+   */
+  filingStatus?: 'single' | 'mfj' | 'mfs';
+  /**
+   * Household size for the 150% federal poverty line lookup. Default is
+   * 1 when no spouse, 2 when spouse is enabled. Users can raise this to
+   * account for dependents (each extra kid lowers IDR payment).
+   */
+  familySize?: number;
+
+  // ── Job-change modeling (optional mid-attending transition) ─
+  /**
+   * When true, the calculator applies a step-change to the attending
+   * phase starting at `jobChangeYear` (1-indexed attending year). Use
+   * cases: residency → academic → private practice at year 3, or losing
+   * PSLF eligibility after a job switch.
+   */
+  jobChangeEnabled?: boolean;
+  /**
+   * 1-indexed attending year at which the change takes effect. Year 1
+   * means the very first attending year (immediately post-training).
+   */
+  jobChangeYear?: number;
+  /**
+   * New attending salary (today's nominal dollars) starting at
+   * `jobChangeYear`. Growth + CPI inflation continue to compound from
+   * that year forward.
+   */
+  jobChangeAttendingSalary?: number;
+  /**
+   * Whether the post-change employer qualifies for PSLF. Only matters
+   * when the user is on the PSLF path. Defaults to true if omitted.
+   */
+  jobChangePslfQualifies?: boolean;
+
+  // ── Refinance modeling (optional 4th strategy) ───────────
+  /**
+   * When true, the comparison engine computes a private-refinance strategy
+   * as an additional column. The user keeps federal loans during training
+   * (preserving IDR), then refinances the remaining balance at the start
+   * of the attending phase on the terms below.
+   */
+  refinanceEnabled?: boolean;
+  /** Refi APR in percent (e.g. 4.5). */
+  refinanceRate?: number;
+  /** Refi amortization term in years (e.g. 5, 7, 10, 15). */
+  refinanceTermYears?: number;
+  /** Origination fee as a % of refi principal; almost always 0 for physician refi. */
+  refinanceOrigFeePct?: number;
 }
 
 export interface YearlySnapshot {
@@ -125,10 +202,35 @@ export function amortizationPayment(
   return (principal * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
 }
 
-/** Simplified income-driven repayment (SAVE/PAYE-style): 10% of discretionary. */
-function idrPayment(annualSalary: number): number {
-  const discretionary = Math.max(0, annualSalary - POVERTY_LINE_150);
+/**
+ * Simplified income-driven repayment (SAVE/PAYE-style): 10% of
+ * discretionary income, where discretionary = AGI − 150% FPL for the
+ * given household size.
+ *
+ * `agi` is the income counted for IDR, which is a function of filing
+ * status (see `idrAgi` below) — not always the borrower's salary.
+ */
+function idrPayment(agi: number, familySize: number = 1): number {
+  const discretionary = Math.max(0, agi - povertyLine150(familySize));
   return (discretionary * 0.10) / 12;
+}
+
+/**
+ * Compute the income that counts toward IDR for a single year.
+ *
+ * - No spouse / MFS → borrower income only (spouse income shielded).
+ * - MFJ             → household income (borrower + spouse).
+ *
+ * This mirrors the federal rule the UI exposes: "MFS keeps spouse's
+ * income off your payment but usually costs you ~1–3% in overall tax."
+ */
+function idrAgi(
+  borrowerIncome: number,
+  spouseIncome: number,
+  filingStatus: 'single' | 'mfj' | 'mfs',
+): number {
+  if (filingStatus === 'mfj') return borrowerIncome + Math.max(0, spouseIncome);
+  return borrowerIncome;
 }
 
 /**
@@ -137,7 +239,8 @@ function idrPayment(annualSalary: number): number {
  */
 function standardResidencyMonthlyPayment(
   loanType: 'federal' | 'private',
-  residentAnnualGross: number,
+  residentAnnualAgi: number,
+  familySize: number,
   monthlyInterest: number,
   balance: number,
   override?: number,
@@ -147,7 +250,7 @@ function standardResidencyMonthlyPayment(
     return Math.min(override, maxPayable);
   }
   if (loanType === 'federal') {
-    return Math.min(idrPayment(residentAnnualGross), maxPayable);
+    return Math.min(idrPayment(residentAnnualAgi, familySize), maxPayable);
   }
   return Math.min(monthlyInterest, maxPayable);
 }
@@ -155,13 +258,14 @@ function standardResidencyMonthlyPayment(
 /** Floor payment for “minimum vs extra” tracking: federal IDR; private = interest-only. */
 function attendingFloorMonthlyPayment(
   loanType: 'federal' | 'private',
-  annualGrossForIdr: number,
+  annualAgiForIdr: number,
+  familySize: number,
   monthlyInterest: number,
   balance: number,
 ): number {
   const maxPayable = Math.max(0, balance + monthlyInterest);
   if (loanType === 'federal') {
-    return Math.min(idrPayment(annualGrossForIdr), maxPayable);
+    return Math.min(idrPayment(annualAgiForIdr, familySize), maxPayable);
   }
   return Math.min(monthlyInterest, maxPayable);
 }
@@ -227,18 +331,127 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     inflationRate,
     investmentReturn,
     capitalizeOnlyAfterTraining = false,
+    spouseEnabled = false,
+    spouseIncome = 0,
+    spouseIncomeGrowthRate = 3,
+    filingStatus: filingStatusInput,
+    familySize: familySizeInput,
+    jobChangeEnabled = false,
+    jobChangeYear: jobChangeYearInput,
+    jobChangeAttendingSalary,
+    jobChangePslfQualifies = true,
   } = inputs;
+
+  // ── Resolve job-change config ──────────────────────────────
+  // The user can toggle "job change" on without filling in all fields.
+  // We only treat the change as active when the enable flag is set AND
+  // both the year and the new salary are valid. Otherwise attending
+  // math behaves like the single-job default.
+  const jobChangeYear =
+    jobChangeEnabled &&
+    typeof jobChangeYearInput === 'number' &&
+    isFinite(jobChangeYearInput) &&
+    jobChangeYearInput >= 1
+      ? Math.max(1, Math.round(jobChangeYearInput))
+      : undefined;
+  const jobChangeActive =
+    jobChangeYear != null &&
+    typeof jobChangeAttendingSalary === 'number' &&
+    isFinite(jobChangeAttendingSalary) &&
+    jobChangeAttendingSalary >= 0;
 
   const pslfEligible = loanType === 'federal' && pslfEnabled;
   const trainingYears = residencyYears + Math.max(0, fellowshipYears);
 
+  // ── Resolve household/filing state ──────────────────────────
+  // `spouseEnabled=false` always means single-tax-filer; we ignore any
+  // stray spouse fields so toggling the mode off is a clean reset from
+  // the UI's perspective.
+  const filingStatus: 'single' | 'mfj' | 'mfs' = spouseEnabled
+    ? filingStatusInput === 'mfs'
+      ? 'mfs'
+      : 'mfj'
+    : 'single';
+  const effectiveSpouseIncome = spouseEnabled ? Math.max(0, spouseIncome) : 0;
+  const familySize = Math.max(
+    1,
+    familySizeInput ?? (spouseEnabled ? 2 : 1),
+  );
+
+  /**
+   * Attending gross for a given attending year (1-indexed). When the
+   * user enables a job change, we re-base the salary at the change year
+   * and keep growth + CPI compounding forward from there. Years before
+   * the change use the original `attendingSalary` base.
+   *
+   * Inflation continues to compound from start of training (`yearsFromStart`)
+   * for both branches so the nominal dollars stay on the same axis as
+   * the rest of the schedule.
+   */
+  function attendingGross(attYr: number): number {
+    const yearsFromStart = trainingYears + attYr - 1;
+    if (jobChangeActive && jobChangeYear != null && attYr >= jobChangeYear) {
+      const yearsIntoNewJob = attYr - jobChangeYear;
+      const g = attendingSalaryGrowthRate / 100;
+      const i = inflationRate / 100;
+      return (
+        (jobChangeAttendingSalary as number) *
+        Math.pow(1 + g, yearsIntoNewJob) *
+        Math.pow(1 + i, yearsFromStart)
+      );
+    }
+    return inflatedSalary(
+      attendingSalary,
+      attYr - 1,
+      attendingSalaryGrowthRate,
+      inflationRate,
+    );
+  }
+
+  /**
+   * Whether PSLF-qualifying months should accrue for a given attending
+   * year. When job change is active and marks the new employer as not
+   * qualifying, attending months past the switch stop counting.
+   */
+  function attendingPslfCounts(attYr: number): boolean {
+    if (jobChangeActive && jobChangeYear != null && attYr >= jobChangeYear) {
+      return jobChangePslfQualifies;
+    }
+    return true;
+  }
+
+  /**
+   * Spouse gross income for a given calendar year (0-indexed from start
+   * of training). Grows by `spouseIncomeGrowthRate` (real) compounded
+   * with CPI inflation, mirroring how borrower salaries inflate — so
+   * poverty-line math and net-worth math stay on the same nominal axis.
+   */
+  function spouseGrossForYear(yearsFromStart: number): number {
+    if (effectiveSpouseIncome === 0) return 0;
+    return inflatedSalary(
+      effectiveSpouseIncome,
+      yearsFromStart,
+      spouseIncomeGrowthRate,
+      inflationRate,
+    );
+  }
+
   /**
    * Salary for a given training year (1-indexed).
-   * During residency (yr <= residencyYears) uses residencyStartingSalary;
-   * during fellowship falls back to fellowshipSalary (or residency salary
-   * if none given). Growth + inflation compound relative to start of training.
+   *
+   * Resolution order:
+   *   1. `residencySalaryByYear[yr - 1]` if provided and finite. This is
+   *      the opt-in per-PGY override populated by the residency timeline
+   *      UI. The user's explicit value trumps the formula.
+   *   2. Compounded formula from `residencyStartingSalary` using
+   *      `residentSalaryGrowthRate` + `inflationRate` (legacy default).
+   *   3. Fellowship years use `fellowshipSalary` as a separate base.
    */
   function trainingGross(yr: number): number {
+    const override = inputs.residencySalaryByYear?.[yr - 1];
+    if (typeof override === 'number' && isFinite(override) && override > 0) {
+      return override;
+    }
     const inResidency = yr <= residencyYears;
     if (inResidency) {
       return inflatedSalary(
@@ -290,7 +503,10 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     let yearlyPayment = 0;
     let yearlyMinimum = 0;
     const gross = trainingGross(yr);
+    const spouseGross = spouseGrossForYear(yr - 1);
     const net = afterTax(gross, taxRate);
+    const spouseNet = afterTax(spouseGross, taxRate);
+    const agi = idrAgi(gross, spouseGross, filingStatus);
     const phase = trainingPhase(yr);
 
     for (let m = 0; m < 12; m++) {
@@ -301,14 +517,16 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       const servicingBalance = balance + accruedInterest;
       const targetPayment = standardResidencyMonthlyPayment(
         loanType,
-        gross,
+        agi,
+        familySize,
         interest,
         servicingBalance,
         monthlyPaymentResidencyOverride,
       );
       const floorPay = standardResidencyMonthlyPayment(
         loanType,
-        gross,
+        agi,
+        familySize,
         interest,
         servicingBalance,
         undefined,
@@ -347,7 +565,10 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     // same baseline monthly living budget (user-provided).
     const yearlyLiving =
       livingExpensesResidency * 12 * Math.pow(1 + inflationRate / 100, yr - 1);
-    cumulativeNetWorth += net - yearlyPayment - yearlyLiving;
+    // Household net worth: borrower + spouse after-tax income, minus
+    // loan payments and shared living expenses. Spouse contributes the
+    // same in both MFJ and MFS — the distinction only affects IDR math.
+    cumulativeNetWorth += net + spouseNet - yearlyPayment - yearlyLiving;
     minimumPaidStandard += yearlyMinimum;
 
     const displayedBalance = Math.max(0, balance + accruedInterest);
@@ -383,13 +604,11 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     let yearlyPayment = 0;
     let yearlyMinimum = 0;
     const yearsFromStart = trainingYears + yr - 1;
-    const currentGross = inflatedSalary(
-      attendingSalary,
-      yr - 1,
-      attendingSalaryGrowthRate,
-      inflationRate,
-    );
+    const currentGross = attendingGross(yr);
     const currentNet = afterTax(currentGross, taxRate);
+    const spouseGrossAtt = spouseGrossForYear(yearsFromStart);
+    const spouseNetAtt = afterTax(spouseGrossAtt, taxRate);
+    const agiAtt = idrAgi(currentGross, spouseGrossAtt, filingStatus);
 
     for (let m = 0; m < 12; m++) {
       if (balance <= 0) break;
@@ -397,7 +616,8 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       const payment = Math.min(monthlyPaymentAttending, balance + interest);
       const floorMonthly = attendingFloorMonthlyPayment(
         loanType,
-        currentGross,
+        agiAtt,
+        familySize,
         interest,
         balance,
       );
@@ -413,7 +633,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     }
 
     const yearlyLiving = livingExpensesAttending * 12 * Math.pow(1 + inflationRate / 100, yearsFromStart);
-    cumulativeNetWorth += currentNet - yearlyPayment - yearlyLiving;
+    cumulativeNetWorth += currentNet + spouseNetAtt - yearlyPayment - yearlyLiving;
     minimumPaidStandard += yearlyMinimum;
     const calendarYear = trainingYears + yr;
 
@@ -442,10 +662,13 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     inflationRate,
   );
   const firstMonthInterestRes = accrueInterest(totalDebt, interestRate);
+  const firstSpouseGross = spouseGrossForYear(0);
+  const firstAgi = idrAgi(firstResidentGross, firstSpouseGross, filingStatus);
   const monthlyPaymentResidency = Math.round(
     standardResidencyMonthlyPayment(
       loanType,
-      firstResidentGross,
+      firstAgi,
+      familySize,
       firstMonthInterestRes,
       totalDebt,
       monthlyPaymentResidencyOverride,
@@ -484,8 +707,11 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     for (let yr = 1; yr <= trainingYears; yr++) {
       let yearlyPayment = 0;
       const gross = trainingGross(yr);
+      const spouseGross = spouseGrossForYear(yr - 1);
       const net = afterTax(gross, taxRate);
-      const monthlyIDR = idrPayment(gross);
+      const spouseNet = afterTax(spouseGross, taxRate);
+      const agi = idrAgi(gross, spouseGross, filingStatus);
+      const monthlyIDR = idrPayment(agi, familySize);
       const phase = trainingPhase(yr);
 
       for (let m = 0; m < 12; m++) {
@@ -515,7 +741,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
 
       const yearlyLiving =
         livingExpensesResidency * 12 * Math.pow(1 + inflationRate / 100, yr - 1);
-      pslfCumulativeNetWorth += net - yearlyPayment - yearlyLiving;
+      pslfCumulativeNetWorth += net + spouseNet - yearlyPayment - yearlyLiving;
 
       const displayed = Math.max(0, pslfBalance + pslfAccrued);
       pslfSchedule.push({
@@ -542,14 +768,13 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       if (qualifyingPayments >= PSLF_MONTHS) break;
       let yearlyPayment = 0;
       const yearsFromStart = trainingYears + yr - 1;
-      const currentGross = inflatedSalary(
-        attendingSalary,
-        yr - 1,
-        attendingSalaryGrowthRate,
-        inflationRate,
-      );
+      const currentGross = attendingGross(yr);
       const currentNet = afterTax(currentGross, taxRate);
-      const monthlyIDR = idrPayment(currentGross);
+      const spouseGrossAtt = spouseGrossForYear(yearsFromStart);
+      const spouseNetAtt = afterTax(spouseGrossAtt, taxRate);
+      const agiAtt = idrAgi(currentGross, spouseGrossAtt, filingStatus);
+      const monthlyIDR = idrPayment(agiAtt, familySize);
+      const countsThisYear = attendingPslfCounts(yr);
 
       for (let m = 0; m < 12; m++) {
         if (qualifyingPayments >= PSLF_MONTHS) break;
@@ -559,12 +784,16 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
         yearlyPayment += payment;
         pslfCumulativePaid += payment;
         pslfCumulativeInterest += interest;
-        qualifyingPayments++;
+        // Only accrue PSLF credit for months where the current
+        // attending employer qualifies. Losing PSLF eligibility
+        // mid-attending simply pauses the 120-payment counter —
+        // the borrower keeps paying IDR but the clock freezes.
+        if (countsThisYear) qualifyingPayments++;
         if (pslfBalance < 0) pslfBalance = 0;
       }
 
       const yearlyLiving = livingExpensesAttending * 12 * Math.pow(1 + inflationRate / 100, yearsFromStart);
-      pslfCumulativeNetWorth += currentNet - yearlyPayment - yearlyLiving;
+      pslfCumulativeNetWorth += currentNet + spouseNetAtt - yearlyPayment - yearlyLiving;
       const calendarYear = trainingYears + yr;
       const isForgiven = qualifyingPayments >= PSLF_MONTHS;
 
@@ -581,10 +810,21 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       });
     }
 
-    pslfForgiven = Math.round(Math.max(0, pslfBalance));
+    // Only report "forgiven" if the borrower actually hit 120
+    // qualifying payments. If a job change or short horizon leaves
+    // them short, any remaining balance is real debt, not a tax-free
+    // gift — returning 0 here keeps the PSLF savings / trueTotalCost
+    // math from over-crediting the user.
+    const pslfReached = qualifyingPayments >= PSLF_MONTHS;
+    pslfForgiven = pslfReached ? Math.round(Math.max(0, pslfBalance)) : 0;
     pslfTotalPaid = Math.round(pslfCumulativePaid);
     pslfInterestPaid = Math.round(pslfCumulativeInterest);
-    pslfMonthlyPayment = Math.round(idrPayment(attendingSalary));
+    const pslfDisplayAgi = idrAgi(
+      attendingSalary,
+      effectiveSpouseIncome,
+      filingStatus,
+    );
+    pslfMonthlyPayment = Math.round(idrPayment(pslfDisplayAgi, familySize));
     pslfSavings = Math.max(0, standardTotalPaid - pslfTotalPaid);
     // Years until 120 qualifying payments reached. When training doesn't
     // qualify, the clock effectively starts at attending-hood.
