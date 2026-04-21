@@ -580,6 +580,68 @@ html.lenis body {
 }
 
 /* ============================================================
+   EXPLAIN BREAKDOWN (Radix popover + bottom sheet)
+   ============================================================
+   Radix toggles `data-state="open"|"closed"` on Content and Overlay
+   nodes as they enter/leave the tree. We run short keyframe animations
+   so the popover and sheet feel grounded instead of snapping in.
+   `prefers-reduced-motion` block below already collapses the duration
+   to ~0ms, so no manual override is needed. */
+@keyframes explain-fade-zoom-in {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes explain-fade-zoom-out {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 0; transform: scale(0.96) translateY(-4px); }
+}
+
+@keyframes explain-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes explain-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes explain-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes explain-slide-down {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+.explain-popover-content {
+  transform-origin: var(--radix-popover-content-transform-origin);
+}
+.explain-popover-content[data-state="open"] {
+  animation: explain-fade-zoom-in 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.explain-popover-content[data-state="closed"] {
+  animation: explain-fade-zoom-out 120ms ease-in;
+}
+
+.explain-sheet-overlay[data-state="open"] {
+  animation: explain-fade-in 180ms ease-out;
+}
+.explain-sheet-overlay[data-state="closed"] {
+  animation: explain-fade-out 140ms ease-in;
+}
+
+.explain-sheet-content[data-state="open"] {
+  animation: explain-slide-up 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.explain-sheet-content[data-state="closed"] {
+  animation: explain-slide-down 180ms ease-in;
+}
+
+/* ============================================================
    ACCESSIBILITY UTILITIES
    ============================================================ */
 

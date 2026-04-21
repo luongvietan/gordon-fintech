@@ -123,22 +123,24 @@ function KpiCard({ label, value, sub, tone = 'default', icon, big = false, expla
       </p>
       <div className="mt-auto pt-3 flex flex-col items-start gap-2.5">
         {sub ? (
-          <p className={`text-[12px] font-semibold ${subColor} leading-snug min-w-0 max-w-full`}>
+          <p
+            className={`text-[12px] font-semibold ${subColor} leading-snug min-w-0 max-w-full min-h-[2.25rem]`}
+          >
             {sub}
           </p>
         ) : null}
         {explain && (
-          // Dark-tone tiles (hero, callout) flip the pill's text color to
-          // white. Ring + background inside ExplainPopover are keyed off
-          // `currentColor`, so they'll pick this up automatically and
-          // render as faint-white instead of dark-green. We bump the base
-          // to /85 (vs the old /70) so the ring at 25% alpha is still
-          // visible against the dark KPI surface.
+          // Dark-tone tiles (hero, callout) flip the trigger's text color
+          // to white. Ring + background inside ExplainPopover's trigger
+          // key off `currentColor`, so they pick this up automatically
+          // and render as faint-white instead of dark-green. We use /85
+          // (vs the old /70) so the ring at 25% alpha is still visible
+          // against the dark KPI surface.
           <div
             className={
               tone === 'default'
                 ? 'max-w-full'
-                : 'max-w-full [&_summary]:!text-white/85 [&_summary:hover]:!text-white'
+                : 'max-w-full [&_button]:!text-white/85 [&_button:hover]:!text-white'
             }
           >
             <ExplainPopover {...explain} size="compact" />
