@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronDown } from 'lucide-react';
+import { track } from '@/lib/analytics';
 
 export interface ExplainData {
   title: string;
@@ -30,8 +31,21 @@ export default function ExplainPopover({
   plainEnglish,
   variant = 'chip',
 }: Props) {
+  // `onToggle` fires on every open/close; we only want the open leg
+  // because the closing event is low-signal noise for engagement
+  // metrics. `title` is the KPI label (e.g. "Time to payoff",
+  // "{strategy} total paid"), which doubles as a breakdown-id for GA
+  // without needing a separate analytics-specific prop on every
+  // caller.
+  const handleToggle = (e: React.SyntheticEvent<HTMLDetailsElement>) => {
+    if (e.currentTarget.open) {
+      track('breakdown_expanded', { title, variant });
+    }
+  };
+
   return (
     <details
+      onToggle={handleToggle}
       className={`group ${variant === 'chip' ? 'inline-block' : 'block w-full'}`}
     >
       {/*

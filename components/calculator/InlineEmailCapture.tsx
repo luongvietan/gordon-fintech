@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Check, Loader2, Mail } from 'lucide-react';
+import { track } from '@/lib/analytics';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -43,6 +44,14 @@ export default function InlineEmailCapture() {
         throw new Error(data.message || 'Subscription failed');
       }
       setStatus('success');
+      // Payload is PII-free: no email address, just boolean shape of
+      // what was submitted and which surface it came from. Lets us
+      // measure results-page email conversion separately from the
+      // homepage newsletter footer.
+      track('email_submitted', {
+        source: 'results_inline',
+        has_name: !!firstName.trim(),
+      });
     } catch (err) {
       setStatus('error');
       setErrorMessage(err instanceof Error ? err.message : 'Something went wrong');

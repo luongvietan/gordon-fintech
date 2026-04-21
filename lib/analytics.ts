@@ -67,12 +67,15 @@ export function track(
  */
 export type AnalyticsEvent =
   | 'calculator_input_changed'
+  | 'calculator_completed'
   | 'specialty_selected'
   | 'preset_selected'
   | 'pslf_toggled'
   | 'spouse_toggled'
   | 'refi_toggled'
   | 'jobchange_toggled'
+  | 'breakdown_expanded'
+  | 'email_submitted'
   | 'share_link_copied'
   | 'pdf_downloaded'
   | 'scenario_saved'

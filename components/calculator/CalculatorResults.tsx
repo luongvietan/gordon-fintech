@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   ChevronDown,
   Clock,
@@ -19,6 +19,7 @@ import { recommendStrategy } from '@/lib/recommendation';
 import { runAllStrategies } from '@/lib/calculator-scenarios';
 import { getRiskFlags } from '@/lib/risk-flags';
 import { SPECIALTIES } from '@/lib/specialties';
+import { bucketDollars, track } from '@/lib/analytics';
 import BalanceChart from './charts/BalanceChart';
 import NetWorthChart from './charts/NetWorthChart';
 import ComparisonChart from './charts/ComparisonChart';
@@ -230,6 +231,42 @@ export default function CalculatorResults({
   );
 
   const riskFlags = useMemo(() => getRiskFlags(inputs, outputs), [inputs, outputs]);
+
+  // ── calculator_completed ─────────────────────────────────────
+  //
+  // Fire exactly once per mount, the first render cycle where outputs
+  // look real (payoffYears > 0 — guards against SSR-stub or in-flight
+  // states). We intentionally don't re-fire on every input tweak: that
+  // would drown GA in noise and we already track the high-signal
+  // `preset_selected`, `specialty_selected`, `pslf_toggled` etc.
+  // separately. This event's job is funnel-level: how many visitors
+  // actually saw a completed calculation.
+  //
+  // Payload is PII-free — amounts go through `bucketDollars()` so raw
+  // $450K / $280K figures never land in GA.
+  const fired = useRef(false);
+  useEffect(() => {
+    if (fired.current) return;
+    if (!(outputs.payoffYears > 0)) return;
+    fired.current = true;
+    track('calculator_completed', {
+      loan_type: inputs.loanType,
+      pslf_enabled: !!inputs.pslfEnabled,
+      specialty_id: specialtyId ?? 'custom',
+      debt_bucket: bucketDollars(inputs.totalDebt),
+      salary_bucket: bucketDollars(inputs.attendingSalary),
+      recommended_strategy: recommendation.strategy,
+      payoff_years_rounded: Math.round(outputs.payoffYears),
+    });
+  }, [
+    inputs.attendingSalary,
+    inputs.loanType,
+    inputs.pslfEnabled,
+    inputs.totalDebt,
+    outputs.payoffYears,
+    recommendation.strategy,
+    specialtyId,
+  ]);
 
   // Show-your-work payloads — they use real numeric inputs from the current run.
   const explainPayoff: ExplainData = {
