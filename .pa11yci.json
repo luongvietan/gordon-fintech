@@ -1,0 +1,35 @@
+{
+  "defaults": {
+    "standard": "WCAG2AA",
+    "timeout": 30000,
+    "wait": 2500,
+    "chromeLaunchConfig": {
+      "args": [
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu"
+      ]
+    },
+    "ignore": [
+      "notice",
+      "warning"
+    ],
+    "hideElements": "iframe[src*='googletagmanager'], iframe[src*='google-analytics'], iframe[src*='doubleclick']"
+  },
+  "urls": [
+    "http://localhost:3000/",
+    "http://localhost:3000/calculator",
+    "http://localhost:3000/compare",
+    "http://localhost:3000/about",
+    "http://localhost:3000/methodology",
+    "http://localhost:3000/privacy",
+    "http://localhost:3000/terms",
+    "http://localhost:3000/blog",
+    "http://localhost:3000/specialty",
+    "http://localhost:3000/specialty/primary-care",
+    "http://localhost:3000/specialty/dermatology",
+    "http://localhost:3000/specialty/neurosurgery",
+    "http://localhost:3000/specialty/pediatrics",
+    "http://localhost:3000/specialty/radiology"
+  ]
+}

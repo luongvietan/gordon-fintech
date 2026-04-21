@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "a11y": "pa11y-ci",
+    "a11y:build": "start-server-and-test \"next build && next start -p 3000\" http://localhost:3000 a11y",
+    "a11y:dev": "start-server-and-test \"next dev -p 3000\" http://localhost:3000 a11y",
     "sanity:seed:generate": "node scripts/generate-sanity-seed.mjs",
     "sanity:seed:import": "node scripts/import-sanity-seed.mjs",
     "sanity:dev": "sanity dev",
@@ -42,6 +45,8 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
+    "pa11y-ci": "^4.1.0",
+    "start-server-and-test": "^3.0.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
