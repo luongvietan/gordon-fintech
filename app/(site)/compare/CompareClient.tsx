@@ -78,7 +78,7 @@ function buildOpenHref(inputs: CalculatorInputs): string {
   // buildShareUrl requires window — inline the query construction so we
   // can render the href server-side just in case. We always want to land
   // on the homepage's calculator section.
-  return `/?s=${encodeURIComponent(encoded)}#calculator`;
+  return `/?s=${encodeURIComponent(encoded)}/calculator`;
 }
 
 async function copyShareUrl(inputs: CalculatorInputs): Promise<boolean> {
@@ -87,8 +87,8 @@ async function copyShareUrl(inputs: CalculatorInputs): Promise<boolean> {
   // this host even if the user saved scenarios at a different path.
   const full =
     typeof window !== 'undefined'
-      ? new URL(buildShareUrl(encoded) || `/?s=${encoded}#calculator`, window.location.origin).toString()
-      : `/?s=${encoded}#calculator`;
+      ? new URL(buildShareUrl(encoded) || `/?s=${encoded}/calculator`, window.location.origin).toString()
+      : `/?s=${encoded}/calculator`;
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(full);
@@ -146,7 +146,7 @@ function ComparePageShell({
     <main className="py-14 md:py-20">
       <div className="container max-w-5xl">
         <Link
-          href="/#calculator"
+          href="//calculator"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--text-muted)] hover:text-[color:var(--color-near-black)] transition-colors mb-6"
         >
           <ArrowLeft aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
@@ -189,7 +189,7 @@ function ComparePageShell({
               &mdash; it&rsquo;ll show up here ready to compare.
             </p>
             <Link
-              href="/#calculator"
+              href="//calculator"
               className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-[var(--r-pill)] text-sm font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform hover:scale-[1.04]"
             >
               Open the calculator

@@ -39,7 +39,7 @@ export default function CrossoverUspSection() {
               reasonable strategy and the optimal one.
             </p>
             <TrackedLink
-              href="#calculator"
+              href="/calculator"
               event="calculator_cta_clicked"
               params={{ location: 'home_crossover_section', target: 'calculator' }}
               className="mt-8 inline-flex items-center gap-2 px-5 py-3 rounded-[var(--r-pill)] text-sm font-semibold bg-[color:var(--color-near-black)] text-white transition-transform duration-200 hover:scale-[1.04] active:scale-[0.96]"

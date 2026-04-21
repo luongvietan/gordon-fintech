@@ -147,7 +147,7 @@ const FAQS: FaqCategoryItem[] = [
     q: 'How long does it take doctors to pay off med school debt?',
     a: 'Most physicians take 10–15 years to fully repay medical school loans. The exact timeline depends on specialty, total debt, interest rate, and chosen strategy (PSLF vs refinance vs aggressive payoff). Primary-care doctors at PSLF-eligible employers can often get to a positive net worth in under a decade; surgical specialists who refinance and pay aggressively can do it in 5–7 years.',
     category: 'general',
-    learnMore: { href: '/#calculator', label: 'Run your own payoff scenario' },
+    learnMore: { href: '//calculator', label: 'Run your own payoff scenario' },
   },
   {
     q: 'Is PSLF (Public Service Loan Forgiveness) worth it for doctors?',
@@ -165,7 +165,7 @@ const FAQS: FaqCategoryItem[] = [
     q: 'Should I refinance my federal student loans during residency?',
     a: 'Usually not. Refinancing converts federal loans to private and permanently gives up access to PSLF, IDR, federal forbearance, and federal forgiveness protections. Most residents are better off staying on an IDR plan (SAVE/PAYE/IBR) until they have confirmed their long-term employer is NOT PSLF-eligible. The calculator shows the dollar cost of that decision both ways.',
     category: 'refi',
-    learnMore: { href: '/#calculator', label: 'Compare refinance vs PSLF' },
+    learnMore: { href: '//calculator', label: 'Compare refinance vs PSLF' },
   },
   {
     q: 'Do I have to pay taxes on PSLF forgiveness?',
@@ -319,7 +319,7 @@ export default async function HomePage() {
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <TrackedLink
-                  href="#calculator"
+                  href="/calculator"
                   event="calculator_cta_clicked"
                   params={{ location: 'home_hero_primary', target: 'calculator' }}
                   className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[var(--r-pill)] text-[15px] font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] shadow-[0_10px_40px_-12px_rgba(159,232,112,0.7)] transition-all duration-200 hover:bg-[color:var(--color-pastel-green)] hover:-translate-y-0.5 hover:shadow-[0_14px_44px_-10px_rgba(159,232,112,0.8)] active:translate-y-0"
@@ -391,7 +391,7 @@ export default async function HomePage() {
           {/* Refined scroll cue — a thin vertical hairline + arrow reads
               quieter than the old "SCROLL" caps treatment. */}
           <TrackedLink
-            href="#calculator"
+            href="/calculator"
             event="calculator_cta_clicked"
             params={{ location: 'home_scroll_cue', target: 'calculator' }}
             aria-label="Scroll to the calculator"

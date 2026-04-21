@@ -124,7 +124,7 @@ export const post = defineType({
       type: 'markdown',
       group: 'content',
       description:
-        'Markdown with GFM support: headings (##, ###), links, tables, lists, code fences. Internal links like `[text](/#calculator)` are encouraged.',
+        'Markdown with GFM support: headings (##, ###), links, tables, lists, code fences. Internal links like `[text](//calculator)` are encouraged.',
       validation: (rule) => rule.required(),
     }),
     defineField({

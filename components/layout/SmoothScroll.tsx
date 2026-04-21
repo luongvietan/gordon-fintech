@@ -59,7 +59,7 @@ export default function SmoothScroll() {
     rafId = requestAnimationFrame(raf);
 
     // ── Anchor link interception ────────────────────────────────
-    // Catches <a href="#calculator">, <a href="/#faq">, etc., and
+    // Catches <a href="/calculator">, <a href="/#faq">, etc., and
     // routes them through Lenis so the scroll feels uniform.
     const handleAnchorClick = (event: MouseEvent) => {
       const target = (event.target as HTMLElement | null)?.closest('a');
