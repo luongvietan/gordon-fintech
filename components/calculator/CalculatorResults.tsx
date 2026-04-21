@@ -128,7 +128,19 @@ function KpiCard({ label, value, sub, tone = 'default', icon, big = false, expla
           <span />
         )}
         {explain && (
-          <div className={tone === 'default' ? '' : '[&_summary]:!text-white/70 [&_summary:hover]:!text-white'}>
+          // Dark-tone tiles (hero, callout) flip the pill's text color to
+          // white. Ring + background inside ExplainPopover are keyed off
+          // `currentColor`, so they'll pick this up automatically and
+          // render as faint-white instead of dark-green. We bump the base
+          // to /85 (vs the old /70) so the ring at 25% alpha is still
+          // visible against the dark KPI surface.
+          <div
+            className={
+              tone === 'default'
+                ? ''
+                : '[&_summary]:!text-white/85 [&_summary:hover]:!text-white'
+            }
+          >
             <ExplainPopover {...explain} />
           </div>
         )}

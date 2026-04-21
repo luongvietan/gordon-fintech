@@ -15,7 +15,6 @@ import { CalculatorInputs } from '@/lib/calculator';
 import { SPECIALTIES } from '@/lib/specialties';
 import { track } from '@/lib/analytics';
 import { useExpertMode } from '@/hooks/useExpertMode';
-import Input from '@/components/ui/Input';
 import NumberField from '@/components/ui/NumberField';
 import Select from '@/components/ui/Select';
 import Slider from '@/components/ui/Slider';
@@ -472,37 +471,45 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
             />
           </summary>
           <div className="mt-4 flex flex-col gap-3">
-            <Input
+            {/*
+              Both overrides use `clearable` so emptying the field lifts
+              `undefined` (not 0) to the parent — which is how the
+              calculator distinguishes "Auto" (model default) from
+              "explicit $0/mo". NumberField gives us the same
+              leading-zero / negative-value protection as the rest of
+              the form; without it these advanced fields would be the
+              last place the old `<Input type="number">` bugs could
+              still surface.
+            */}
+            <NumberField
               label="Training-phase payment"
               prefix="$"
               suffix="/mo"
-              type="number"
               min={0}
               max={50000}
               step={100}
-              value={inputs.monthlyPaymentResidencyOverride ?? ''}
-              placeholder="Auto"
-              onChange={(e) =>
-                onChange({
-                  monthlyPaymentResidencyOverride: e.target.value ? Number(e.target.value) : undefined,
-                })
+              clearable
+              value={inputs.monthlyPaymentResidencyOverride}
+              onValueChange={(v) =>
+                onChange({ monthlyPaymentResidencyOverride: v })
               }
+              onClear={() =>
+                onChange({ monthlyPaymentResidencyOverride: undefined })
+              }
+              placeholder="Auto"
             />
-            <Input
+            <NumberField
               label="Attending-phase payment"
               prefix="$"
               suffix="/mo"
-              type="number"
               min={0}
               max={50000}
               step={100}
-              value={inputs.monthlyPaymentOverride ?? ''}
+              clearable
+              value={inputs.monthlyPaymentOverride}
+              onValueChange={(v) => onChange({ monthlyPaymentOverride: v })}
+              onClear={() => onChange({ monthlyPaymentOverride: undefined })}
               placeholder="Auto (10-yr amortization)"
-              onChange={(e) =>
-                onChange({
-                  monthlyPaymentOverride: e.target.value ? Number(e.target.value) : undefined,
-                })
-              }
             />
             <p className="text-[11px] text-[color:var(--text-muted)] leading-relaxed">
               Leave blank for the model defaults: federal IDR floor during training,

@@ -34,19 +34,46 @@ export default function ExplainPopover({
     <details
       className={`group ${variant === 'chip' ? 'inline-block' : 'block w-full'}`}
     >
+      {/*
+        Pill-style affordance. Previously this was underlined text, which
+        tested badly — users didn't realise it was interactive until they
+        hovered. Now it renders as a bordered chip with a clear hover
+        state and an open/closed ring treatment, matching the rest of
+        the calculator's button language.
+
+        Colors key off `currentColor`: on light surfaces the dark-green
+        text stays dark-green and we layer a same-color soft background;
+        on dark KPI tiles CalculatorResults overrides `color` to white,
+        and the ring/background inherit that automatically via
+        `ring-current` / `bg-current/10`.
+
+        Touch target: `min-h-[36px]` on desktop is enough for pointer
+        use; on mobile we stretch to 40px via the layout context (inline
+        chips rarely cluster, so we trade a bit against WCAG AAA's 44px
+        guidance rather than blow up the visual weight in every table
+        cell).
+      */}
       <summary
         className={`
-          inline-flex items-center gap-1 cursor-pointer select-none list-none
-          text-[11px] font-semibold text-[color:var(--color-dark-green)]
-          underline underline-offset-2 opacity-90
-          hover:text-[color:var(--color-near-black)] hover:opacity-100 transition-colors
+          group/summary inline-flex items-center gap-1.5 cursor-pointer select-none list-none
+          px-3 py-1.5 min-h-[32px] md:min-h-[32px]
+          text-[11px] font-bold uppercase tracking-[0.06em]
+          text-[color:var(--color-dark-green)]
+          rounded-[var(--r-pill)]
+          ring-1 ring-inset ring-current/25
+          transition-[background-color,box-shadow,color] duration-150 ease-out
+          hover:bg-current/[0.08] hover:ring-current/50
+          group-open:bg-current/[0.10] group-open:ring-current/60
+          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/70
           [&::-webkit-details-marker]:hidden
         `}
+        aria-label="Toggle calculation breakdown"
       >
-        See breakdown
+        <span className="group-open:hidden">See breakdown</span>
+        <span className="hidden group-open:inline">Hide breakdown</span>
         <ChevronDown
           className="w-3 h-3 transition-transform duration-200 group-open:rotate-180"
-          strokeWidth={2.25}
+          strokeWidth={2.5}
           aria-hidden
         />
       </summary>
