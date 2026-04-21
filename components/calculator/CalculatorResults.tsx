@@ -95,7 +95,7 @@ function KpiCard({ label, value, sub, tone = 'default', icon, big = false, expla
 
   return (
     <div
-      className={`${surface} rounded-[var(--r-card-sm)] p-4 md:p-5 lg:p-6 flex flex-col justify-between min-h-[130px] md:min-h-[150px] lg:min-h-[180px] relative overflow-hidden`}
+      className={`${surface} rounded-[var(--r-card-sm)] p-4 md:p-5 lg:p-6 xl:p-7 flex flex-col min-h-[130px] md:min-h-[150px] lg:min-h-[190px] relative overflow-hidden`}
       style={{ boxShadow: tone === 'default' ? 'var(--shadow-ring)' : 'none' }}
     >
       <div className="flex items-start justify-between gap-3">
@@ -121,14 +121,12 @@ function KpiCard({ label, value, sub, tone = 'default', icon, big = false, expla
       >
         {value}
       </p>
-      <div className="mt-2 flex items-center justify-between gap-3">
+      <div className="mt-auto pt-3 flex flex-col items-start gap-2.5">
         {sub ? (
-          <p className={`text-[12px] font-semibold ${subColor} leading-snug min-w-0`}>
+          <p className={`text-[12px] font-semibold ${subColor} leading-snug min-w-0 max-w-full`}>
             {sub}
           </p>
-        ) : (
-          <span />
-        )}
+        ) : null}
         {explain && (
           // Dark-tone tiles (hero, callout) flip the pill's text color to
           // white. Ring + background inside ExplainPopover are keyed off
@@ -139,11 +137,11 @@ function KpiCard({ label, value, sub, tone = 'default', icon, big = false, expla
           <div
             className={
               tone === 'default'
-                ? ''
-                : '[&_summary]:!text-white/85 [&_summary:hover]:!text-white'
+                ? 'max-w-full'
+                : 'max-w-full [&_summary]:!text-white/85 [&_summary:hover]:!text-white'
             }
           >
-            <ExplainPopover {...explain} />
+            <ExplainPopover {...explain} size="compact" />
           </div>
         )}
       </div>

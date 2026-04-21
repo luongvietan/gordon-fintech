@@ -63,7 +63,7 @@ export default function StrategyComparison({ comparison }: Props) {
         instead of cramming numbers into tiny cells.
       */}
       <div className="hidden md:block overflow-x-auto wise-scroll border-t border-[color:var(--border-subtle)]">
-        <table className={`w-full ${strategies.length >= 4 ? 'min-w-[1100px]' : 'min-w-[980px]'} text-[13px] font-semibold`}>
+        <table className={`w-full ${strategies.length >= 4 ? 'min-w-[1160px]' : 'min-w-[1040px]'} text-[13px] font-semibold`}>
           <colgroup>
             <col className="w-[22%]" />
             <col className="w-[14%]" />
@@ -138,7 +138,7 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
       </td>
       <td className="text-right px-4 py-4 whitespace-nowrap">
         {isUnavail ? <span className="text-[color:var(--text-muted)]">&mdash;</span> : (
-          <div className="inline-flex flex-col items-end gap-1">
+          <div className="inline-flex flex-col items-end gap-1.5">
             <span>{formatDollars(strategy.totalPaid)}</span>
             <ExplainPopover
               title={`${strategy.label} total paid`}
@@ -150,6 +150,7 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
                 { label: 'Total paid', value: formatDollars(strategy.totalPaid) },
               ]}
               plainEnglish="This is the raw cash that leaves your bank account over the life of the strategy before any forgiveness tax or investing tradeoff is added."
+              size="compact"
             />
           </div>
         )}
@@ -158,7 +159,7 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
         {isUnavail ? (
           <span className="text-[color:var(--text-muted)]">&mdash;</span>
         ) : (
-          <div className="inline-flex flex-col items-end gap-1">
+          <div className="inline-flex flex-col items-end gap-1.5">
             <span title={strategy.trueCostNote}>{formatDollars(strategy.trueTotalCost)}</span>
             <ExplainPopover
               title={`${strategy.label} true total cost`}
@@ -170,6 +171,7 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
                 { label: 'True total cost', value: formatDollars(strategy.trueTotalCost) },
               ]}
               plainEnglish={strategy.trueCostNote}
+              size="compact"
             />
           </div>
         )}

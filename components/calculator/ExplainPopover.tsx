@@ -13,6 +13,8 @@ export interface ExplainData {
 interface Props extends ExplainData {
   /** Use a small chip variant for compact KPI tile placement. */
   variant?: 'chip' | 'inline';
+  /** Use a denser trigger where horizontal space is limited. */
+  size?: 'default' | 'compact';
 }
 
 /**
@@ -30,6 +32,7 @@ export default function ExplainPopover({
   inputsUsed,
   plainEnglish,
   variant = 'chip',
+  size = 'default',
 }: Props) {
   // `onToggle` fires on every open/close; we only want the open leg
   // because the closing event is low-signal noise for engagement
@@ -69,17 +72,19 @@ export default function ExplainPopover({
       */}
       <summary
         className={`
-          group/summary inline-flex items-center gap-1.5 cursor-pointer select-none list-none
-          px-4 py-2 min-h-[44px]
-          text-[11px] font-bold uppercase tracking-[0.06em]
+          group/summary inline-flex items-center cursor-pointer select-none list-none rounded-[var(--r-pill)]
+          font-bold uppercase ring-1 ring-inset ring-current/25
           text-[color:var(--color-dark-green)]
-          rounded-[var(--r-pill)]
-          ring-1 ring-inset ring-current/25
           transition-[background-color,box-shadow,color,transform] duration-150 ease-out
           hover:bg-current/[0.08] hover:ring-current/50 hover:-translate-y-[1px]
           group-open:bg-current/[0.10] group-open:ring-current/60
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/70 focus-visible:bg-current/[0.08]
           [&::-webkit-details-marker]:hidden
+          ${
+            size === 'compact'
+              ? 'gap-1 px-3 py-1.5 min-h-[36px] text-[10px] tracking-[0.05em]'
+              : 'gap-1.5 px-4 py-2 min-h-[44px] text-[11px] tracking-[0.06em]'
+          }
         `}
         aria-label="Toggle calculation breakdown"
       >
@@ -92,7 +97,7 @@ export default function ExplainPopover({
         />
       </summary>
 
-      <div className="mt-3 rounded-[var(--r-card-sm)] bg-[color:var(--color-off-white)] p-4 text-left max-w-md">
+      <div className="mt-3 w-full max-w-[min(28rem,calc(100vw-2rem))] rounded-[var(--r-card-sm)] bg-[color:var(--color-off-white)] p-4 text-left whitespace-normal break-words sm:max-w-md">
         <p
           className="text-[12px] font-bold uppercase tracking-[0.08em] text-[color:var(--text-muted)] mb-2"
         >
@@ -106,10 +111,10 @@ export default function ExplainPopover({
         </pre>
 
         {inputsUsed.length > 0 && (
-          <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11.5px] tabular-nums">
+          <dl className="mt-3 grid grid-cols-1 gap-2.5 text-[11.5px] tabular-nums sm:grid-cols-2 sm:gap-x-3 sm:gap-y-2">
             {inputsUsed.map((row) => (
-              <div key={row.label} className="flex items-baseline justify-between gap-2">
-                <dt className="text-[color:var(--text-muted)] font-semibold truncate">
+              <div key={row.label} className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
+                <dt className="text-[color:var(--text-muted)] font-semibold sm:truncate">
                   {row.label}
                 </dt>
                 <dd className="text-[color:var(--color-near-black)] font-bold whitespace-nowrap">
@@ -120,7 +125,7 @@ export default function ExplainPopover({
           </dl>
         )}
 
-        <p className="mt-3 pt-3 border-t border-[color:var(--border-subtle)] text-[12px] text-[color:var(--text-secondary)] font-medium leading-relaxed">
+        <p className="mt-3 pt-3 border-t border-[color:var(--border-subtle)] text-[12px] text-[color:var(--text-secondary)] font-medium leading-relaxed whitespace-normal break-words">
           {plainEnglish}
         </p>
       </div>
