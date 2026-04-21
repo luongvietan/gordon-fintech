@@ -8,6 +8,7 @@ import { getAllPosts } from '@/lib/blog';
 import HeroChart from '@/components/home/HeroChart';
 import CredentialsStrip from '@/components/home/CredentialsStrip';
 import CrossoverUspSection from '@/components/home/CrossoverUspSection';
+import ComparisonMatrix from '@/components/home/ComparisonMatrix';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
 import FaqSection, { type FaqItem as FaqCategoryItem } from '@/components/home/FaqSection';
 import ArticleCard from '@/components/blog/ArticleCard';
@@ -477,6 +478,9 @@ export default async function HomePage() {
 
       {/* ─── NET-WORTH CROSSOVER USP ─────────────────────────── */}
       <CrossoverUspSection />
+
+      {/* ─── COMPARISON MATRIX ───────────────────────────────── */}
+      <ComparisonMatrix />
 
       {/* ─── HOW IT WORKS ────────────────────────────────────── */}
       <section

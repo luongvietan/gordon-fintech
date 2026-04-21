@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  AlertTriangle,
   ChevronDown,
   CircleDollarSign,
   GraduationCap,
@@ -10,6 +11,7 @@ import {
 import { CalculatorInputs } from '@/lib/calculator';
 import { SPECIALTIES } from '@/lib/specialties';
 import Input from '@/components/ui/Input';
+import NumberField from '@/components/ui/NumberField';
 import Select from '@/components/ui/Select';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
@@ -118,62 +120,57 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
           }
         />
         <div className="grid grid-cols-2 gap-2.5">
-          <Input
+          <NumberField
             label="Residency"
             suffix="yrs"
-            type="number"
             min={1}
             max={10}
             step={1}
             value={inputs.residencyYears}
-            onChange={(e) => onChange({ residencyYears: Number(e.target.value) })}
+            onValueChange={(v) => onChange({ residencyYears: v })}
           />
-          <Input
+          <NumberField
             label="Attending salary"
             prefix="$"
-            type="number"
-            min={100000}
+            min={0}
             max={2000000}
             step={5000}
             value={inputs.attendingSalary}
-            onChange={(e) => onChange({ attendingSalary: Number(e.target.value) })}
+            onValueChange={(v) => onChange({ attendingSalary: v })}
+            hint="via MGMA 2024"
           />
         </div>
-        <Input
+        <NumberField
           label="Residency stipend"
           prefix="$"
           suffix="/yr"
-          type="number"
-          min={40000}
+          min={0}
           max={150000}
           step={1000}
           value={inputs.residencyStartingSalary}
-          onChange={(e) =>
-            onChange({ residencyStartingSalary: Number(e.target.value) })
-          }
+          onValueChange={(v) => onChange({ residencyStartingSalary: v })}
+          hint="via AAMC Resident Survey"
         />
 
         {showFellowship ? (
           <div className="grid grid-cols-2 gap-2.5">
-            <Input
+            <NumberField
               label="Fellowship"
               suffix="yrs"
-              type="number"
               min={0}
               max={6}
               step={1}
               value={fellowshipYears}
-              onChange={(e) => onChange({ fellowshipYears: Number(e.target.value) })}
+              onValueChange={(v) => onChange({ fellowshipYears: v })}
             />
-            <Input
+            <NumberField
               label="Fellowship salary"
               prefix="$"
-              type="number"
-              min={40000}
+              min={0}
               max={200000}
               step={1000}
               value={inputs.fellowshipSalary ?? 75000}
-              onChange={(e) => onChange({ fellowshipSalary: Number(e.target.value) })}
+              onValueChange={(v) => onChange({ fellowshipSalary: v })}
             />
           </div>
         ) : (
@@ -200,26 +197,26 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
         icon={<IconLoan />}
         defaultOpen
       >
-        <Input
+        <NumberField
           label="Total student debt"
           prefix="$"
-          type="number"
-          min={10000}
+          min={0}
           max={1000000}
           step={1000}
           value={inputs.totalDebt}
-          onChange={(e) => onChange({ totalDebt: Number(e.target.value) })}
+          onValueChange={(v) => onChange({ totalDebt: v })}
+          hint="via AAMC GQ median"
         />
         <div className="grid grid-cols-2 gap-2.5">
-          <Input
+          <NumberField
             label="Interest rate"
             suffix="%"
-            type="number"
             min={0}
-            max={20}
-            step={0.1}
+            max={15}
+            step={0.01}
+            allowDecimals
             value={inputs.interestRate}
-            onChange={(e) => onChange({ interestRate: Number(e.target.value) })}
+            onValueChange={(v) => onChange({ interestRate: v })}
           />
           <Select
             label="Loan type"
@@ -280,6 +277,37 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
                 label="Residency employer is PSLF-qualified"
                 description="Most academic & non-profit hospital programs qualify. Toggle off if your training is at a for-profit site."
               />
+            </div>
+          )}
+
+          {inputs.pslfEnabled && inputs.loanType === 'federal' && (
+            // Consolidation trap: borrowers with legacy FFEL or Perkins loans
+            // are often shocked to learn those types can't count toward PSLF
+            // until they're consolidated into a Direct Consolidation Loan,
+            // and that consolidating *resets* qualifying payments. This
+            // callout is flagged by PSLF servicers as the #1 costly mistake
+            // for new enrollees, so we surface it inline the moment PSLF is
+            // turned on — not buried in a methodology page.
+            <div
+              role="note"
+              className="flex items-start gap-2.5 p-3 rounded-[var(--r-card-sm)] bg-[#fff4e6] ring-1 ring-inset ring-[#e8a87c]/40"
+            >
+              <AlertTriangle
+                aria-hidden="true"
+                className="w-3.5 h-3.5 mt-[2px] flex-shrink-0 text-[#b5651d]"
+                strokeWidth={2.25}
+              />
+              <div className="text-[11.5px] leading-snug">
+                <p className="font-bold text-[#7a3f0a] mb-0.5">
+                  PSLF requires Direct Loans
+                </p>
+                <p className="text-[#7a3f0a]/85 font-medium">
+                  Have FFEL or Perkins loans? You&rsquo;ll need to consolidate
+                  into a Direct Consolidation Loan first &mdash; and
+                  consolidation restarts your qualifying payment count. Add
+                  roughly 6&ndash;12 months to the timeline modeled here.
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -392,53 +420,47 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
           opportunity cost of overpaying loans vs investing.
         </p>
         <div className="grid grid-cols-2 gap-2.5">
-          <Input
+          <NumberField
             label="Salary growth (training)"
             suffix="%/yr"
-            type="number"
             min={0}
             max={10}
             step={0.5}
+            allowDecimals
             value={inputs.residentSalaryGrowthRate}
-            onChange={(e) =>
-              onChange({ residentSalaryGrowthRate: Number(e.target.value) })
-            }
+            onValueChange={(v) => onChange({ residentSalaryGrowthRate: v })}
           />
-          <Input
+          <NumberField
             label="Salary growth (attending)"
             suffix="%/yr"
-            type="number"
             min={0}
             max={10}
             step={0.5}
+            allowDecimals
             value={inputs.attendingSalaryGrowthRate}
-            onChange={(e) =>
-              onChange({ attendingSalaryGrowthRate: Number(e.target.value) })
-            }
+            onValueChange={(v) => onChange({ attendingSalaryGrowthRate: v })}
           />
         </div>
         <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-[color:var(--border-subtle)]">
-          <Input
+          <NumberField
             label="Living expenses (residency)"
             prefix="$"
             suffix="/mo"
-            type="number"
             min={0}
             max={20000}
             step={100}
             value={inputs.livingExpensesResidency}
-            onChange={(e) => onChange({ livingExpensesResidency: Number(e.target.value) })}
+            onValueChange={(v) => onChange({ livingExpensesResidency: v })}
           />
-          <Input
+          <NumberField
             label="Living expenses (attending)"
             prefix="$"
             suffix="/mo"
-            type="number"
             min={0}
             max={50000}
             step={100}
             value={inputs.livingExpensesAttending}
-            onChange={(e) => onChange({ livingExpensesAttending: Number(e.target.value) })}
+            onValueChange={(v) => onChange({ livingExpensesAttending: v })}
           />
         </div>
       </InputSection>
