@@ -21,6 +21,25 @@ export const metadata: Metadata = {
   alternates: { canonical: '/about' },
 };
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
+
+// BreadcrumbList keeps this page discoverable as a Home > About path in
+// Google search results. Mirrors the visual breadcrumb in the hero.
+const BREADCRUMB_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'About',
+      item: `${SITE_URL}/about`,
+    },
+  ],
+};
+
 // ── Manifesto stats shown in the hero side-card. Each entry is a single,
 // concrete number we can defend — no vibes, no marketing fluff.
 const MANIFESTO_STATS = [
@@ -64,6 +83,11 @@ const ISNT_LIST = [
 export default function AboutPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_LD) }}
+      />
+
       {/* ── Hero ─────────────────────────────────────── */}
       <section
         className="relative isolate overflow-hidden pt-12 md:pt-16 lg:pt-20 pb-14 md:pb-20 lg:pb-24"

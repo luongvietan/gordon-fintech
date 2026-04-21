@@ -46,11 +46,31 @@ export default function CalculatorPage() {
     url: `${SITE_URL}/calculator`,
   };
 
+  // BreadcrumbList mirrors the visible nav above. Kept in sync with the
+  // visual breadcrumb so Google doesn't flag a schema-vs-content mismatch.
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Calculator',
+        item: `${SITE_URL}/calculator`,
+      },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(applicationLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
       <section

@@ -8,14 +8,39 @@ export const metadata: Metadata = {
   alternates: { canonical: '/methodology' },
 };
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
+
+// Methodology is an authoritative "how we compute" reference — good
+// candidate for rich-result surfacing when Google indexes "PSLF formula"
+// / "IDR capitalization" queries.
+const BREADCRUMB_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Methodology',
+      item: `${SITE_URL}/methodology`,
+    },
+  ],
+};
+
 export default function MethodologyPage() {
   return (
-    <LegalPageShell
-      eyebrow="Methodology"
-      title="How we compute the numbers."
-      description="Every default in the calculator traces back to a published source. Here is exactly what we use, where it comes from, and the assumptions baked into the projections."
-      lastUpdated="April 2026"
-    >
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(BREADCRUMB_LD) }}
+      />
+      <LegalPageShell
+        eyebrow="Methodology"
+        title="How we compute the numbers."
+        description="Every default in the calculator traces back to a published source. Here is exactly what we use, where it comes from, and the assumptions baked into the projections."
+        lastUpdated="April 2026"
+      >
       <h2>Specialty salaries</h2>
       <p>
         The 16 built-in specialty presets use attending-compensation figures
@@ -108,6 +133,7 @@ export default function MethodologyPage() {
         refinance, public vs private employer), consult a fiduciary advisor who
         specializes in physician finance.
       </p>
-    </LegalPageShell>
+      </LegalPageShell>
+    </>
   );
 }

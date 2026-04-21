@@ -257,7 +257,19 @@ const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
       onFocus?.(e);
     }
 
-    const displayError = externalError ?? rangeWarning ?? undefined;
+    // Two distinct levels of feedback:
+    //   - externalError (hard): caller-provided, treated as a validation
+    //     failure. Red ring, red copy, `aria-invalid="true"`. This is the
+    //     "your form submit will fail" severity.
+    //   - rangeWarning (soft): generated live while typing when the value
+    //     sits outside [min, max]. Amber copy, NO red ring, and
+    //     `aria-invalid` stays unset — the field is still accepted (the
+    //     hard clamp only fires on blur via `commit()`). This mirrors the
+    //     guide's "non-blocking" requirement for input validation.
+    // If both happen simultaneously the hard error wins.
+    const showHardError = !!externalError;
+    const showSoftWarning = !showHardError && !!rangeWarning;
+    const ariaMessageId = showHardError || showSoftWarning ? errId : hint ? hintId : undefined;
 
     return (
       <div className="flex flex-col gap-1.5">
@@ -284,10 +296,12 @@ const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
             type="text"
             inputMode={decimals ? 'decimal' : 'numeric'}
             autoComplete="off"
-            aria-invalid={displayError ? 'true' : undefined}
-            aria-describedby={
-              displayError ? errId : hint ? hintId : undefined
-            }
+            // Only flag aria-invalid for the hard error. The soft warning
+            // is a hint, not a validation failure — a screen reader user
+            // should hear "below minimum of 1000" announced politely, but
+            // the input shouldn't be marked invalid for their AT.
+            aria-invalid={showHardError ? 'true' : undefined}
+            aria-describedby={ariaMessageId}
             className={`
               w-full h-11 px-3.5 text-[14px] font-bold tabular-nums
               bg-white text-[color:var(--text-primary)]
@@ -301,7 +315,8 @@ const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
               disabled:bg-[color:var(--color-light-surface)] disabled:cursor-not-allowed
               ${prefix ? 'pl-7' : ''}
               ${suffix ? 'pr-14' : ''}
-              ${displayError ? 'shadow-[rgba(208,50,56,0.8)_0_0_0_1px]' : ''}
+              ${showHardError ? 'shadow-[rgba(208,50,56,0.8)_0_0_0_1px]' : ''}
+              ${showSoftWarning ? 'shadow-[rgba(181,101,29,0.55)_0_0_0_1px]' : ''}
               ${className}
             `}
             value={text}
@@ -317,7 +332,7 @@ const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
             </span>
           )}
         </div>
-        {hint && !displayError && (
+        {hint && !showHardError && !showSoftWarning && (
           <p
             id={hintId}
             className="text-[11px] text-[color:var(--text-muted)] leading-snug font-medium"
@@ -325,14 +340,25 @@ const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(
             {hint}
           </p>
         )}
-        {displayError && (
+        {showHardError && (
           <p
             id={errId}
             role="alert"
-            aria-live="polite"
+            aria-live="assertive"
             className="text-[11px] font-semibold text-[color:var(--color-danger)]"
           >
-            {displayError}
+            {externalError}
+          </p>
+        )}
+        {showSoftWarning && (
+          <p
+            id={errId}
+            role="status"
+            aria-live="polite"
+            className="flex items-start gap-1 text-[11px] font-semibold text-[#b5651d]"
+          >
+            <span aria-hidden="true" className="leading-none translate-y-[1px]">⚠</span>
+            <span>{rangeWarning}</span>
           </p>
         )}
       </div>
