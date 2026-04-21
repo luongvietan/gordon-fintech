@@ -9,7 +9,7 @@ import {
   useScenarioStorage,
   type SavedScenario,
 } from '@/hooks/useScenarioStorage';
-import { encodeInputs, buildShareUrl } from '@/lib/calculator-share';
+import { encodeInputs } from '@/lib/calculator-share';
 
 /**
  * Compare-saved-scenarios view.
@@ -75,28 +75,44 @@ const CANONICAL_DEFAULTS: CalculatorInputs = {
 
 function buildOpenHref(inputs: CalculatorInputs): string {
   const encoded = encodeInputs(inputs, CANONICAL_DEFAULTS);
-  // buildShareUrl requires window — inline the query construction so we
-  // can render the href server-side just in case. We always want to land
-  // on the homepage's calculator section.
-  return `/?s=${encodeURIComponent(encoded)}/calculator`;
+  // Always open the dedicated calculator route with a valid share param.
+  return `/calculator?s=${encodeURIComponent(encoded)}`;
 }
 
 async function copyShareUrl(inputs: CalculatorInputs): Promise<boolean> {
   const encoded = encodeInputs(inputs, CANONICAL_DEFAULTS);
-  // Use buildShareUrl at the current origin so the shared link lands on
-  // this host even if the user saved scenarios at a different path.
+  const path = `/calculator?s=${encodeURIComponent(encoded)}`;
   const full =
     typeof window !== 'undefined'
-      ? new URL(buildShareUrl(encoded) || `/?s=${encoded}/calculator`, window.location.origin).toString()
-      : `/?s=${encoded}/calculator`;
+      ? new URL(path, window.location.origin).toString()
+      : path;
+
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(full);
       return true;
     } catch {
-      return false;
+      // Fall back below.
     }
   }
+
+  if (typeof document !== 'undefined') {
+    const ta = document.createElement('textarea');
+    ta.value = full;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      return document.execCommand('copy');
+    } catch {
+      return false;
+    } finally {
+      document.body.removeChild(ta);
+    }
+  }
+
   return false;
 }
 
@@ -146,7 +162,7 @@ function ComparePageShell({
     <main className="py-14 md:py-20">
       <div className="container max-w-5xl">
         <Link
-          href="//calculator"
+          href="/calculator"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--text-muted)] hover:text-[color:var(--color-near-black)] transition-colors mb-6"
         >
           <ArrowLeft aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
@@ -189,7 +205,7 @@ function ComparePageShell({
               &mdash; it&rsquo;ll show up here ready to compare.
             </p>
             <Link
-              href="//calculator"
+              href="/calculator"
               className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-[var(--r-pill)] text-sm font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform hover:scale-[1.04]"
             >
               Open the calculator
@@ -388,15 +404,13 @@ function RowActions({
   scenario: SavedScenario;
   onRemove: () => void;
 }) {
-  const [shareState, setShareState] = useState<'idle' | 'copied'>('idle');
+  const [shareState, setShareState] = useState<'idle' | 'copied' | 'error'>('idle');
   const href = buildOpenHref(scenario.inputs);
 
   async function handleShare() {
     const ok = await copyShareUrl(scenario.inputs);
-    if (ok) {
-      setShareState('copied');
-      setTimeout(() => setShareState('idle'), 1600);
-    }
+    setShareState(ok ? 'copied' : 'error');
+    setTimeout(() => setShareState('idle'), ok ? 1600 : 2500);
   }
 
   return (
@@ -415,7 +429,7 @@ function RowActions({
         aria-label="Copy a shareable link for this scenario"
       >
         <Share2 aria-hidden="true" className="w-3 h-3" strokeWidth={2} />
-        {shareState === 'copied' ? 'Copied' : 'Share'}
+        {shareState === 'copied' ? 'Copied' : shareState === 'error' ? 'Copy failed' : 'Share'}
       </button>
       <button
         type="button"

@@ -258,7 +258,7 @@ Target Lighthouse scores: **90+ on Performance, SEO, Accessibility, Best Practic
 - ✓ JSON-LD: `SoftwareApplication` (home), `Article` + `BreadcrumbList` (blog posts),
   `FAQPage` (home + any post with `faqs` in frontmatter)
 - ✓ Google Search Console verification via `NEXT_PUBLIC_GSC_TOKEN`
-- ✓ Internal linking: every blog CTA → `//calculator`; sidebar on articles
+- ✓ Internal linking: every blog CTA → `/calculator`; sidebar on articles
 
 ---
 

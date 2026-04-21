@@ -147,7 +147,7 @@ const FAQS: FaqCategoryItem[] = [
     q: 'How long does it take doctors to pay off med school debt?',
     a: 'Most physicians take 10–15 years to fully repay medical school loans. The exact timeline depends on specialty, total debt, interest rate, and chosen strategy (PSLF vs refinance vs aggressive payoff). Primary-care doctors at PSLF-eligible employers can often get to a positive net worth in under a decade; surgical specialists who refinance and pay aggressively can do it in 5–7 years.',
     category: 'general',
-    learnMore: { href: '//calculator', label: 'Run your own payoff scenario' },
+    learnMore: { href: '/calculator', label: 'Run your own payoff scenario' },
   },
   {
     q: 'Is PSLF (Public Service Loan Forgiveness) worth it for doctors?',
@@ -165,7 +165,7 @@ const FAQS: FaqCategoryItem[] = [
     q: 'Should I refinance my federal student loans during residency?',
     a: 'Usually not. Refinancing converts federal loans to private and permanently gives up access to PSLF, IDR, federal forbearance, and federal forgiveness protections. Most residents are better off staying on an IDR plan (SAVE/PAYE/IBR) until they have confirmed their long-term employer is NOT PSLF-eligible. The calculator shows the dollar cost of that decision both ways.',
     category: 'refi',
-    learnMore: { href: '//calculator', label: 'Compare refinance vs PSLF' },
+    learnMore: { href: '/calculator', label: 'Compare refinance vs PSLF' },
   },
   {
     q: 'Do I have to pay taxes on PSLF forgiveness?',
