@@ -136,6 +136,12 @@ export default function NewsletterSignup() {
 
             <Link
               href="/blog"
+              onClick={() =>
+                track('blog_cta_clicked', {
+                  location: 'newsletter_sample_issue',
+                  slug: 'blog_index',
+                })
+              }
               className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--color-wise-green)] hover:text-white transition-colors"
             >
               See a sample issue

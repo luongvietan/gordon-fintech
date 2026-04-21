@@ -17,8 +17,8 @@ import { track } from '@/lib/analytics';
 import { useExpertMode } from '@/hooks/useExpertMode';
 import NumberField from '@/components/ui/NumberField';
 import Select from '@/components/ui/Select';
-import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
+import AdvancedSettings from './AdvancedSettings';
 import InputSection from './InputSection';
 
 interface Props {
@@ -88,7 +88,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
   const householdSummary = inputs.spouseEnabled
     ? `${(inputs.filingStatus ?? 'mfj').toUpperCase()} \u00b7 $${Math.round(
         (inputs.spouseIncome ?? 0) / 1000,
-      )}K spouse \u00b7 family ${inputs.familySize ?? 2}`
+      )}K spouse \u00b7 $${Math.round((inputs.spouseDebt ?? 0) / 1000)}K debt`
     : 'Single filer';
   const jobChangeSummary = inputs.jobChangeEnabled
     ? `Year ${inputs.jobChangeYear ?? 3} \u2192 $${Math.round(
@@ -672,6 +672,36 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
             </div>
 
             <div className="grid grid-cols-2 gap-2.5">
+              <NumberField
+                label="Spouse debt"
+                prefix="$"
+                min={0}
+                max={1_000_000}
+                step={1000}
+                value={inputs.spouseDebt ?? 0}
+                onValueChange={(v) => onChange({ spouseDebt: v })}
+                hint="Household-only modeling. Used in net-worth and filing comparisons."
+              />
+              <Select
+                label="Spouse repayment"
+                value={inputs.spouseRepaymentStrategy ?? 'standard'}
+                onChange={(e) =>
+                  onChange({
+                    spouseRepaymentStrategy: e.target.value as
+                      | 'minimum'
+                      | 'standard'
+                      | 'aggressive',
+                  })
+                }
+                options={[
+                  { value: 'minimum', label: 'Minimum / interest-only' },
+                  { value: 'standard', label: 'Standard 10-year' },
+                  { value: 'aggressive', label: 'Aggressive payoff' },
+                ]}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
               <Select
                 label="Filing status"
                 value={inputs.filingStatus ?? 'mfj'}
@@ -827,81 +857,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
         hint={assumptionsSummary}
         icon={<IconAssumptions />}
       >
-        <Slider
-          label="Effective tax rate"
-          displayValue={`${inputs.taxRate}%`}
-          min={25}
-          max={40}
-          step={1}
-          value={inputs.taxRate}
-          onChange={(e) => onChange({ taxRate: Number(e.target.value) })}
-        />
-        <Slider
-          label="CPI inflation"
-          displayValue={`${inputs.inflationRate.toFixed(1)}%`}
-          min={0}
-          max={5}
-          step={0.1}
-          value={inputs.inflationRate}
-          onChange={(e) => onChange({ inflationRate: Number(e.target.value) })}
-        />
-        <Slider
-          label="Expected market return"
-          displayValue={`${inputs.investmentReturn.toFixed(1)}%`}
-          min={0}
-          max={10}
-          step={0.5}
-          value={inputs.investmentReturn}
-          onChange={(e) => onChange({ investmentReturn: Number(e.target.value) })}
-        />
-        <p className="text-[11px] text-[color:var(--text-muted)] leading-relaxed -mt-1">
-          Tax + inflation drive after-tax income; market return is the
-          opportunity cost of overpaying loans vs investing.
-        </p>
-        <div className="grid grid-cols-2 gap-2.5">
-          <NumberField
-            label="Salary growth (training)"
-            suffix="%/yr"
-            min={0}
-            max={10}
-            step={0.5}
-            allowDecimals
-            value={inputs.residentSalaryGrowthRate}
-            onValueChange={(v) => onChange({ residentSalaryGrowthRate: v })}
-          />
-          <NumberField
-            label="Salary growth (attending)"
-            suffix="%/yr"
-            min={0}
-            max={10}
-            step={0.5}
-            allowDecimals
-            value={inputs.attendingSalaryGrowthRate}
-            onValueChange={(v) => onChange({ attendingSalaryGrowthRate: v })}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-[color:var(--border-subtle)]">
-          <NumberField
-            label="Living expenses (residency)"
-            prefix="$"
-            suffix="/mo"
-            min={0}
-            max={20000}
-            step={100}
-            value={inputs.livingExpensesResidency}
-            onValueChange={(v) => onChange({ livingExpensesResidency: v })}
-          />
-          <NumberField
-            label="Living expenses (attending)"
-            prefix="$"
-            suffix="/mo"
-            min={0}
-            max={50000}
-            step={100}
-            value={inputs.livingExpensesAttending}
-            onValueChange={(v) => onChange({ livingExpensesAttending: v })}
-          />
-        </div>
+        <AdvancedSettings inputs={inputs} onChange={onChange} />
       </InputSection>
 
       <p className="text-[11px] text-[color:var(--text-muted)] mt-3 leading-relaxed px-1">

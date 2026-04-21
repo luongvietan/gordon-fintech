@@ -70,15 +70,15 @@ export default function ExplainPopover({
       <summary
         className={`
           group/summary inline-flex items-center gap-1.5 cursor-pointer select-none list-none
-          px-3 py-1.5 min-h-[32px] md:min-h-[32px]
+          px-4 py-2 min-h-[44px]
           text-[11px] font-bold uppercase tracking-[0.06em]
           text-[color:var(--color-dark-green)]
           rounded-[var(--r-pill)]
           ring-1 ring-inset ring-current/25
-          transition-[background-color,box-shadow,color] duration-150 ease-out
-          hover:bg-current/[0.08] hover:ring-current/50
+          transition-[background-color,box-shadow,color,transform] duration-150 ease-out
+          hover:bg-current/[0.08] hover:ring-current/50 hover:-translate-y-[1px]
           group-open:bg-current/[0.10] group-open:ring-current/60
-          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/70
+          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/70 focus-visible:bg-current/[0.08]
           [&::-webkit-details-marker]:hidden
         `}
         aria-label="Toggle calculation breakdown"

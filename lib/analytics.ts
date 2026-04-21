@@ -68,6 +68,8 @@ export function track(
 export type AnalyticsEvent =
   | 'calculator_input_changed'
   | 'calculator_completed'
+  | 'calculator_cta_clicked'
+  | 'blog_cta_clicked'
   | 'specialty_selected'
   | 'preset_selected'
   | 'pslf_toggled'

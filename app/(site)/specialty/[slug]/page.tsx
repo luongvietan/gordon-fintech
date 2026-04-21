@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, Circle, MinusCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Circle, MinusCircle, Star } from 'lucide-react';
 import Calculator from '@/components/calculator/Calculator';
 import TrackPageView from '@/components/analytics/TrackPageView';
 import type { CalculatorInputs } from '@/lib/calculator';
@@ -93,6 +93,18 @@ function fitBadge(fit: 'often' | 'mixed' | 'rarely') {
   };
 }
 
+function fitRating(fit: 'often' | 'mixed' | 'rarely') {
+  if (fit === 'often') return 5;
+  if (fit === 'mixed') return 3;
+  return 1;
+}
+
+const RELATED_GUIDES = [
+  { href: '/blog/pslf-explained-for-doctors', label: 'PSLF explained for doctors' },
+  { href: '/blog/doctor-salary-by-specialty', label: 'Doctor salary by specialty' },
+  { href: '/blog/average-medical-school-debt', label: 'Average medical school debt' },
+];
+
 export default async function SpecialtyProfilePage({ params }: Props) {
   const { slug } = await params;
   const profile = getSpecialtyProfile(slug);
@@ -101,7 +113,9 @@ export default async function SpecialtyProfilePage({ params }: Props) {
 
   const seed = seedFromSpecialty(slug);
   const fit = fitBadge(profile.pslfFit);
+  const rating = fitRating(profile.pslfFit);
   const FitIcon = fit.icon;
+  const debtToIncome = profile.typicalDebt.median / profile.salaryBand.median;
 
   const breadcrumbLd = {
     '@context': 'https://schema.org',
@@ -212,6 +226,11 @@ export default async function SpecialtyProfilePage({ params }: Props) {
                     : 'residency only'
                 }
               />
+              <StatTile
+                label="Debt-to-income"
+                value={`${debtToIncome.toFixed(2)}x`}
+                sub="Median debt / median attending salary"
+              />
             </div>
           </header>
 
@@ -229,6 +248,21 @@ export default async function SpecialtyProfilePage({ params }: Props) {
                 <p className="text-[12.5px] text-[color:var(--color-near-black)] leading-snug font-medium">
                   {profile.pslfNote}
                 </p>
+                <div className="mt-3 flex items-center gap-1.5">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Star
+                      key={`star-${i}`}
+                      aria-hidden="true"
+                      className={`w-3.5 h-3.5 ${
+                        i < rating ? 'fill-current' : 'opacity-25'
+                      }`}
+                      strokeWidth={2}
+                    />
+                  ))}
+                  <span className="text-[11px] font-bold uppercase tracking-[0.10em]">
+                    {rating}/5 viability
+                  </span>
+                </div>
               </div>
 
               <div className="p-4 rounded-[var(--r-card)] bg-white ring-1 ring-inset ring-[color:var(--border-subtle)]">
@@ -259,10 +293,43 @@ export default async function SpecialtyProfilePage({ params }: Props) {
                   ))}
                 </ul>
               </div>
+
+              <div className="p-4 rounded-[var(--r-card)] bg-white ring-1 ring-inset ring-[color:var(--border-subtle)]">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-2">
+                  Related guides
+                </p>
+                <ul className="flex flex-col gap-2">
+                  {RELATED_GUIDES.map((guide) => (
+                    <li key={guide.href}>
+                      <Link
+                        href={guide.href}
+                        className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[color:var(--color-dark-green)] hover:underline"
+                      >
+                        {guide.label}
+                        <ArrowRight aria-hidden className="w-3 h-3" strokeWidth={2} />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </aside>
 
             <div className="lg:col-span-2">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-[12px] text-[color:var(--text-muted)] font-medium">
+                  Calculator prefilled with {specialty.label} salary and training defaults.
+                </p>
+                <a
+                  href="#specialty-calculator"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-pill)] text-[12px] font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform hover:scale-[1.03]"
+                >
+                  Jump to prefilled calculator
+                  <ArrowRight aria-hidden className="w-3 h-3" strokeWidth={2} />
+                </a>
+              </div>
+              <div id="specialty-calculator">
               <Calculator initialInputs={seed} />
+              </div>
             </div>
           </div>
 

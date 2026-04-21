@@ -578,7 +578,12 @@ export function calculateIdrTaxBomb(
     inflatedBrackets,
     salaryAtForgiveness + forgivenBalance,
   );
-  const incrementalTax = Math.max(0, taxOnSalaryPlusForgiveness - taxOnSalaryOnly);
+  const incrementalTax =
+    typeof inputs.taxBombRateOverride === 'number' &&
+    isFinite(inputs.taxBombRateOverride) &&
+    inputs.taxBombRateOverride >= 0
+      ? forgivenBalance * (inputs.taxBombRateOverride / 100)
+      : Math.max(0, taxOnSalaryPlusForgiveness - taxOnSalaryOnly);
 
   return {
     yearsUntilForgiveness: horizonYears,

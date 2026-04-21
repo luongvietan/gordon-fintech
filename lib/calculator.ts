@@ -68,6 +68,16 @@ export interface CalculatorInputs {
    * When false, interest compounds monthly throughout (worst-case scenario).
    */
   capitalizeOnlyAfterTraining?: boolean;
+  /**
+   * Approximate extra effective-tax-rate drag when filing MFS instead of MFJ.
+   * Models the loss of credits / narrower brackets without a full tax engine.
+   */
+  mfsExtraTaxRatePct?: number;
+  /**
+   * Optional override for the tax rate applied to forgiven IDR balances.
+   * When omitted, the calculator uses the progressive IRS-bracket estimate.
+   */
+  taxBombRateOverride?: number;
   /** Chosen scenario preset (UI hint — math derives from the other fields). */
   scenarioPreset?: ScenarioPreset;
 
@@ -81,6 +91,13 @@ export interface CalculatorInputs {
   spouseIncome?: number;
   /** Spouse annual raise % (compounded alongside CPI). Typical 2–4%. */
   spouseIncomeGrowthRate?: number;
+  /** Spouse current student-loan balance (USD). */
+  spouseDebt?: number;
+  /**
+   * Simplified spouse repayment path. Used to estimate household cash drag
+   * and net-worth crossover without rendering a second comparison table.
+   */
+  spouseRepaymentStrategy?: 'minimum' | 'standard' | 'aggressive';
   /**
    * Tax filing status. Only meaningful when `spouseEnabled` is true.
    *   - 'single' : no spouse (default when `spouseEnabled` is false)
@@ -280,6 +297,21 @@ function afterTax(gross: number, taxRatePercent: number): number {
   return gross * (1 - rate);
 }
 
+function spouseMonthlyPayment(
+  debt: number,
+  annualPercent: number,
+  strategy: 'minimum' | 'standard' | 'aggressive',
+): number {
+  if (!(debt > 0)) return 0;
+  const standard = amortizationPayment(debt, annualPercent, 120);
+  if (strategy === 'aggressive') return standard * 1.5;
+  if (strategy === 'minimum') {
+    const interestOnly = accrueInterest(debt, annualPercent);
+    return Math.min(standard, interestOnly);
+  }
+  return standard;
+}
+
 /** Compound a salary by `growth + inflation` over `yearsFromStart` years. */
 function inflatedSalary(
   baseSalary: number,
@@ -331,9 +363,12 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     inflationRate,
     investmentReturn,
     capitalizeOnlyAfterTraining = false,
+    mfsExtraTaxRatePct = 2,
     spouseEnabled = false,
     spouseIncome = 0,
     spouseIncomeGrowthRate = 3,
+    spouseDebt = 0,
+    spouseRepaymentStrategy = 'standard',
     filingStatus: filingStatusInput,
     familySize: familySizeInput,
     jobChangeEnabled = false,
@@ -373,10 +408,13 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       : 'mfj'
     : 'single';
   const effectiveSpouseIncome = spouseEnabled ? Math.max(0, spouseIncome) : 0;
+  const effectiveSpouseDebt = spouseEnabled ? Math.max(0, spouseDebt) : 0;
   const familySize = Math.max(
     1,
     familySizeInput ?? (spouseEnabled ? 2 : 1),
   );
+  const effectiveTaxRate =
+    filingStatus === 'mfs' ? taxRate + Math.max(0, mfsExtraTaxRatePct) : taxRate;
 
   /**
    * Attending gross for a given attending year (1-indexed). When the
@@ -434,6 +472,15 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       spouseIncomeGrowthRate,
       inflationRate,
     );
+  }
+
+  function spouseLoanPaymentForYear(_yearsFromStart: number): number {
+    if (!(effectiveSpouseDebt > 0)) return 0;
+    return spouseMonthlyPayment(
+      effectiveSpouseDebt,
+      interestRate,
+      spouseRepaymentStrategy,
+    ) * 12;
   }
 
   /**
@@ -504,8 +551,8 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     let yearlyMinimum = 0;
     const gross = trainingGross(yr);
     const spouseGross = spouseGrossForYear(yr - 1);
-    const net = afterTax(gross, taxRate);
-    const spouseNet = afterTax(spouseGross, taxRate);
+    const net = afterTax(gross, effectiveTaxRate);
+    const spouseNet = afterTax(spouseGross, effectiveTaxRate);
     const agi = idrAgi(gross, spouseGross, filingStatus);
     const phase = trainingPhase(yr);
 
@@ -568,7 +615,12 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     // Household net worth: borrower + spouse after-tax income, minus
     // loan payments and shared living expenses. Spouse contributes the
     // same in both MFJ and MFS — the distinction only affects IDR math.
-    cumulativeNetWorth += net + spouseNet - yearlyPayment - yearlyLiving;
+    cumulativeNetWorth +=
+      net +
+      spouseNet -
+      yearlyPayment -
+      spouseLoanPaymentForYear(yr - 1) -
+      yearlyLiving;
     minimumPaidStandard += yearlyMinimum;
 
     const displayedBalance = Math.max(0, balance + accruedInterest);
@@ -605,9 +657,9 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     let yearlyMinimum = 0;
     const yearsFromStart = trainingYears + yr - 1;
     const currentGross = attendingGross(yr);
-    const currentNet = afterTax(currentGross, taxRate);
+    const currentNet = afterTax(currentGross, effectiveTaxRate);
     const spouseGrossAtt = spouseGrossForYear(yearsFromStart);
-    const spouseNetAtt = afterTax(spouseGrossAtt, taxRate);
+    const spouseNetAtt = afterTax(spouseGrossAtt, effectiveTaxRate);
     const agiAtt = idrAgi(currentGross, spouseGrossAtt, filingStatus);
 
     for (let m = 0; m < 12; m++) {
@@ -633,7 +685,12 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     }
 
     const yearlyLiving = livingExpensesAttending * 12 * Math.pow(1 + inflationRate / 100, yearsFromStart);
-    cumulativeNetWorth += currentNet + spouseNetAtt - yearlyPayment - yearlyLiving;
+    cumulativeNetWorth +=
+      currentNet +
+      spouseNetAtt -
+      yearlyPayment -
+      spouseLoanPaymentForYear(yearsFromStart) -
+      yearlyLiving;
     minimumPaidStandard += yearlyMinimum;
     const calendarYear = trainingYears + yr;
 
@@ -708,8 +765,8 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       let yearlyPayment = 0;
       const gross = trainingGross(yr);
       const spouseGross = spouseGrossForYear(yr - 1);
-      const net = afterTax(gross, taxRate);
-      const spouseNet = afterTax(spouseGross, taxRate);
+      const net = afterTax(gross, effectiveTaxRate);
+      const spouseNet = afterTax(spouseGross, effectiveTaxRate);
       const agi = idrAgi(gross, spouseGross, filingStatus);
       const monthlyIDR = idrPayment(agi, familySize);
       const phase = trainingPhase(yr);
@@ -741,7 +798,12 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
 
       const yearlyLiving =
         livingExpensesResidency * 12 * Math.pow(1 + inflationRate / 100, yr - 1);
-      pslfCumulativeNetWorth += net + spouseNet - yearlyPayment - yearlyLiving;
+      pslfCumulativeNetWorth +=
+        net +
+        spouseNet -
+        yearlyPayment -
+        spouseLoanPaymentForYear(yr - 1) -
+        yearlyLiving;
 
       const displayed = Math.max(0, pslfBalance + pslfAccrued);
       pslfSchedule.push({
@@ -769,9 +831,9 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       let yearlyPayment = 0;
       const yearsFromStart = trainingYears + yr - 1;
       const currentGross = attendingGross(yr);
-      const currentNet = afterTax(currentGross, taxRate);
+      const currentNet = afterTax(currentGross, effectiveTaxRate);
       const spouseGrossAtt = spouseGrossForYear(yearsFromStart);
-      const spouseNetAtt = afterTax(spouseGrossAtt, taxRate);
+      const spouseNetAtt = afterTax(spouseGrossAtt, effectiveTaxRate);
       const agiAtt = idrAgi(currentGross, spouseGrossAtt, filingStatus);
       const monthlyIDR = idrPayment(agiAtt, familySize);
       const countsThisYear = attendingPslfCounts(yr);
@@ -793,7 +855,12 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       }
 
       const yearlyLiving = livingExpensesAttending * 12 * Math.pow(1 + inflationRate / 100, yearsFromStart);
-      pslfCumulativeNetWorth += currentNet + spouseNetAtt - yearlyPayment - yearlyLiving;
+      pslfCumulativeNetWorth +=
+        currentNet +
+        spouseNetAtt -
+        yearlyPayment -
+        spouseLoanPaymentForYear(yearsFromStart) -
+        yearlyLiving;
       const calendarYear = trainingYears + yr;
       const isForgiven = qualifyingPayments >= PSLF_MONTHS;
 

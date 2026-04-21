@@ -3,6 +3,7 @@
 import { Check, Sparkles } from 'lucide-react';
 import { formatDollars, formatYears } from '@/lib/calculator';
 import type { StrategyComparison as StrategyComparisonData, StrategyOutcome } from '@/lib/calculator-scenarios';
+import DataSourceBadge from '@/components/ui/DataSourceBadge';
 import ExplainPopover from './ExplainPopover';
 
 interface Props {
@@ -39,6 +40,18 @@ export default function StrategyComparison({ comparison }: Props) {
           Same inputs &mdash; three different repayment philosophies. The
           recommended row is the one our engine picked for your scenario.
         </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <DataSourceBadge
+            source="studentaid.gov"
+            title="Federal PSLF, IDR, and forgiveness rules are modeled from studentaid.gov guidance."
+            compact
+          />
+          <DataSourceBadge
+            source="IRS guidance"
+            title="True total cost and tax-bomb estimates reference current IRS treatment of loan forgiveness."
+            compact
+          />
+        </div>
       </header>
 
       {/* ── Desktop table ──────────────────────────── */}

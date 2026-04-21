@@ -1,7 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import PostThumbnail from '@/components/home/PostThumbnail';
 import type { PostMeta } from '@/lib/blog';
+import { track } from '@/lib/analytics';
 
 interface Props {
   post: PostMeta;
@@ -17,6 +20,12 @@ export default function ArticleCard({ post, variant = 'default' }: Props) {
     return (
       <Link
         href={`/blog/${post.slug}`}
+        onClick={() =>
+          track('blog_cta_clicked', {
+            location: isFeature ? 'article_card_feature' : 'article_card',
+            slug: post.slug,
+          })
+        }
         className="group grid md:grid-cols-2 gap-6 md:gap-10 p-5 md:p-7 rounded-[var(--r-card-lg)] bg-white transition-all duration-200 hover:-translate-y-0.5"
         style={{ boxShadow: 'var(--shadow-ring)' }}
       >
@@ -80,6 +89,12 @@ export default function ArticleCard({ post, variant = 'default' }: Props) {
   return (
     <Link
       href={`/blog/${post.slug}`}
+      onClick={() =>
+        track('blog_cta_clicked', {
+          location: 'article_card',
+          slug: post.slug,
+        })
+      }
       className="group flex flex-col rounded-[var(--r-card)] bg-white overflow-hidden transition-all duration-200 hover:-translate-y-0.5"
       style={{ boxShadow: 'var(--shadow-ring)' }}
     >

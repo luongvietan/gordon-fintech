@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { track } from '@/lib/analytics';
 
 const LAST_UPDATED = 'April 2026';
 
@@ -51,6 +54,12 @@ export default function Footer() {
                 <li key={item.label}>
                   <Link
                     href={item.href}
+                    onClick={() =>
+                      track('calculator_cta_clicked', {
+                        location: 'footer_tools',
+                        target: item.href,
+                      })
+                    }
                     className="text-sm font-semibold text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors"
                   >
                     {item.label}

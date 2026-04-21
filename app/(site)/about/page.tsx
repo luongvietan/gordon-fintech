@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import TrackedLink from '@/components/analytics/TrackedLink';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -151,8 +152,10 @@ export default function AboutPage() {
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <Link
+                <TrackedLink
                   href="/calculator"
+                  event="calculator_cta_clicked"
+                  params={{ location: 'about_hero', target: 'calculator' }}
                   className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[var(--r-pill)] text-[15px] font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] shadow-[0_10px_40px_-12px_rgba(159,232,112,0.7)] transition-all duration-200 hover:bg-[color:var(--color-pastel-green)] hover:-translate-y-0.5 active:translate-y-0"
                 >
                   Open the calculator
@@ -161,7 +164,7 @@ export default function AboutPage() {
                     className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
                     strokeWidth={2}
                   />
-                </Link>
+                </TrackedLink>
                 <Link
                   href="/methodology"
                   className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[var(--r-pill)] text-[15px] font-semibold text-white/85 ring-1 ring-inset ring-white/15 hover:ring-white/40 hover:text-white hover:bg-white/[0.04] transition-all"
@@ -521,8 +524,10 @@ export default function AboutPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row md:flex-col items-stretch md:items-end gap-3 md:min-w-[220px]">
-                <Link
+                <TrackedLink
                   href="/calculator"
+                  event="calculator_cta_clicked"
+                  params={{ location: 'about_bottom_cta', target: 'calculator' }}
                   className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[var(--r-pill)] text-[15px] font-bold bg-[color:var(--color-near-black)] text-white transition-all duration-200 hover:scale-[1.04] active:scale-[0.96]"
                 >
                   Open the calculator
@@ -531,7 +536,7 @@ export default function AboutPage() {
                     className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
                     strokeWidth={2}
                   />
-                </Link>
+                </TrackedLink>
                 <Link
                   href="/methodology"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-[var(--r-pill)] text-[14px] font-semibold text-[color:var(--color-dark-green)] ring-1 ring-inset ring-[color:var(--color-dark-green)]/25 hover:ring-[color:var(--color-dark-green)]/55 hover:bg-white/35 transition-all"

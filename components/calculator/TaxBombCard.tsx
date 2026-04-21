@@ -5,6 +5,7 @@ import { Bomb, AlertCircle } from 'lucide-react';
 import type { CalculatorInputs } from '@/lib/calculator';
 import { formatDollars } from '@/lib/calculator';
 import { calculateIdrTaxBomb } from '@/lib/calculator-scenarios';
+import DataSourceBadge from '@/components/ui/DataSourceBadge';
 
 interface Props {
   inputs: CalculatorInputs;
@@ -87,6 +88,18 @@ export default function TaxBombCard({ inputs }: Props) {
           income at the federal level. PSLF forgiveness is tax-free; this is
           not.
         </p>
+        <div className="mb-6 flex flex-wrap gap-2">
+          <DataSourceBadge
+            source="studentaid.gov"
+            title="Forgiveness horizons and federal repayment-plan rules are based on studentaid.gov guidance."
+            compact
+          />
+          <DataSourceBadge
+            source="IRS guidance"
+            title="Federal tax treatment of forgiven balances follows current IRS guidance."
+            compact
+          />
+        </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5">
           <BombStat label={`Forgiven at year ${horizon}`} value={formatDollars(result.forgivenBalance)} />

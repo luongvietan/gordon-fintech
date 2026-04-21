@@ -12,6 +12,7 @@ import ComparisonMatrix from '@/components/home/ComparisonMatrix';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
 import FaqSection, { type FaqItem as FaqCategoryItem } from '@/components/home/FaqSection';
 import ArticleCard from '@/components/blog/ArticleCard';
+import TrackedLink from '@/components/analytics/TrackedLink';
 import TrustBand from '@/components/home/TrustBand';
 
 export const metadata: Metadata = {
@@ -317,8 +318,10 @@ export default async function HomePage() {
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <a
+                <TrackedLink
                   href="#calculator"
+                  event="calculator_cta_clicked"
+                  params={{ location: 'home_hero_primary', target: 'calculator' }}
                   className="group inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[var(--r-pill)] text-[15px] font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] shadow-[0_10px_40px_-12px_rgba(159,232,112,0.7)] transition-all duration-200 hover:bg-[color:var(--color-pastel-green)] hover:-translate-y-0.5 hover:shadow-[0_14px_44px_-10px_rgba(159,232,112,0.8)] active:translate-y-0"
                 >
                   Run my numbers — free
@@ -327,13 +330,15 @@ export default async function HomePage() {
                     className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
                     strokeWidth={2}
                   />
-                </a>
-                <Link
+                </TrackedLink>
+                <TrackedLink
                   href="/blog/pslf-explained-for-doctors"
+                  event="blog_cta_clicked"
+                  params={{ location: 'home_hero_secondary', slug: 'pslf-explained-for-doctors' }}
                   className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-[var(--r-pill)] text-[15px] font-semibold text-white/85 ring-1 ring-inset ring-white/15 hover:ring-white/40 hover:text-white hover:bg-white/[0.04] transition-all"
                 >
                   Read the PSLF guide
-                </Link>
+                </TrackedLink>
               </div>
 
               {/* Trust row — hairline dividers between items instead of pill
@@ -385,8 +390,10 @@ export default async function HomePage() {
 
           {/* Refined scroll cue — a thin vertical hairline + arrow reads
               quieter than the old "SCROLL" caps treatment. */}
-          <a
+          <TrackedLink
             href="#calculator"
+            event="calculator_cta_clicked"
+            params={{ location: 'home_scroll_cue', target: 'calculator' }}
             aria-label="Scroll to the calculator"
             className="hidden md:flex absolute left-1/2 -translate-x-1/2 bottom-6 lg:bottom-7 flex-col items-center gap-2 text-white/35 hover:text-white/80 transition-colors"
           >
@@ -399,7 +406,7 @@ export default async function HomePage() {
               className="w-3.5 h-3.5 animate-bounce-slow"
               strokeWidth={2}
             />
-          </a>
+          </TrackedLink>
         </div>
       </section>
 
@@ -572,13 +579,15 @@ export default async function HomePage() {
                   Doctor finance, explained.
                 </h2>
               </div>
-              <Link
+              <TrackedLink
                 href="/blog"
+                event="blog_cta_clicked"
+                params={{ location: 'home_blog_preview_header', slug: 'blog_index' }}
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--color-near-black)] hover:text-[color:var(--color-dark-green)] transition-colors"
               >
                 View all guides
                 <ArrowRight aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
-              </Link>
+              </TrackedLink>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
               {previewPosts.map((post) => (

@@ -29,6 +29,7 @@ import QuickToggles from './QuickToggles';
 import RiskFlags from './RiskFlags';
 import PslfDisruptionPanel from './PslfDisruptionPanel';
 import TaxBombCard from './TaxBombCard';
+import HouseholdFilingComparison from './HouseholdFilingComparison';
 import InlineEmailCapture from './InlineEmailCapture';
 import PeerBenchmarkNote from './PeerBenchmarkNote';
 import ExplainPopover, { type ExplainData } from './ExplainPopover';
@@ -368,6 +369,9 @@ export default function CalculatorResults({
 
       {/* ── 5. Contextual risk / assumption flags ──────── */}
       <RiskFlags flags={riskFlags} />
+
+      {/* ── 5b. Household filing comparison ────────────── */}
+      <HouseholdFilingComparison inputs={inputs} />
 
       {/* ── 6. KPI ROW (4-up on desktop, with show-your-work) ─── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">

@@ -21,7 +21,7 @@ export default function Toggle({
   const descriptionId = description ? `${toggleId}-desc` : undefined;
 
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex min-h-[44px] items-start gap-3">
       <button
         id={toggleId}
         type="button"
@@ -32,7 +32,7 @@ export default function Toggle({
         disabled={disabled}
         onClick={() => !disabled && onChange(!checked)}
         className={`
-          relative flex-shrink-0 w-12 h-7 rounded-[var(--r-pill)]
+          relative flex-shrink-0 w-12 h-7 mt-1 rounded-[var(--r-pill)]
           transition-all duration-200 ease-out
           focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus)]
           ${checked && !disabled
@@ -59,7 +59,7 @@ export default function Toggle({
                 disabled
                   ? 'text-[color:var(--text-muted)]'
                   : 'text-[color:var(--text-primary)]'
-              } cursor-pointer`}
+              } cursor-pointer min-h-[44px] flex items-center`}
               onClick={() => !disabled && onChange(!checked)}
             >
               {label}

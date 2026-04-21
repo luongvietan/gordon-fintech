@@ -81,7 +81,7 @@ export default function QuickToggles({
           type="button"
           onClick={onReset}
           disabled={!modified}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-pill)] text-[11.5px] font-bold text-[color:var(--text-muted)] hover:text-[color:var(--color-near-black)] hover:bg-[color:var(--color-near-black)]/[0.06] transition-colors disabled:opacity-40 disabled:pointer-events-none"
+          className="inline-flex min-h-[44px] items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-pill)] text-[11.5px] font-bold text-[color:var(--text-muted)] hover:text-[color:var(--color-near-black)] hover:bg-[color:var(--color-near-black)]/[0.06] transition-colors disabled:opacity-40 disabled:pointer-events-none"
         >
           <RotateCcw className="w-3 h-3" strokeWidth={2} aria-hidden />
           Reset to baseline
@@ -104,7 +104,7 @@ function ToggleButton({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-pill)] text-[11.5px] font-bold bg-[color:var(--color-near-black)]/[0.06] text-[color:var(--color-near-black)] transition-all duration-200 hover:scale-[1.04] hover:bg-[color:var(--color-near-black)]/[0.10] active:scale-[0.96]"
+      className="inline-flex min-h-[44px] items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-pill)] text-[11.5px] font-bold bg-[color:var(--color-near-black)]/[0.06] text-[color:var(--color-near-black)] transition-all duration-200 hover:scale-[1.04] hover:bg-[color:var(--color-near-black)]/[0.10] active:scale-[0.96]"
     >
       {icon}
       {label}
@@ -139,6 +139,19 @@ function shallowEqual(a: CalculatorInputs, b: CalculatorInputs): boolean {
     'inflationRate',
     'investmentReturn',
     'capitalizeOnlyAfterTraining',
+    'mfsExtraTaxRatePct',
+    'taxBombRateOverride',
+    'spouseEnabled',
+    'spouseIncome',
+    'spouseIncomeGrowthRate',
+    'spouseDebt',
+    'spouseRepaymentStrategy',
+    'filingStatus',
+    'familySize',
+    'jobChangeEnabled',
+    'jobChangeYear',
+    'jobChangeAttendingSalary',
+    'jobChangePslfQualifies',
   ];
   for (const k of keys) {
     if (a[k] !== b[k]) return false;

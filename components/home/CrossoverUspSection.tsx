@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react';
+import TrackedLink from '@/components/analytics/TrackedLink';
 import CrossoverChart from './CrossoverChart';
 
 /**
@@ -37,13 +38,15 @@ export default function CrossoverUspSection() {
               one insight most doctors miss and the difference between a
               reasonable strategy and the optimal one.
             </p>
-            <a
+            <TrackedLink
               href="#calculator"
+              event="calculator_cta_clicked"
+              params={{ location: 'home_crossover_section', target: 'calculator' }}
               className="mt-8 inline-flex items-center gap-2 px-5 py-3 rounded-[var(--r-pill)] text-sm font-semibold bg-[color:var(--color-near-black)] text-white transition-transform duration-200 hover:scale-[1.04] active:scale-[0.96]"
             >
               Find your crossover year
               <ArrowRight aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
-            </a>
+            </TrackedLink>
           </div>
 
           <div

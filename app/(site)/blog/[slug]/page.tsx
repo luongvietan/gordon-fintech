@@ -6,6 +6,7 @@ import { MDXRemote } from 'next-mdx-remote/rsc';
 import remarkGfm from 'remark-gfm';
 import { getAllSlugs, getPostBySlug, getRelatedPosts } from '@/lib/blog';
 import AdSlot from '@/components/ads/AdSlot';
+import TrackedLink from '@/components/analytics/TrackedLink';
 import ArticleCard from '@/components/blog/ArticleCard';
 
 interface Props {
@@ -230,13 +231,15 @@ export default async function BlogPostPage({ params }: Props) {
                 <p className="text-sm font-medium mt-2 leading-relaxed text-[color:var(--color-dark-green)]/85">
                   Specialty presets, PSLF comparison, net-worth crossover — free.
                 </p>
-                <Link
+                <TrackedLink
                   href="/calculator"
+                  event="calculator_cta_clicked"
+                  params={{ location: 'blog_sidebar_cta', target: 'calculator' }}
                   className="inline-flex items-center justify-center gap-1.5 mt-5 w-full py-3 rounded-[var(--r-pill)] text-sm font-semibold bg-[color:var(--color-near-black)] text-white transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
                 >
                   Try Calculator
                   <ArrowRight aria-hidden="true" className="w-3.5 h-3.5" strokeWidth={2} />
-                </Link>
+                </TrackedLink>
               </div>
 
               <AdSlot variant="sidebar" slot={process.env.NEXT_PUBLIC_ADSENSE_SIDEBAR_SLOT} />
@@ -293,13 +296,15 @@ export default async function BlogPostPage({ params }: Props) {
             <p className="mt-5 text-lg text-white/70 max-w-lg mx-auto font-medium">
               Enter your specialty, residency, and loan details. Get a customized projection in seconds.
             </p>
-            <Link
+            <TrackedLink
               href="/calculator"
+              event="calculator_cta_clicked"
+              params={{ location: 'blog_bottom_cta', target: 'calculator' }}
               className="inline-flex items-center gap-2 mt-8 px-6 py-3.5 rounded-[var(--r-pill)] text-base font-semibold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95]"
             >
               Calculate my payoff — free
               <ArrowRight aria-hidden="true" className="w-4 h-4" strokeWidth={2} />
-            </Link>
+            </TrackedLink>
           </div>
         </div>
       </section>

@@ -19,6 +19,7 @@ import {
   encodeInputs,
 } from '@/lib/calculator-share';
 import type { CalculatorInputs } from '@/lib/calculator';
+import DataSourceBadge from '@/components/ui/DataSourceBadge';
 
 interface Props {
   recommendation: Recommendation;
@@ -82,6 +83,18 @@ export default function BestStrategyPanel({ recommendation, inputs, defaults }: 
         <p className="mt-4 text-[14.5px] md:text-[15.5px] text-white/72 leading-relaxed font-medium max-w-2xl">
           {reason}
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <DataSourceBadge
+            source="MGMA + AAMC"
+            title="Salary and debt defaults pull from physician compensation and graduation-debt datasets."
+            compact
+          />
+          <DataSourceBadge
+            source="studentaid.gov"
+            title="PSLF and federal repayment-path assumptions follow current federal guidance."
+            compact
+          />
+        </div>
 
         {/* Three-up sub-stats */}
         <dl className="mt-7 md:mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
