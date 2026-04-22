@@ -5,6 +5,7 @@ import { formatDollars, formatYears } from '@/lib/calculator';
 import type { StrategyComparison as StrategyComparisonData, StrategyOutcome } from '@/lib/calculator-scenarios';
 import DataSourceBadge from '@/components/ui/DataSourceBadge';
 import ExplainPopover from './ExplainPopover';
+import { track } from '@/lib/analytics';
 
 interface Props {
   comparison: StrategyComparisonData;
@@ -34,10 +35,10 @@ export default function StrategyComparison({ comparison }: Props) {
           className="text-[1.25rem] md:text-[1.5rem] text-[color:var(--color-near-black)] tracking-[-0.018em] leading-[1.05]"
           style={{ fontWeight: 900 }}
         >
-          All three paths, side by side.
+          {strategies.length >= 4 ? 'All four paths, side by side.' : 'All three paths, side by side.'}
         </h3>
         <p className="text-[13px] text-[color:var(--text-muted)] font-medium mt-2 leading-snug max-w-xl">
-          Same inputs &mdash; three different repayment philosophies. The
+          Same inputs &mdash; {strategies.length >= 4 ? 'four' : 'three'} different repayment philosophies. The
           recommended row is the one our engine picked for your scenario.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -107,10 +108,11 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
   return (
     <tr
       className={`
-        text-[color:var(--text-primary)] tabular-nums
+        text-[color:var(--text-primary)] tabular-nums cursor-pointer
         ${isRec ? 'bg-[color:var(--color-light-mint)]' : ''}
         ${isUnavail ? 'opacity-55' : ''}
       `}
+      onClick={() => track('strategy_compared', { strategy_type: strategy.id })}
     >
       <td
         className={`text-left px-6 py-4 relative ${
@@ -201,12 +203,13 @@ function MobileCard({ strategy }: { strategy: StrategyOutcome }) {
   return (
     <article
       className={`
-        rounded-[var(--r-card-sm)] p-5 flex flex-col gap-3
+        rounded-[var(--r-card-sm)] p-5 flex flex-col gap-3 cursor-pointer
         ${isRec
           ? 'bg-[color:var(--color-light-mint)] ring-2 ring-inset ring-[color:var(--color-wise-green)]'
           : 'bg-[color:var(--color-off-white)]'}
         ${isUnavail ? 'opacity-60' : ''}
       `}
+      onClick={() => track('strategy_compared', { strategy_type: strategy.id })}
     >
       <header className="flex items-start justify-between gap-3">
         <h4

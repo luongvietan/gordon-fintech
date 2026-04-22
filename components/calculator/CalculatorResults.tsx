@@ -33,6 +33,8 @@ import HouseholdFilingComparison from './HouseholdFilingComparison';
 import InlineEmailCapture from './InlineEmailCapture';
 import PeerBenchmarkNote from './PeerBenchmarkNote';
 import ExplainPopover, { type ExplainData } from './ExplainPopover';
+import RefiWarningCard from './RefiWarningCard';
+import RefiBreakevenCard from './RefiBreakevenCard';
 
 interface Props {
   inputs: CalculatorInputs;
@@ -361,8 +363,19 @@ export default function CalculatorResults({
         onReset={onResetToBaseline}
       />
 
+      {/* ── 3. Refinancing warning (when refi enabled) ──── */}
+      {inputs.refinanceEnabled && <RefiWarningCard />}
+
       {/* ── 3. Strategy comparison ──────────────────────── */}
       <StrategyComparison comparison={comparison} />
+
+      {/* ── 3b. Refi breakeven (when both PSLF + refi present) ── */}
+      {inputs.refinanceEnabled && (() => {
+        const pslfOut = comparison.strategies.find((s) => s.id === 'pslf');
+        const refiOut = comparison.strategies.find((s) => s.id === 'refinance');
+        if (!pslfOut || !refiOut) return null;
+        return <RefiBreakevenCard pslfOutcome={pslfOut} refiOutcome={refiOut} />;
+      })()}
 
       {/* ── 4. Inline email capture ─────────────────────── */}
       <InlineEmailCapture />
@@ -478,6 +491,16 @@ export default function CalculatorResults({
             pslfSchedule={outputs.pslfSchedule}
             residencyYears={residencyYears}
             heightDesktop={500}
+            refiCurve={
+              inputs.refinanceEnabled
+                ? {
+                    balanceAtTrainingEnd: balanceAtAttendingApprox,
+                    trainingYears: residencyYears,
+                    refiRate: inputs.refinanceRate ?? 4.5,
+                    refiTermYears: inputs.refinanceTermYears ?? 10,
+                  }
+                : undefined
+            }
           />
         </ChartCard>
 
@@ -527,6 +550,19 @@ export default function CalculatorResults({
             minimums had been invested instead, it would grow to roughly this
             over the payoff horizon.
           </p>
+          <div className="mt-3">
+            <ExplainPopover
+              title="Opportunity cost"
+              formula="opportunity_cost = FV(extra_monthly, market_return%, months_to_payoff)"
+              inputsUsed={[
+                { label: 'Extra paid above IDR floor', value: formatDollars(outputs.extraDollarsPaid) },
+                { label: 'Assumed market return', value: `${inputs.investmentReturn}%/yr` },
+                { label: 'Opportunity cost', value: formatDollars(outputs.opportunityCost) },
+              ]}
+              plainEnglish="Each month you pay more than the IDR minimum, you give up the chance to invest that money. We calculate how much those extra payments would have grown at your assumed market return over the payoff period."
+              size="compact"
+            />
+          </div>
         </div>
         <div className="text-[11px] text-[color:var(--text-muted)] font-medium md:text-right md:max-w-[200px] leading-relaxed">
           Assumes monthly contribution of the &ldquo;extra&rdquo; and compound growth at your assumed market return.

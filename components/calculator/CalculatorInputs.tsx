@@ -180,7 +180,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
             step={5000}
             value={inputs.attendingSalary}
             onValueChange={(v) => onChange({ attendingSalary: v })}
-            hint="via MGMA 2024"
+            hint="via MGMA 2025"
           />
         </div>
         <NumberField

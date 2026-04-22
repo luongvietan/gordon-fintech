@@ -10,6 +10,11 @@ interface Props {
   onChange: (updated: Partial<CalculatorInputs>) => void;
 }
 
+const IDR_PLANS = [
+  { pct: 0.10, label: 'SAVE / PAYE / IBR (2014+)', note: '10% of discretionary income — default for most borrowers' },
+  { pct: 0.15, label: 'IBR (pre-2014 loans)', note: '15% of discretionary income — older borrowers who have not switched' },
+] as const;
+
 export default function AdvancedSettings({ inputs, onChange }: Props) {
   return (
     <div className="flex flex-col gap-4">
@@ -21,33 +26,71 @@ export default function AdvancedSettings({ inputs, onChange }: Props) {
         />
       </div>
 
-      <Slider
-        label="Effective tax rate"
-        displayValue={`${inputs.taxRate}%`}
-        min={25}
-        max={40}
-        step={1}
-        value={inputs.taxRate}
-        onChange={(e) => onChange({ taxRate: Number(e.target.value) })}
-      />
-      <Slider
-        label="CPI inflation"
-        displayValue={`${inputs.inflationRate.toFixed(1)}%`}
-        min={0}
-        max={5}
-        step={0.1}
-        value={inputs.inflationRate}
-        onChange={(e) => onChange({ inflationRate: Number(e.target.value) })}
-      />
-      <Slider
-        label="Expected market return"
-        displayValue={`${inputs.investmentReturn.toFixed(1)}%`}
-        min={0}
-        max={10}
-        step={0.5}
-        value={inputs.investmentReturn}
-        onChange={(e) => onChange({ investmentReturn: Number(e.target.value) })}
-      />
+      <div className="grid grid-cols-[1fr_auto] gap-2 items-end">
+        <Slider
+          label="Effective tax rate"
+          displayValue={`${inputs.taxRate}%`}
+          min={15}
+          max={50}
+          step={1}
+          value={inputs.taxRate}
+          onChange={(e) => onChange({ taxRate: Number(e.target.value) })}
+        />
+        <NumberField
+          label=""
+          suffix="%"
+          min={15}
+          max={50}
+          step={1}
+          value={inputs.taxRate}
+          onValueChange={(v) => onChange({ taxRate: v })}
+          hint=""
+        />
+      </div>
+      <div className="grid grid-cols-[1fr_auto] gap-2 items-end">
+        <Slider
+          label="CPI inflation"
+          displayValue={`${inputs.inflationRate.toFixed(1)}%`}
+          min={0}
+          max={5}
+          step={0.1}
+          value={inputs.inflationRate}
+          onChange={(e) => onChange({ inflationRate: Number(e.target.value) })}
+        />
+        <NumberField
+          label=""
+          suffix="%"
+          min={0}
+          max={5}
+          step={0.1}
+          allowDecimals
+          value={inputs.inflationRate}
+          onValueChange={(v) => onChange({ inflationRate: v })}
+          hint=""
+        />
+      </div>
+      <div className="grid grid-cols-[1fr_auto] gap-2 items-end">
+        <Slider
+          label="Expected market return"
+          displayValue={`${inputs.investmentReturn.toFixed(1)}%`}
+          min={0}
+          max={12}
+          step={0.5}
+          value={inputs.investmentReturn}
+          onChange={(e) => onChange({ investmentReturn: Number(e.target.value) })}
+        />
+        <NumberField
+          label=""
+          suffix="%"
+          min={0}
+          max={12}
+          step={0.5}
+          allowDecimals
+          value={inputs.investmentReturn}
+          onValueChange={(v) => onChange({ investmentReturn: v })}
+          hint=""
+        />
+      </div>
 
       <p className="text-[11px] text-[color:var(--text-muted)] leading-relaxed -mt-1">
         Tax + inflation drive after-tax income; market return is the opportunity
@@ -110,32 +153,74 @@ export default function AdvancedSettings({ inputs, onChange }: Props) {
           </span>
         </summary>
 
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-          <NumberField
-            label="MFS extra tax drag"
-            suffix="%"
-            min={0}
-            max={8}
-            step={0.5}
-            allowDecimals
-            value={inputs.mfsExtraTaxRatePct ?? 2}
-            onValueChange={(v) => onChange({ mfsExtraTaxRatePct: v })}
-            hint="Approximate extra blended tax cost when filing separately."
-          />
-          <NumberField
-            label="Forgiveness tax override"
-            suffix="%"
-            min={0}
-            max={50}
-            step={0.5}
-            allowDecimals
-            clearable
-            value={inputs.taxBombRateOverride}
-            onValueChange={(v) => onChange({ taxBombRateOverride: v })}
-            onClear={() => onChange({ taxBombRateOverride: undefined })}
-            placeholder="Auto (IRS brackets)"
-            hint="Optional manual override for IDR tax-bomb estimates."
-          />
+        <div className="mt-4 flex flex-col gap-3">
+          {/* IDR plan selection */}
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-near-black)] mb-1.5">
+              IDR plan
+            </p>
+            <div className="flex flex-col gap-1.5">
+              {IDR_PLANS.map((plan) => (
+                <label key={plan.pct} className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="idr-plan"
+                    className="mt-0.5 accent-[color:var(--color-wise-green)]"
+                    checked={Math.abs((inputs.idrPaymentPct ?? 0.10) - plan.pct) < 0.001}
+                    onChange={() => onChange({ idrPaymentPct: plan.pct })}
+                  />
+                  <span className="text-[12px] font-semibold text-[color:var(--color-near-black)] leading-snug">
+                    {plan.label}
+                    <span className="font-medium text-[color:var(--text-muted)]"> — {plan.note}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Capitalization toggle */}
+          <label className="flex items-start gap-2.5 cursor-pointer pt-1 border-t border-[color:var(--border-subtle)]">
+            <input
+              type="checkbox"
+              className="mt-0.5 accent-[color:var(--color-wise-green)]"
+              checked={inputs.capitalizeOnlyAfterTraining ?? false}
+              onChange={(e) => onChange({ capitalizeOnlyAfterTraining: e.target.checked })}
+            />
+            <span className="text-[12px] font-semibold text-[color:var(--color-near-black)] leading-snug">
+              Defer interest capitalization to end of training
+              <span className="block font-medium text-[color:var(--text-muted)] mt-0.5">
+                Federal IDR: unpaid interest accrues without compounding during training, then capitalizes once at attending phase. Unchecked = worst-case monthly compounding.
+              </span>
+            </span>
+          </label>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 border-t border-[color:var(--border-subtle)]">
+            <NumberField
+              label="MFS extra tax drag"
+              suffix="%"
+              min={0}
+              max={8}
+              step={0.5}
+              allowDecimals
+              value={inputs.mfsExtraTaxRatePct ?? 2}
+              onValueChange={(v) => onChange({ mfsExtraTaxRatePct: v })}
+              hint="Extra blended tax cost of filing separately vs jointly. Adjusts tax drag only — does not model spouse income or joint IDR calculations."
+            />
+            <NumberField
+              label="Forgiveness tax override"
+              suffix="%"
+              min={0}
+              max={50}
+              step={0.5}
+              allowDecimals
+              clearable
+              value={inputs.taxBombRateOverride}
+              onValueChange={(v) => onChange({ taxBombRateOverride: v })}
+              onClear={() => onChange({ taxBombRateOverride: undefined })}
+              placeholder="Auto (IRS brackets)"
+              hint="Optional manual override for IDR tax-bomb estimates."
+            />
+          </div>
         </div>
       </details>
     </div>

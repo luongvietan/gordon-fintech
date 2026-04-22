@@ -8,7 +8,7 @@
  * we'd want to swap or translate without touching the math.
  *
  * All figures are rounded ranges, sourced from AAMC Graduation
- * Questionnaire (median debt), MGMA 2024 / Doximity 2024 compensation
+ * Questionnaire (median debt), MGMA 2025 / Doximity 2025 compensation
  * reports (salary ranges), and public PSLF participation data where
  * available. Citations live in `doc/sources.md` for the stats page.
  */
@@ -31,7 +31,7 @@ export interface SpecialtyProfile {
   intro: string;
   /** Typical AAMC median debt band for grads entering this specialty. */
   typicalDebt: { low: number; median: number; high: number };
-  /** Typical attending salary band (MGMA 2024). */
+  /** Typical attending salary band (MGMA 2025). */
   salaryBand: { low: number; median: number; high: number };
   /** "Best strategy" opinion + a two-sentence explainer. */
   strategyPick: {

@@ -101,8 +101,9 @@ function fitRating(fit: 'often' | 'mixed' | 'rarely') {
 
 const RELATED_GUIDES = [
   { href: '/blog/pslf-explained-for-doctors', label: 'PSLF explained for doctors' },
+  { href: '/blog/when-to-refinance-medical-school-loans', label: 'When to refinance: a decision guide' },
+  { href: '/blog/idr-plans-for-doctors-paye-save-ibr', label: 'SAVE vs PAYE vs IBR for doctors' },
   { href: '/blog/doctor-salary-by-specialty', label: 'Doctor salary by specialty' },
-  { href: '/blog/average-medical-school-debt', label: 'Average medical school debt' },
 ];
 
 export default async function SpecialtyProfilePage({ params }: Props) {
@@ -335,7 +336,7 @@ export default async function SpecialtyProfilePage({ params }: Props) {
 
           <footer className="flex flex-wrap items-center justify-between gap-3 pt-5 border-t border-[color:var(--border-subtle)]">
             <p className="text-[12px] text-[color:var(--text-muted)] font-medium">
-              All figures median estimates. Sources: MGMA 2024, AAMC GQ, Doximity 2024.
+              All figures median estimates. Sources: MGMA 2025, AAMC GQ 2025, Doximity 2025.
             </p>
             <Link
               href="/specialty"

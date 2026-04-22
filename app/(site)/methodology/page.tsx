@@ -64,16 +64,16 @@ export default function MethodologyPage() {
         tails from a small number of very high earners.
       </p>
       <p>
-        Residency stipend defaults to the national PGY-1 median (~$63K) with a
+        Residency stipend defaults to the national PGY-1 median (~$65K) with a
         2% annual growth rate across training years — roughly in line with CPI.
         Fellowship salary defaults can be overridden per scenario.
       </p>
 
       <h2>Debt and interest</h2>
       <p>
-        Default debt of $250,000 reflects the 2024–2025 AAMC graduation survey
+        Default debt of $250,000 reflects the 2025 AAMC graduation survey
         for MD students with debt (DO graduates typically carry slightly more).
-        Default federal interest rate of 6.5% matches the 2024 Direct Unsubsidized
+        Default federal interest rate of 6.5% matches the 2025 Direct Unsubsidized
         rate for graduate students; private refinance rates are modeled
         separately and do not carry federal protections.
       </p>
@@ -114,16 +114,77 @@ export default function MethodologyPage() {
         most borrowers.
       </p>
 
+      <h2>Private refinancing</h2>
+      <p>
+        When the refinancing option is enabled, the calculator models a private
+        refinance that takes effect at the start of the attending phase — after
+        residency and fellowship. The training-phase balance (already accounting
+        for interest capitalization rules) becomes the refi principal. Key
+        assumptions:
+      </p>
+      <ul>
+        <li>Standard amortization formula at the user-entered rate over the chosen term</li>
+        <li>Origination fee (if any) is rolled into the principal</li>
+        <li>No income-based payment flexibility — fixed monthly payment throughout</li>
+        <li>Refinancing converts federal loans to private, permanently forfeiting PSLF,
+          IDR plans, federal forbearance, and death/disability discharge protections</li>
+        <li>Actual rates vary by credit score, debt-to-income ratio, and lender;
+          the user is responsible for verifying current market rates</li>
+      </ul>
+      <p>
+        The breakeven analysis compares true total cost (payments only — no federal
+        forgiveness) between PSLF and refinancing for the user&apos;s scenario. It
+        is a directional indicator, not a guarantee.
+      </p>
+
+      <h2>Spouse and household income</h2>
+      <p>
+        The calculator&rsquo;s Expert Mode includes full dual-income modeling:
+        spouse income, spouse debt, Married Filing Jointly vs.&nbsp;Married
+        Filing Separately filing status, and household-size-aware IDR
+        calculations. When filing jointly, spouse income raises the borrower&rsquo;s
+        AGI for IDR purposes; when filing separately, it is excluded but the
+        borrower incurs an MFS tax-drag penalty (adjustable in advanced
+        settings).
+      </p>
+      <p>
+        Spouse debt is modeled at a simplified level (minimum, standard, or
+        aggressive repayment) for household net-worth projections but does not
+        receive its own month-by-month interest + forgiveness simulation. For
+        married couples where both spouses carry complex federal debt, consult
+        a fiduciary advisor.
+      </p>
+
+      <h2>Job-change modeling</h2>
+      <p>
+        Expert Mode also supports mid-attending job changes. Users can specify a
+        year (1-indexed from the start of the attending phase) at which their
+        salary steps to a new value and — critically — whether the new employer
+        qualifies for PSLF. When the new employer does not qualify, the
+        120-qualifying-payment counter freezes from that year onward while
+        IDR payments continue, modeling the real-world cost of losing PSLF
+        eligibility mid-career.
+      </p>
+
       <h2>What the calculator does not model</h2>
       <p>
         To keep the tool fast and predictable, we intentionally omit:
       </p>
       <ul>
-        <li>Marriage / spousal income (affects IDR calculations materially)</li>
         <li>State income-tax variation beyond the blended default</li>
-        <li>Variable-rate private loans or loan refinance ladders</li>
+        <li>Variable-rate private loans or refinance rate ladders</li>
         <li>Employer loan repayment benefits, signing bonuses, moonlighting</li>
-        <li>Specific tax treatment of IDR forgiveness (non-PSLF)</li>
+        <li>
+          Specific tax treatment of IDR forgiveness (non-PSLF) &mdash; the
+          Tax Bomb Card provides a directional estimate using IRS brackets,
+          but state-level treatment is intentionally omitted
+        </li>
+        <li>Partial-year disruption scenarios (PSLF stress test uses whole years)</li>
+        <li>
+          Spouse-specific forgiveness simulation &mdash; spouse debt uses a
+          simplified fixed-repayment model rather than a full month-by-month
+          IDR + PSLF engine
+        </li>
       </ul>
 
       <h2>Disclaimer</h2>

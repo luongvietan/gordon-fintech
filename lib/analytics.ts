@@ -76,6 +76,7 @@ export type AnalyticsEvent =
   | 'spouse_toggled'
   | 'refi_toggled'
   | 'jobchange_toggled'
+  | 'strategy_compared'
   | 'breakdown_expanded'
   | 'email_submitted'
   | 'share_link_copied'

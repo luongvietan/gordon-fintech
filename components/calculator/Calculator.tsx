@@ -407,7 +407,7 @@ export default function Calculator({ initialInputs }: CalculatorProps = {}) {
               Med School Debt Simulator
             </h3>
             <p className="text-[12px] md:text-[13px] text-white/55 mt-1.5 font-medium">
-              PSLF vs standard &middot; net-worth crossover &middot; 16 specialty presets
+              PSLF vs refinance vs aggressive payoff &middot; 16 specialty presets
             </p>
           </div>
         </div>

@@ -42,12 +42,12 @@ const STATS = [
   {
     value: '$236K',
     label: 'Median MD debt at graduation',
-    source: 'AAMC GQ, 2024',
+    source: 'AAMC GQ, 2025',
   },
   {
     value: '~73%',
     label: 'MD graduates with student debt',
-    source: 'AAMC GQ, 2024',
+    source: 'AAMC GQ, 2025',
   },
   {
     value: '$67K',

@@ -580,6 +580,22 @@ html.lenis body {
 }
 
 /* ============================================================
+   DETAILS / BREAKDOWN TOGGLE ANIMATION
+   Animates content in when a <details> element opens. The chevron
+   rotation is handled via Tailwind's `group-open:rotate-180` class.
+   Closing cannot be animated with native <details> — content is
+   removed from the DOM immediately — so we only animate opening.
+   ============================================================ */
+details[open] > *:not(summary) {
+  animation: details-open 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes details-open {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
    EXPLAIN BREAKDOWN (Radix popover + bottom sheet)
    ============================================================
    Radix toggles `data-state="open"|"closed"` on Content and Overlay

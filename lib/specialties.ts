@@ -51,7 +51,7 @@ export const SPECIALTIES: Specialty[] = [
   { id: 'neurosurgery',        label: 'Neurosurgery',        attendingSalary: 700000, residencyYears: 7 },
 ];
 
-/** National average resident salary (AAMC 2024). */
+/** National average resident salary (AAMC 2025). */
 export const RESIDENT_SALARY = 65000;
 
 /** 150% of federal poverty level for a single person (2025 guidelines). */
