@@ -84,6 +84,21 @@ export function povertyLine150(familySize: number = 1): number {
   return POVERTY_150_BY_FAMILY[8] + (n - 8) * EXTRA_PER_PERSON;
 }
 
+/**
+ * Generalized FPL lookup that lets callers pass a multiplier other
+ * than 150% (e.g. SAVE uses 225%, ICR uses 100%). The 150% values are
+ * our source of truth; we scale them linearly since FPL is a flat
+ * annual figure by family size, not a bracketed function.
+ */
+export function povertyLineFpl(
+  familySize: number = 1,
+  fplMultiplier: number = 1.5,
+): number {
+  const base150 = povertyLine150(familySize);
+  const factor = Math.max(0, fplMultiplier) / 1.5;
+  return base150 * factor;
+}
+
 export function getSpecialtyById(id: string): Specialty | undefined {
   return SPECIALTIES.find((s) => s.id === id);
 }

@@ -8,6 +8,7 @@ import {
   calculateIdrTaxBomb,
   getIdrForgivenessHorizon,
 } from '@/lib/calculator-scenarios';
+import { resolveIdrPlan } from '@/lib/idr-plans';
 import DataSourceBadge from '@/components/ui/DataSourceBadge';
 
 interface Props {
@@ -25,9 +26,9 @@ interface Props {
  * the projected IDR balance survives to the forgiveness horizon.
  */
 export default function TaxBombCard({ inputs }: Props) {
-  const horizon = getIdrForgivenessHorizon(inputs.idrPaymentPct);
-  const planLabel =
-    horizon === 25 ? 'IBR (pre-2014 loans)' : 'SAVE / PAYE / IBR (2014+)';
+  const horizon = getIdrForgivenessHorizon(inputs);
+  const plan = resolveIdrPlan(inputs);
+  const planLabel = plan.label;
   const result = useMemo(() => calculateIdrTaxBomb(inputs), [inputs]);
 
   if (!result.applies) return null;

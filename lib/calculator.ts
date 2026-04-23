@@ -1,4 +1,5 @@
-import { povertyLine150 } from './specialties';
+import { povertyLineFpl } from './specialties';
+import { resolveIdrPlan, type IdrPlanId } from './idr-plans';
 
 // ============================================================
 // TYPES
@@ -159,10 +160,18 @@ export interface CalculatorInputs {
 
   // ── IDR plan selection ───────────────────────────────────
   /**
-   * IDR payment percentage of discretionary income.
-   *   SAVE / PAYE / IBR (2014+): 10%   → 0.10 (default)
-   *   IBR (pre-2014 loans):      15%   → 0.15
-   * REPAYE was merged into SAVE; use 0.10 for both.
+   * Active income-driven repayment plan preset. Determines the
+   * payment percentage, forgiveness horizon, and discretionary-income
+   * floor used across the standard / PSLF / tax-bomb simulations.
+   *
+   * When absent, we fall back to `idrPaymentPct` (legacy) or SAVE.
+   */
+  idrPlan?: IdrPlanId;
+  /**
+   * Legacy escape hatch — direct override of the IDR payment fraction
+   * (e.g. `0.10` for SAVE/PAYE/IBR). Still honored by the engine so
+   * that older shared-scenario URLs keep rendering correctly, but the
+   * UI now drives this through `idrPlan` instead.
    */
   idrPaymentPct?: number;
 }
@@ -236,8 +245,13 @@ export function amortizationPayment(
  * `agi` is the income counted for IDR, which is a function of filing
  * status (see `idrAgi` below) — not always the borrower's salary.
  */
-function idrPayment(agi: number, familySize: number = 1, pct: number = 0.10): number {
-  const discretionary = Math.max(0, agi - povertyLine150(familySize));
+function idrPayment(
+  agi: number,
+  familySize: number = 1,
+  pct: number = 0.10,
+  fplMultiplier: number = 1.5,
+): number {
+  const discretionary = Math.max(0, agi - povertyLineFpl(familySize, fplMultiplier));
   return (discretionary * pct) / 12;
 }
 
@@ -271,13 +285,17 @@ function standardResidencyMonthlyPayment(
   balance: number,
   override?: number,
   idrPct: number = 0.10,
+  fplMultiplier: number = 1.5,
 ): number {
   const maxPayable = Math.max(0, balance + monthlyInterest);
   if (override != null && override >= 0) {
     return Math.min(override, maxPayable);
   }
   if (loanType === 'federal') {
-    return Math.min(idrPayment(residentAnnualAgi, familySize, idrPct), maxPayable);
+    return Math.min(
+      idrPayment(residentAnnualAgi, familySize, idrPct, fplMultiplier),
+      maxPayable,
+    );
   }
   return Math.min(monthlyInterest, maxPayable);
 }
@@ -290,10 +308,14 @@ function attendingFloorMonthlyPayment(
   monthlyInterest: number,
   balance: number,
   idrPct: number = 0.10,
+  fplMultiplier: number = 1.5,
 ): number {
   const maxPayable = Math.max(0, balance + monthlyInterest);
   if (loanType === 'federal') {
-    return Math.min(idrPayment(annualAgiForIdr, familySize, idrPct), maxPayable);
+    return Math.min(
+      idrPayment(annualAgiForIdr, familySize, idrPct, fplMultiplier),
+      maxPayable,
+    );
   }
   return Math.min(monthlyInterest, maxPayable);
 }
@@ -386,10 +408,19 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     jobChangeYear: jobChangeYearInput,
     jobChangeAttendingSalary,
     jobChangePslfQualifies = true,
-    idrPaymentPct: idrPaymentPctInput = 0.10,
+    idrPaymentPct: idrPaymentPctInput,
+    idrPlan: idrPlanInput,
   } = inputs;
 
-  const idrPct = Math.max(0.01, Math.min(0.30, idrPaymentPctInput));
+  // Resolve the active IDR plan. Anything saved before the plan enum
+  // existed gets mapped via `idrPaymentPct`; everything else falls
+  // back to SAVE (the default for recent graduates).
+  const activeIdrPlan = resolveIdrPlan({
+    idrPlan: idrPlanInput,
+    idrPaymentPct: idrPaymentPctInput,
+  });
+  const idrPct = Math.max(0.01, Math.min(0.30, activeIdrPlan.paymentPct));
+  const idrFplMultiplier = Math.max(0.5, Math.min(3, activeIdrPlan.fplMultiplier));
 
   // ── Resolve job-change config ──────────────────────────────
   // The user can toggle "job change" on without filling in all fields.
@@ -584,6 +615,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
         servicingBalance,
         monthlyPaymentResidencyOverride,
         idrPct,
+        idrFplMultiplier,
       );
       const floorPay = standardResidencyMonthlyPayment(
         loanType,
@@ -593,6 +625,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
         servicingBalance,
         undefined,
         idrPct,
+        idrFplMultiplier,
       );
       const payment = targetPayment;
 
@@ -689,6 +722,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
         interest,
         balance,
         idrPct,
+        idrFplMultiplier,
       );
       balance = balance + interest - payment;
       totalInterestPaid += interest;
@@ -747,6 +781,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       totalDebt,
       monthlyPaymentResidencyOverride,
       idrPct,
+      idrFplMultiplier,
     ),
   );
 
@@ -786,7 +821,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       const net = afterTax(gross, effectiveTaxRate);
       const spouseNet = afterTax(spouseGross, effectiveTaxRate);
       const agi = idrAgi(gross, spouseGross, filingStatus);
-      const monthlyIDR = idrPayment(agi, familySize, idrPct);
+      const monthlyIDR = idrPayment(agi, familySize, idrPct, idrFplMultiplier);
       const phase = trainingPhase(yr);
 
       for (let m = 0; m < 12; m++) {
@@ -853,7 +888,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       const spouseGrossAtt = spouseGrossForYear(yearsFromStart);
       const spouseNetAtt = afterTax(spouseGrossAtt, effectiveTaxRate);
       const agiAtt = idrAgi(currentGross, spouseGrossAtt, filingStatus);
-      const monthlyIDR = idrPayment(agiAtt, familySize, idrPct);
+      const monthlyIDR = idrPayment(agiAtt, familySize, idrPct, idrFplMultiplier);
       const countsThisYear = attendingPslfCounts(yr);
 
       for (let m = 0; m < 12; m++) {
@@ -909,7 +944,9 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       effectiveSpouseIncome,
       filingStatus,
     );
-    pslfMonthlyPayment = Math.round(idrPayment(pslfDisplayAgi, familySize, idrPct));
+    pslfMonthlyPayment = Math.round(
+      idrPayment(pslfDisplayAgi, familySize, idrPct, idrFplMultiplier),
+    );
     pslfSavings = Math.max(0, standardTotalPaid - pslfTotalPaid);
     // Years until 120 qualifying payments reached. When training doesn't
     // qualify, the clock effectively starts at attending-hood.

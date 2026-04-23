@@ -2,19 +2,20 @@
 
 import type { CalculatorInputs } from '@/lib/calculator';
 import NumberField from '@/components/ui/NumberField';
+import Select from '@/components/ui/Select';
 import Slider from '@/components/ui/Slider';
 import DataSourceBadge from '@/components/ui/DataSourceBadge';
 import Tooltip from '@/components/ui/Tooltip';
+import {
+  IDR_PLANS,
+  resolveIdrPlan,
+  type IdrPlanId,
+} from '@/lib/idr-plans';
 
 interface Props {
   inputs: CalculatorInputs;
   onChange: (updated: Partial<CalculatorInputs>) => void;
 }
-
-const IDR_PLANS = [
-  { pct: 0.10, label: 'SAVE / PAYE / IBR (2014+)', note: '10% of discretionary income — default for most borrowers' },
-  { pct: 0.15, label: 'IBR (pre-2014 loans)', note: '15% of discretionary income — older borrowers who have not switched' },
-] as const;
 
 export default function AdvancedSettings({ inputs, onChange }: Props) {
   return (
@@ -155,39 +156,55 @@ export default function AdvancedSettings({ inputs, onChange }: Props) {
         </summary>
 
         <div className="mt-4 flex flex-col gap-3">
-          {/* IDR plan selection */}
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-near-black)] mb-1.5 flex items-center">
-              IDR plan
-              <Tooltip termKey="idr" size="xs" />
-            </p>
-            <div className="flex flex-col gap-1.5">
-              {IDR_PLANS.map((plan) => (
-                <label key={plan.pct} className="flex items-start gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="idr-plan"
-                    className="mt-0.5 accent-[color:var(--color-wise-green)]"
-                    checked={Math.abs((inputs.idrPaymentPct ?? 0.10) - plan.pct) < 0.001}
-                    onChange={() => onChange({ idrPaymentPct: plan.pct })}
-                  />
-                  <span className="text-[12px] font-semibold text-[color:var(--color-near-black)] leading-snug">
-                    {plan.label}
-                    <span className="font-medium text-[color:var(--text-muted)]"> — {plan.note}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
-            {/* Helper hint: the "2014+" label in the first radio is easy
-                to miss, so we restate the guidance in plain English
-                directly under the group. Borrowers who took loans after
-                July 2014 are the overwhelming majority, so defaulting to
-                SAVE/PAYE/IBR (10%) is the right nudge. */}
-            <p className="text-[11px] text-[color:var(--text-muted)] leading-relaxed mt-2">
-              Not sure which applies to you? Most borrowers who took out loans
-              after July 2014 should select SAVE/PAYE/IBR.
-            </p>
-          </div>
+          {/* IDR plan selection.
+              R3 feedback: the previous two-radio list ("10% vs 15%") made
+              it look like we lumped SAVE, PAYE, and IBR into a single
+              bucket. They have distinct forgiveness horizons and
+              discretionary-income floors that materially move the
+              tax-bomb number, so we surface them individually here. The
+              dropdown writes to `idrPlan` and the engine honors each
+              plan's paymentPct + fplMultiplier + forgivenessYears
+              through `resolveIdrPlan()`. */}
+          {(() => {
+            const activePlan = resolveIdrPlan(inputs);
+            return (
+              <div className="flex flex-col gap-2">
+                {/* Custom label so we can park the glossary tooltip
+                    next to the text — the shared Select component
+                    only accepts a string label. */}
+                <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-near-black)] flex items-center">
+                  IDR plan
+                  <Tooltip termKey="idr" size="xs" />
+                </p>
+                <Select
+                  value={activePlan.id}
+                  onChange={(e) => {
+                    const id = e.target.value as IdrPlanId;
+                    const next = IDR_PLANS.find((p) => p.id === id);
+                    if (!next) return;
+                    onChange({
+                      idrPlan: next.id,
+                      idrPaymentPct: next.paymentPct,
+                    });
+                  }}
+                  options={IDR_PLANS.map((p) => ({
+                    value: p.id,
+                    label: `${p.label} — ${p.summary}`,
+                  }))}
+                />
+                <p className="text-[11px] text-[color:var(--text-muted)] leading-relaxed">
+                  Not sure which applies? Most post-July-2014 borrowers land
+                  on SAVE or PAYE. Plan choice affects monthly payment, the
+                  forgiveness horizon, and the projected IDR tax bomb.
+                </p>
+                {activePlan.caveats && (
+                  <p className="text-[11px] text-[color:var(--text-muted)] leading-relaxed italic">
+                    {activePlan.caveats}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Capitalization toggle */}
           <label className="flex items-start gap-2.5 cursor-pointer pt-1 border-t border-[color:var(--border-subtle)]">

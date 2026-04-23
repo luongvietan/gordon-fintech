@@ -8,6 +8,7 @@ import {
   GraduationCap,
   RefreshCw,
   SlidersHorizontal,
+  Sparkles,
   TrendingUp,
   Users,
 } from 'lucide-react';
@@ -99,28 +100,72 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
 
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="flex items-baseline justify-between mb-1.5 gap-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[color:var(--text-muted)]">
-          Your inputs
-        </p>
-        {/* Expert mode toggle — persists in localStorage so power users
-            don't have to re-enable each visit. When off, the refi /
-            household / job-change sections stay out of the way. */}
-        <button
-          type="button"
-          onClick={() => setExpert(!expert)}
-          aria-pressed={expert}
-          className={`
-            text-[10px] font-bold uppercase tracking-[0.12em] px-2.5 py-1 rounded-[var(--r-pill)]
-            transition-colors
-            ${expert
-              ? 'bg-[color:var(--color-dark-green)] text-white'
-              : 'bg-[color:var(--color-off-white)] text-[color:var(--text-muted)] ring-1 ring-inset ring-[color:var(--border-subtle)] hover:ring-[color:var(--border-default)]'}
-          `}
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[color:var(--text-muted)]">
+        Your inputs
+      </p>
+
+      {/* Expert mode promo card — visibility fix for R3 feedback.
+          The old chip-sized toggle hid the feature's biggest wins
+          (refi / spouse / job change) behind tiny uppercase text that
+          almost nobody clicked. Now it's a full-width card with a
+          concise tip so the payoff of flipping the switch is legible
+          at a glance. Persists via useExpertMode → localStorage. */}
+      <button
+        type="button"
+        onClick={() => setExpert(!expert)}
+        aria-pressed={expert}
+        className={`
+          w-full flex items-start gap-3 text-left px-4 py-3.5 rounded-[var(--r-card-sm)]
+          transition-all duration-150
+          focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus)]
+          ${expert
+            ? 'bg-[color:var(--color-dark-green)] text-white hover:bg-[color:var(--color-dark-green)]/95'
+            : 'bg-[color:var(--color-light-mint)] ring-1 ring-inset ring-[color:var(--color-wise-green)]/60 hover:ring-[color:var(--color-dark-green)]/60'}
+        `}
+      >
+        <span
+          aria-hidden
+          className={`flex-shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-[10px] ${
+            expert
+              ? 'bg-white/15 text-white'
+              : 'bg-[color:var(--color-dark-green)] text-white'
+          }`}
         >
-          Expert mode · {expert ? 'on' : 'off'}
-        </button>
-      </div>
+          <Sparkles className="w-4 h-4" strokeWidth={2.25} aria-hidden />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="flex items-center justify-between gap-2">
+            <span
+              className={`text-[13.5px] tracking-[-0.005em] ${
+                expert ? 'text-white' : 'text-[color:var(--color-dark-green)]'
+              }`}
+              style={{ fontWeight: 900 }}
+            >
+              Expert mode
+            </span>
+            <span
+              className={`
+                inline-flex items-center px-2 py-0.5 rounded-[var(--r-pill)]
+                text-[9.5px] font-bold uppercase tracking-[0.12em]
+                ${expert
+                  ? 'bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]'
+                  : 'bg-white text-[color:var(--color-dark-green)] ring-1 ring-inset ring-[color:var(--color-dark-green)]/20'}
+              `}
+            >
+              {expert ? 'On — tap to turn off' : 'Off — tap to turn on'}
+            </span>
+          </span>
+          <span
+            className={`mt-1 block text-[12px] font-medium leading-snug ${
+              expert ? 'text-white/80' : 'text-[color:var(--color-dark-green)]/85'
+            }`}
+          >
+            <span className="font-bold">Tip:</span> Expert Mode unlocks
+            refinancing, spouse/household modeling, job change scenarios, and
+            more.
+          </span>
+        </span>
+      </button>
 
       {/* ── 1. Career ────────────────────────────────────── */}
       <InputSection

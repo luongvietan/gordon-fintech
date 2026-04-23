@@ -33,9 +33,36 @@ const nextConfig: NextConfig = {
         destination: '/specialty',
         permanent: true,
       },
+      // The canonical slug for Orthopedic Surgery is `orthopedics`
+      // (matches the ACGME-style specialty label). External writers and
+      // SEO tools frequently guess `orthopedic-surgery`, so redirect both
+      // the singular and plural bases to the canonical page.
+      {
+        source: '/specialty/orthopedic-surgery',
+        destination: '/specialty/orthopedics',
+        permanent: true,
+      },
+      {
+        source: '/specialties/orthopedic-surgery',
+        destination: '/specialty/orthopedics',
+        permanent: true,
+      },
       {
         source: '/specialties/:slug',
         destination: '/specialty/:slug',
+        permanent: true,
+      },
+      // `/guides` never existed as a route, but the nav used to link
+      // there before being renamed to `/blog`. Redirect direct hits so
+      // old bookmarks and any off-site references never 404.
+      {
+        source: '/guides',
+        destination: '/blog',
+        permanent: true,
+      },
+      {
+        source: '/guides/:slug*',
+        destination: '/blog/:slug*',
         permanent: true,
       },
     ];

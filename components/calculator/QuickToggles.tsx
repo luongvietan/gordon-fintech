@@ -1,8 +1,9 @@
 'use client';
 
-import { Briefcase, RotateCcw, TrendingUp, Zap } from 'lucide-react';
+import { Briefcase, RefreshCw, RotateCcw, TrendingUp, Zap } from 'lucide-react';
 import type { CalculatorInputs } from '@/lib/calculator';
 import { applyScenarioPreset } from '@/lib/calculator';
+import { useExpertMode } from '@/hooks/useExpertMode';
 
 interface Props {
   inputs: CalculatorInputs;
@@ -29,6 +30,7 @@ export default function QuickToggles({
   onReset,
 }: Props) {
   const modified = !shallowEqual(inputs, baselineInputs);
+  const [, setExpert] = useExpertMode();
 
   return (
     <section
@@ -67,6 +69,27 @@ export default function QuickToggles({
           icon={<Zap className="w-3 h-3" strokeWidth={2} aria-hidden />}
           label="Switch to aggressive"
           onClick={() => onReplace(applyScenarioPreset(inputs, 'aggressive'))}
+        />
+        {/* "Model refinancing" quick scenario — addresses R3 feedback
+            that refi was buried in the Loans section and effectively
+            invisible. Clicking this adds a fourth "Refinance" column to
+            the strategy comparison with sensible physician defaults
+            (4.5% APR, 10-yr term, 0% origination). We also flip expert
+            mode on so the refi rate / term / fee fields are visible and
+            tweakable below — otherwise the user can't tell where the
+            numbers came from. */}
+        <ToggleButton
+          icon={<RefreshCw className="w-3 h-3" strokeWidth={2} aria-hidden />}
+          label={inputs.refinanceEnabled ? 'Refi modeled ✓' : 'Model refinancing'}
+          onClick={() => {
+            setExpert(true);
+            onChange({
+              refinanceEnabled: true,
+              refinanceRate: inputs.refinanceRate ?? 4.5,
+              refinanceTermYears: inputs.refinanceTermYears ?? 10,
+              refinanceOrigFeePct: inputs.refinanceOrigFeePct ?? 0,
+            });
+          }}
         />
       </div>
 
@@ -152,6 +175,12 @@ function shallowEqual(a: CalculatorInputs, b: CalculatorInputs): boolean {
     'jobChangeYear',
     'jobChangeAttendingSalary',
     'jobChangePslfQualifies',
+    'refinanceEnabled',
+    'refinanceRate',
+    'refinanceTermYears',
+    'refinanceOrigFeePct',
+    'idrPlan',
+    'idrPaymentPct',
   ];
   for (const k of keys) {
     if (a[k] !== b[k]) return false;

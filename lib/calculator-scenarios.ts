@@ -19,7 +19,8 @@ import {
   calculateOutputs,
   formatDollars,
 } from './calculator';
-import { povertyLine150 } from './specialties';
+import { povertyLineFpl } from './specialties';
+import { resolveIdrPlan } from './idr-plans';
 
 // ============================================================
 // 1) ALL-STRATEGY COMPARISON
@@ -473,18 +474,23 @@ export interface IdrTaxBomb {
 }
 
 /**
- * The UI only exposes two simplified IDR buckets:
- *   - 10% discretionary income → SAVE / PAYE / IBR (2014+)
- *   - 15% discretionary income → IBR (pre-2014)
+ * Derive the IDR forgiveness horizon from the selected plan. This is
+ * kept as a standalone helper so the tax-bomb card and any other
+ * downstream callers cannot drift out of sync with the plan dropdown.
  *
- * We derive the forgiveness horizon from that same choice so the tax-bomb
- * card cannot drift out of sync with the selected plan.
+ * Legacy callers that only have `idrPaymentPct` (from pre-`idrPlan`
+ * shared scenarios) still resolve correctly through `resolveIdrPlan`.
  */
 export function getIdrForgivenessHorizon(
-  idrPaymentPct: number | undefined,
+  input: { idrPlan?: CalculatorInputs['idrPlan']; idrPaymentPct?: number } | number | undefined,
 ): 20 | 25 {
-  const pct = typeof idrPaymentPct === 'number' ? idrPaymentPct : 0.10;
-  return pct >= 0.15 ? 25 : 20;
+  // Back-compat: if a caller passes the raw pct (the old signature),
+  // map it to the closest plan and re-read the horizon from there.
+  if (typeof input === 'number') {
+    return resolveIdrPlan({ idrPaymentPct: input }).forgivenessYears;
+  }
+  if (!input) return resolveIdrPlan({}).forgivenessYears;
+  return resolveIdrPlan(input).forgivenessYears;
 }
 
 /**
@@ -504,7 +510,7 @@ export function getIdrForgivenessHorizon(
  */
 export function calculateIdrTaxBomb(
   inputs: CalculatorInputs,
-  horizonYears: number = getIdrForgivenessHorizon(inputs.idrPaymentPct),
+  horizonYears: number = getIdrForgivenessHorizon(inputs),
 ): IdrTaxBomb {
   if (inputs.loanType !== 'federal' || inputs.pslfEnabled) {
     return {
@@ -522,15 +528,16 @@ export function calculateIdrTaxBomb(
     interestRate,
     residencyYears,
     fellowshipYears = 0,
-    idrPaymentPct = 0.10,
   } = inputs;
+  const plan = resolveIdrPlan(inputs);
   const trainingYears = residencyYears + fellowshipYears;
   const totalYears = horizonYears;
   let balance = totalDebt;
   let totalPaid = 0;
 
   // Household-aware IDR inputs: MFJ counts spouse income, MFS/single
-  // don't. Family size adjusts the 150% FPL floor.
+  // don't. Family size adjusts the discretionary-income floor, which
+  // is itself plan-specific (SAVE = 225% FPL, ICR = 100%, rest = 150%).
   const spouseOn = !!inputs.spouseEnabled;
   const filingIncludesSpouse =
     spouseOn && (inputs.filingStatus ?? 'mfj') === 'mfj';
@@ -540,8 +547,8 @@ export function calculateIdrTaxBomb(
     1,
     inputs.familySize ?? (spouseOn ? 2 : 1),
   );
-  const fpl = povertyLine150(familySize);
-  const idrPct = Math.max(0.01, Math.min(0.30, idrPaymentPct));
+  const fpl = povertyLineFpl(familySize, plan.fplMultiplier);
+  const idrPct = Math.max(0.01, Math.min(0.30, plan.paymentPct));
 
   for (let yr = 1; yr <= totalYears; yr++) {
     if (balance <= 0) break;
