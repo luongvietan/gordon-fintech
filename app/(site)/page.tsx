@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { ArrowDown, ArrowRight, Check } from 'lucide-react';
 import Calculator from '@/components/calculator/Calculator';
 import NewsletterSignup from '@/components/layout/NewsletterSignup';

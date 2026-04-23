@@ -1,10 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Bomb, AlertCircle } from 'lucide-react';
 import type { CalculatorInputs } from '@/lib/calculator';
 import { formatDollars } from '@/lib/calculator';
-import { calculateIdrTaxBomb } from '@/lib/calculator-scenarios';
+import {
+  calculateIdrTaxBomb,
+  getIdrForgivenessHorizon,
+} from '@/lib/calculator-scenarios';
 import DataSourceBadge from '@/components/ui/DataSourceBadge';
 
 interface Props {
@@ -22,9 +25,10 @@ interface Props {
  * the projected IDR balance survives to the forgiveness horizon.
  */
 export default function TaxBombCard({ inputs }: Props) {
-  const [horizon, setHorizon] = useState<20 | 25>(20);
-
-  const result = useMemo(() => calculateIdrTaxBomb(inputs, horizon), [inputs, horizon]);
+  const horizon = getIdrForgivenessHorizon(inputs.idrPaymentPct);
+  const planLabel =
+    horizon === 25 ? 'IBR (pre-2014 loans)' : 'SAVE / PAYE / IBR (2014+)';
+  const result = useMemo(() => calculateIdrTaxBomb(inputs), [inputs]);
 
   if (!result.applies) return null;
 
@@ -65,20 +69,10 @@ export default function TaxBombCard({ inputs }: Props) {
             </div>
           </div>
 
-          {/* Horizon switcher */}
-          <div className="inline-flex rounded-[var(--r-pill)] bg-white/10 p-1 ring-1 ring-inset ring-white/15">
-            {[20, 25].map((h) => (
-              <button
-                key={h}
-                type="button"
-                onClick={() => setHorizon(h as 20 | 25)}
-                className={`px-3 py-1 rounded-[var(--r-pill)] text-[11px] font-bold transition-colors ${
-                  horizon === h ? 'bg-white text-[#1a1a1a]' : 'text-white/70 hover:text-white'
-                }`}
-              >
-                {h}-yr
-              </button>
-            ))}
+          <div className="inline-flex rounded-[var(--r-pill)] bg-white/10 px-3 py-1.5 ring-1 ring-inset ring-white/15">
+            <span className="text-[11px] font-bold text-white/85">
+              {planLabel} · {horizon}-yr horizon
+            </span>
           </div>
         </header>
 

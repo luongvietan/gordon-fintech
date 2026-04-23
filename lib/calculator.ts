@@ -488,7 +488,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     );
   }
 
-  function spouseLoanPaymentForYear(_yearsFromStart: number): number {
+  function spouseLoanPaymentForYear(): number {
     if (!(effectiveSpouseDebt > 0)) return 0;
     return spouseMonthlyPayment(
       effectiveSpouseDebt,

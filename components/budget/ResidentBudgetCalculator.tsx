@@ -55,7 +55,7 @@ export default function ResidentBudgetCalculator() {
     const totalExpenses = Object.values(expenses).reduce((a, b) => a + b, 0);
     const afterLoansAndExpenses = atMonthly - idrPayment - totalExpenses;
     return { stipend, atMonthly, idrPayment, expenses, totalExpenses, afterLoansAndExpenses };
-  }, [grossStipend, pgyYear, colTier, familySize, taxRate, col.multiplier]);
+  }, [grossStipend, pgyYear, familySize, taxRate, col.multiplier]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6">

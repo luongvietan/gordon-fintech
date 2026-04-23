@@ -473,6 +473,21 @@ export interface IdrTaxBomb {
 }
 
 /**
+ * The UI only exposes two simplified IDR buckets:
+ *   - 10% discretionary income → SAVE / PAYE / IBR (2014+)
+ *   - 15% discretionary income → IBR (pre-2014)
+ *
+ * We derive the forgiveness horizon from that same choice so the tax-bomb
+ * card cannot drift out of sync with the selected plan.
+ */
+export function getIdrForgivenessHorizon(
+  idrPaymentPct: number | undefined,
+): 20 | 25 {
+  const pct = typeof idrPaymentPct === 'number' ? idrPaymentPct : 0.10;
+  return pct >= 0.15 ? 25 : 20;
+}
+
+/**
  * Calculate the federal "tax bomb" for a borrower on an IDR plan with
  * forgiveness at year 20 (PAYE) or 25 (IBR/SAVE). PSLF and private loans
  * return `applies: false`.
@@ -489,7 +504,7 @@ export interface IdrTaxBomb {
  */
 export function calculateIdrTaxBomb(
   inputs: CalculatorInputs,
-  horizonYears: number = 20,
+  horizonYears: number = getIdrForgivenessHorizon(inputs.idrPaymentPct),
 ): IdrTaxBomb {
   if (inputs.loanType !== 'federal' || inputs.pslfEnabled) {
     return {
@@ -502,7 +517,13 @@ export function calculateIdrTaxBomb(
     };
   }
 
-  const { totalDebt, interestRate, residencyYears, fellowshipYears = 0 } = inputs;
+  const {
+    totalDebt,
+    interestRate,
+    residencyYears,
+    fellowshipYears = 0,
+    idrPaymentPct = 0.10,
+  } = inputs;
   const trainingYears = residencyYears + fellowshipYears;
   const totalYears = horizonYears;
   let balance = totalDebt;
@@ -520,6 +541,7 @@ export function calculateIdrTaxBomb(
     inputs.familySize ?? (spouseOn ? 2 : 1),
   );
   const fpl = povertyLine150(familySize);
+  const idrPct = Math.max(0.01, Math.min(0.30, idrPaymentPct));
 
   for (let yr = 1; yr <= totalYears; yr++) {
     if (balance <= 0) break;
@@ -539,7 +561,7 @@ export function calculateIdrTaxBomb(
       : 0;
     const agi =
       grossSalary + (filingIncludesSpouse ? spouseYearIncome : 0);
-    const annualIdr = Math.max(0, agi - fpl) * 0.10;
+    const annualIdr = Math.max(0, agi - fpl) * idrPct;
     const monthlyIdr = annualIdr / 12;
 
     for (let m = 0; m < 12; m++) {
