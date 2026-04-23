@@ -89,6 +89,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full`}>
+      <head>
+        {/* Google AdSense site-wide loader. Must render inside <head> per
+            AdSense policy so the crawler can verify the publisher on every
+            page. Hardcoded client ID by design — this is a public identifier
+            and needs to be present even when NEXT_PUBLIC_ADSENSE_CLIENT is
+            unset (e.g. during the initial AdSense site review). */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9661395106750839"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="min-h-full antialiased bg-white text-[color:var(--text-primary)]">
         {/* WCAG 2.4.1 bypass block — lets keyboard users jump past the
             nav straight to the page's main landmark. Hidden off-screen
