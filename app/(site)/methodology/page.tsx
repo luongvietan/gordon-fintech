@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
 // Methodology is an authoritative "how we compute" reference — good
 // candidate for rich-result surfacing when Google indexes "PSLF formula"

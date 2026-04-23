@@ -3,7 +3,7 @@ import { getAllPosts } from '@/lib/blog';
 import { SPECIALTIES } from '@/lib/specialties';
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
 /**
  * Sitemap covers:

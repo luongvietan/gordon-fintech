@@ -11,7 +11,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://medschooldebtcalculator.com";
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "https://www.medschooldebtcalculator.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

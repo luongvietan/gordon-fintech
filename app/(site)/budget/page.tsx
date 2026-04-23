@@ -3,7 +3,7 @@ import Link from 'next/link';
 import ResidentBudgetCalculator from '@/components/budget/ResidentBudgetCalculator';
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
 export const metadata: Metadata = {
   title: 'Resident Budget Calculator — After-Tax Income & Savings | MedDebt Calculator',

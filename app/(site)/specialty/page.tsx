@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { listSpecialtyProfiles } from '@/lib/specialty-profiles';
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
 export const metadata: Metadata = {
   title: 'Student Loan Repayment by Specialty — 16 Specialty Profiles',

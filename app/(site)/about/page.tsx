@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
 // BreadcrumbList keeps this page discoverable as a Home > About path in
 // Google search results. Mirrors the visual breadcrumb in the hero.

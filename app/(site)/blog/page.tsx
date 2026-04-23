@@ -3,7 +3,7 @@ import { getAllCategories, getAllPosts } from '@/lib/blog';
 import BlogIndex from '@/components/blog/BlogIndex';
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
 export const metadata: Metadata = {
   title:
