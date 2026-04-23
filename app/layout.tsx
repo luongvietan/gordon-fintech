@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   },
 };
 
-const GA_ID = "G-VVPVG8L2V8";
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
 /**
