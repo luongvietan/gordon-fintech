@@ -1,5 +1,8 @@
 'use client';
 
+import Tooltip from './Tooltip';
+import type { TooltipKey } from '@/lib/tooltip-definitions';
+
 interface ToggleProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -7,6 +10,12 @@ interface ToggleProps {
   description?: string;
   disabled?: boolean;
   id?: string;
+  /**
+   * Optional glossary tooltip rendered next to the label. Kept as a
+   * sibling of `<label>` (not nested inside it) so clicking the Info
+   * icon doesn't bubble through to the label's toggle handler.
+   */
+  labelTooltip?: TooltipKey;
 }
 
 export default function Toggle({
@@ -16,6 +25,7 @@ export default function Toggle({
   description,
   disabled = false,
   id,
+  labelTooltip,
 }: ToggleProps) {
   const toggleId = id ?? 'toggle';
   const descriptionId = description ? `${toggleId}-desc` : undefined;
@@ -53,17 +63,20 @@ export default function Toggle({
       {(label || description) && (
         <div className="flex flex-col gap-0.5">
           {label && (
-            <label
-              htmlFor={toggleId}
-              className={`text-sm font-semibold ${
-                disabled
-                  ? 'text-[color:var(--text-muted)]'
-                  : 'text-[color:var(--text-primary)]'
-              } cursor-pointer min-h-[44px] flex items-center`}
-              onClick={() => !disabled && onChange(!checked)}
-            >
-              {label}
-            </label>
+            <div className="flex items-center min-h-[44px]">
+              <label
+                htmlFor={toggleId}
+                className={`text-sm font-semibold ${
+                  disabled
+                    ? 'text-[color:var(--text-muted)]'
+                    : 'text-[color:var(--text-primary)]'
+                } cursor-pointer`}
+                onClick={() => !disabled && onChange(!checked)}
+              >
+                {label}
+              </label>
+              {labelTooltip && <Tooltip termKey={labelTooltip} size="xs" />}
+            </div>
           )}
           {description && (
             <p

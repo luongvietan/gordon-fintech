@@ -27,7 +27,15 @@ import CalculatorInputsForm from './CalculatorInputs';
 import CalculatorResults from './CalculatorResults';
 import SaveScenarioButton from './SaveScenarioButton';
 import { RESIDENT_SALARY } from '@/lib/specialties';
-import { bucketDollars, track } from '@/lib/analytics';
+import {
+  bucketDollars,
+  track,
+  trackJobChangeScenario,
+  trackPSLFToggled,
+  trackRefiToggled,
+  trackScenarioShared,
+  trackSpouseModeToggled,
+} from '@/lib/analytics';
 
 // ─── Download PDF button ───────────────────────────────────
 type PdfState = 'idle' | 'loading' | 'error';
@@ -134,7 +142,7 @@ function ShareLinkButton({
       }
 
       if (copied) {
-        track('share_link_copied', {
+        trackScenarioShared({
           pslf_enabled: !!inputs.pslfEnabled,
           loan_type: inputs.loanType,
         });
@@ -301,16 +309,19 @@ export default function Calculator({ initialInputs }: CalculatorProps = {}) {
     // only firing when a field actually changed value — we leave field
     // names out to keep payloads tight and PII-free.
     if ('pslfEnabled' in updated) {
-      track('pslf_toggled', { enabled: !!updated.pslfEnabled });
+      trackPSLFToggled(!!updated.pslfEnabled);
     }
     if ('spouseEnabled' in updated) {
-      track('spouse_toggled', { enabled: !!updated.spouseEnabled });
+      trackSpouseModeToggled(!!updated.spouseEnabled);
     }
     if ('refinanceEnabled' in updated) {
-      track('refi_toggled', { enabled: !!updated.refinanceEnabled });
+      trackRefiToggled(
+        !!updated.refinanceEnabled,
+        updated.refinanceRate ?? inputs.refinanceRate,
+      );
     }
-    if ('jobChangeEnabled' in updated) {
-      track('jobchange_toggled', { enabled: !!updated.jobChangeEnabled });
+    if ('jobChangeEnabled' in updated && updated.jobChangeEnabled) {
+      trackJobChangeScenario();
     }
 
     setInputs((prev) => {

@@ -13,11 +13,12 @@ import {
 } from 'lucide-react';
 import { CalculatorInputs } from '@/lib/calculator';
 import { SPECIALTIES } from '@/lib/specialties';
-import { track } from '@/lib/analytics';
+import { trackSpecialtySelected } from '@/lib/analytics';
 import { useExpertMode } from '@/hooks/useExpertMode';
 import NumberField from '@/components/ui/NumberField';
 import Select from '@/components/ui/Select';
 import Toggle from '@/components/ui/Toggle';
+import Tooltip from '@/components/ui/Tooltip';
 import AdvancedSettings from './AdvancedSettings';
 import InputSection from './InputSection';
 
@@ -137,7 +138,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
             if (specialty) {
               const fellow = specialty.fellowshipYears ?? 0;
               const residencyOnly = Math.max(1, specialty.residencyYears - fellow);
-              track('specialty_selected', { specialty_id: specialty.id });
+              trackSpecialtySelected(specialty.id);
               onChange({
                 attendingSalary: specialty.attendingSalary,
                 residencyYears: residencyOnly,
@@ -389,6 +390,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
             onChange={(checked) => onChange({ pslfEnabled: checked })}
             disabled={inputs.loanType === 'private'}
             label="Model PSLF forgiveness"
+            labelTooltip="pslf"
             description={
               inputs.loanType === 'private'
                 ? 'PSLF requires federal loans.'
@@ -540,6 +542,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
             checked={!!inputs.refinanceEnabled}
             onChange={(checked) => onChange({ refinanceEnabled: checked })}
             label="Model private refinance"
+            labelTooltip="refinancing"
             description="Compare a private refinance as a fourth strategy. Refinance happens the moment attending starts; federal IDR floor during training."
           />
         </div>
@@ -701,29 +704,40 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
-              <Select
-                label="Filing status"
-                value={inputs.filingStatus ?? 'mfj'}
-                onChange={(e) =>
-                  onChange({
-                    filingStatus: e.target.value as 'mfj' | 'mfs',
-                  })
-                }
-                options={[
-                  { value: 'mfj', label: 'Married filing jointly' },
-                  { value: 'mfs', label: 'Married filing separately' },
-                ]}
-              />
-              <NumberField
-                label="Household size"
-                min={1}
-                max={10}
-                step={1}
-                value={inputs.familySize ?? 2}
-                onValueChange={(v) => onChange({ familySize: v })}
-                hint="Kids + dependents lower IDR payments."
-              />
+            {/* Filing status + household size feed the IDR discretionary-
+                income formula directly (AGI − 150% FPL for family size).
+                We group them under a single cluster label so the tooltip
+                lives at the semantic root instead of duplicated on each
+                individual NumberField. */}
+            <div className="flex flex-col gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[color:var(--text-muted)] flex items-center">
+                Discretionary income inputs
+                <Tooltip termKey="discretionaryIncome" size="xs" />
+              </p>
+              <div className="grid grid-cols-2 gap-2.5">
+                <Select
+                  label="Filing status"
+                  value={inputs.filingStatus ?? 'mfj'}
+                  onChange={(e) =>
+                    onChange({
+                      filingStatus: e.target.value as 'mfj' | 'mfs',
+                    })
+                  }
+                  options={[
+                    { value: 'mfj', label: 'Married filing jointly' },
+                    { value: 'mfs', label: 'Married filing separately' },
+                  ]}
+                />
+                <NumberField
+                  label="Household size"
+                  min={1}
+                  max={10}
+                  step={1}
+                  value={inputs.familySize ?? 2}
+                  onValueChange={(v) => onChange({ familySize: v })}
+                  hint="Kids + dependents lower IDR payments."
+                />
+              </div>
             </div>
 
             {inputs.filingStatus === 'mfs' && (

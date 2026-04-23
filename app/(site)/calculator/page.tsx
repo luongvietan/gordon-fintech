@@ -2,9 +2,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, Lock } from 'lucide-react';
 import Calculator from '@/components/calculator/Calculator';
+import { seedFromSpecialty } from '@/lib/specialty-seed';
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
+
+interface PageProps {
+  searchParams: Promise<{ specialty?: string }>;
+}
 
 export const metadata: Metadata = {
   title: 'Med School Debt Calculator — Run Your Numbers',
@@ -33,7 +38,14 @@ export const metadata: Metadata = {
  * The homepage remains the primary landing experience for new
  * visitors; this route is purely a shortcut into the running tool.
  */
-export default function CalculatorPage() {
+export default async function CalculatorPage({ searchParams }: PageProps) {
+  // Specialty pre-fill: `/calculator?specialty=<id>` seeds the same
+  // salary + training defaults that the /specialty/[slug] CTA button
+  // uses. Unknown or missing slugs fall back to the calculator's app-
+  // wide defaults — we never 404 the tool because of a bad query param.
+  const { specialty: specialtyParam } = await searchParams;
+  const initialInputs = specialtyParam ? seedFromSpecialty(specialtyParam) : undefined;
+
   const applicationLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
@@ -120,7 +132,7 @@ export default function CalculatorPage() {
             </div>
           </header>
 
-          <Calculator />
+          <Calculator initialInputs={initialInputs} />
         </div>
       </section>
     </>

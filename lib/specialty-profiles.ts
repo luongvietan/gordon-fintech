@@ -43,6 +43,32 @@ export interface SpecialtyProfile {
   pslfNote: string;
   /** Key 3–5 bullet facts that surface under the calc. */
   bullets: string[];
+
+  // ─────────────────────────────────────────────────────────
+  // Optional long-form copy used by the marketing layout at
+  // /specialty/[slug]. All fields fall back to the short-form
+  // equivalents above, so every specialty renders correctly
+  // even before the content team fills these in.
+  // ─────────────────────────────────────────────────────────
+
+  /** Attribution shown on the salary card (e.g. 'MGMA 2025 / Doximity 2025'). */
+  salarySource?: string;
+  /** PGY-1 resident salary used on the training-timeline card. Defaults to RESIDENT_SALARY. */
+  pgy1Salary?: number;
+  /** Typical year-over-year resident pay raise (0–1, e.g. 0.02 = 2%). Defaults to 0.02. */
+  residencyAnnualGrowth?: number;
+  /** Typical first-year fellowship salary. Only rendered when `specialty.fellowshipYears > 0`. */
+  fellowshipSalary?: number;
+  /** Long-form overview paragraph. Falls back to `intro`. */
+  overview?: string;
+  /** Extended salary-breakdown paragraph shown inside the green salary card. */
+  salaryBreakdown?: string;
+  /** Full PSLF strategy paragraph. Falls back to `pslfNote`. */
+  pslfStrategy?: string;
+  /** Full repayment-recommendation paragraph. Falls back to `strategyPick.reason`. */
+  repaymentRecommendation?: string;
+  /** 5-item checklist rendered in the "Key Takeaways" section. Falls back to `bullets`. */
+  keyTakeaways?: string[];
 }
 
 /**

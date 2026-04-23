@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { ChevronDown, X } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
 import * as Dialog from '@radix-ui/react-dialog';
-import { track } from '@/lib/analytics';
+import { trackBreakdownExpanded } from '@/lib/analytics';
 
 export interface ExplainData {
   title: string;
@@ -51,8 +51,7 @@ export default function ExplainPopover({
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
     if (next) {
-      track('breakdown_expanded', {
-        title,
+      trackBreakdownExpanded(title, {
         variant,
         surface: isDesktop ? 'popover' : 'sheet',
       });

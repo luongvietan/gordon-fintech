@@ -1,7 +1,12 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { track, type AnalyticsEvent } from '@/lib/analytics';
+import {
+  track,
+  trackBlogArticleViewed,
+  trackSpecialtyPageViewed,
+  type AnalyticsEvent,
+} from '@/lib/analytics';
 
 interface Props {
   event: AnalyticsEvent;
@@ -20,6 +25,20 @@ export default function TrackPageView({ event, params }: Props) {
   useEffect(() => {
     if (firedRef.current) return;
     firedRef.current = true;
+    if (
+      event === 'blog_article_viewed' &&
+      typeof params?.article === 'string'
+    ) {
+      trackBlogArticleViewed(params.article);
+      return;
+    }
+    if (
+      event === 'specialty_page_viewed' &&
+      typeof params?.specialty_name === 'string'
+    ) {
+      trackSpecialtyPageViewed(params.specialty_name);
+      return;
+    }
     track(event, params);
   }, [event, params]);
   return null;

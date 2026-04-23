@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { BookmarkPlus, Check, FolderOpen } from 'lucide-react';
 import type { CalculatorInputs, CalculatorOutputs } from '@/lib/calculator';
 import { useScenarioStorage } from '@/hooks/useScenarioStorage';
-import { track } from '@/lib/analytics';
+import { trackScenarioSaved } from '@/lib/analytics';
 
 interface Props {
   inputs: CalculatorInputs;
@@ -25,7 +25,7 @@ export default function SaveScenarioButton({ inputs, outputs }: Props) {
 
   function handleClick() {
     saveScenario(inputs, outputs);
-    track('scenario_saved', {
+    trackScenarioSaved({
       total: scenarios.length + 1,
       pslf_enabled: !!inputs.pslfEnabled,
       loan_type: inputs.loanType,

@@ -4,6 +4,7 @@ import type { CalculatorInputs } from '@/lib/calculator';
 import NumberField from '@/components/ui/NumberField';
 import Slider from '@/components/ui/Slider';
 import DataSourceBadge from '@/components/ui/DataSourceBadge';
+import Tooltip from '@/components/ui/Tooltip';
 
 interface Props {
   inputs: CalculatorInputs;
@@ -156,8 +157,9 @@ export default function AdvancedSettings({ inputs, onChange }: Props) {
         <div className="mt-4 flex flex-col gap-3">
           {/* IDR plan selection */}
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-near-black)] mb-1.5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-near-black)] mb-1.5 flex items-center">
               IDR plan
+              <Tooltip termKey="idr" size="xs" />
             </p>
             <div className="flex flex-col gap-1.5">
               {IDR_PLANS.map((plan) => (
@@ -176,6 +178,15 @@ export default function AdvancedSettings({ inputs, onChange }: Props) {
                 </label>
               ))}
             </div>
+            {/* Helper hint: the "2014+" label in the first radio is easy
+                to miss, so we restate the guidance in plain English
+                directly under the group. Borrowers who took loans after
+                July 2014 are the overwhelming majority, so defaulting to
+                SAVE/PAYE/IBR (10%) is the right nudge. */}
+            <p className="text-[11px] text-[color:var(--text-muted)] leading-relaxed mt-2">
+              Not sure which applies to you? Most borrowers who took out loans
+              after July 2014 should select SAVE/PAYE/IBR.
+            </p>
           </div>
 
           {/* Capitalization toggle */}
@@ -187,7 +198,10 @@ export default function AdvancedSettings({ inputs, onChange }: Props) {
               onChange={(e) => onChange({ capitalizeOnlyAfterTraining: e.target.checked })}
             />
             <span className="text-[12px] font-semibold text-[color:var(--color-near-black)] leading-snug">
-              Defer interest capitalization to end of training
+              <span className="inline-flex items-center">
+                Defer interest capitalization to end of training
+                <Tooltip termKey="capitalization" size="xs" />
+              </span>
               <span className="block font-medium text-[color:var(--text-muted)] mt-0.5">
                 Federal IDR: unpaid interest accrues without compounding during training, then capitalizes once at attending phase. Unchecked = worst-case monthly compounding.
               </span>

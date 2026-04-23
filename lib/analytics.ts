@@ -2,7 +2,7 @@
  * Thin wrapper around Google Analytics 4 (GA4) custom events.
  *
  * The `<GoogleAnalytics>` component in `app/layout.tsx` attaches the
- * gtag.js loader when `NEXT_PUBLIC_GA_ID` is set. This helper is the
+ * gtag.js loader for the live GA4 property. This helper is the
  * one and only place we call `window.gtag('event', …)`, so adding a
  * new event = one `track('foo', …)` call at the feature site.
  *
@@ -73,15 +73,72 @@ export type AnalyticsEvent =
   | 'specialty_selected'
   | 'preset_selected'
   | 'pslf_toggled'
-  | 'spouse_toggled'
+  | 'spouse_mode_toggled'
   | 'refi_toggled'
-  | 'jobchange_toggled'
+  | 'job_change_scenario_used'
   | 'strategy_compared'
   | 'breakdown_expanded'
-  | 'email_submitted'
-  | 'share_link_copied'
+  | 'email_signup'
+  | 'scenario_shared'
   | 'pdf_downloaded'
   | 'scenario_saved'
   | 'scenario_opened'
   | 'compare_viewed'
-  | 'specialty_page_viewed';
+  | 'specialty_page_viewed'
+  | 'blog_article_viewed';
+
+export function trackSpecialtySelected(specialty: string): void {
+  track('specialty_selected', { specialty_name: specialty });
+}
+
+export function trackPSLFToggled(enabled: boolean): void {
+  track('pslf_toggled', { pslf_enabled: enabled });
+}
+
+export function trackRefiToggled(enabled: boolean, rate?: number): void {
+  track('refi_toggled', {
+    refi_enabled: enabled,
+    refi_rate: typeof rate === 'number' ? rate : undefined,
+  });
+}
+
+export function trackScenarioSaved(params?: Record<string, unknown>): void {
+  track('scenario_saved', params);
+}
+
+export function trackScenarioShared(params?: Record<string, unknown>): void {
+  track('scenario_shared', params);
+}
+
+export function trackEmailSignup(
+  source: string,
+  extra?: Record<string, unknown>,
+): void {
+  track('email_signup', { source, ...(extra ?? {}) });
+}
+
+export function trackBlogArticleViewed(slug: string): void {
+  track('blog_article_viewed', { article: slug });
+}
+
+export function trackBreakdownExpanded(
+  breakdown: string,
+  extra?: Record<string, unknown>,
+): void {
+  track('breakdown_expanded', {
+    breakdown,
+    ...(extra ?? {}),
+  });
+}
+
+export function trackSpecialtyPageViewed(specialty: string): void {
+  track('specialty_page_viewed', { specialty_name: specialty });
+}
+
+export function trackJobChangeScenario(): void {
+  track('job_change_scenario_used');
+}
+
+export function trackSpouseModeToggled(enabled: boolean): void {
+  track('spouse_mode_toggled', { enabled });
+}

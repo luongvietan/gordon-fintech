@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 import { getAllSlugs, getPostBySlug, getRelatedPosts } from '@/lib/blog';
 import AdSlot from '@/components/ads/AdSlot';
 import TrackedLink from '@/components/analytics/TrackedLink';
+import TrackPageView from '@/components/analytics/TrackPageView';
 import ArticleCard from '@/components/blog/ArticleCard';
 
 interface Props {
@@ -109,6 +110,7 @@ export default async function BlogPostPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
         />
       )}
+      <TrackPageView event="blog_article_viewed" params={{ article: slug }} />
 
       <section className="pt-10 md:pt-16 pb-6 md:pb-10 bg-white">
         <div className="container">

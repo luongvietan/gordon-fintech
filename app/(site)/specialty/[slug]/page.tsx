@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, CheckCircle2, Circle, MinusCircle, Star } from 'lucide-react';
-import Calculator from '@/components/calculator/Calculator';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import TrackPageView from '@/components/analytics/TrackPageView';
-import type { CalculatorInputs } from '@/lib/calculator';
-import { SPECIALTIES, RESIDENT_SALARY, getSpecialtyById } from '@/lib/specialties';
-import { getSpecialtyProfile } from '@/lib/specialty-profiles';
+import { SPECIALTIES, RESIDENT_SALARY, getSpecialtyById, type Specialty } from '@/lib/specialties';
+import {
+  getSpecialtyProfile,
+  SPECIALTY_PROFILES,
+  type SpecialtyProfile,
+} from '@/lib/specialty-profiles';
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
@@ -18,7 +20,7 @@ interface Props {
 /**
  * Pre-render every specialty slug at build time. Rooted in SPECIALTIES
  * rather than the profiles map so we don't ship a page without math
- * defaults. A missing profile for a valid specialty is treated as a
+ * defaults; a missing profile for a valid specialty is treated as a
  * build-time miss (`notFound()`), not a silent empty page.
  */
 export function generateStaticParams() {
@@ -44,67 +46,25 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 /**
- * Build CalculatorInputs seed values from a Specialty. We only override
- * the fields the specialty profile actually drives — everything else
- * stays at the app-wide default, so toggling PSLF or spouse still works
- * as users expect.
- *
- * Fellowship behavior: when a specialty lists `fellowshipYears`, we keep
- * the total training duration (`residencyYears`) intact on the base spec
- * and ALSO split out the fellowship tail explicitly, so the UI shows
- * "residency + fellowship" correctly. For specialties with no explicit
- * fellowship split (e.g. Dermatology), we leave fellowshipYears at 0.
+ * Pick 3 specialties to surface in the "Related" grid at the bottom.
+ * Deterministic (stride through the SPECIALTIES list) so pages stay
+ * cacheable and HTML is stable between builds.
  */
-function seedFromSpecialty(slug: string): Partial<CalculatorInputs> | undefined {
-  const s = getSpecialtyById(slug);
-  if (!s) return undefined;
-  const fellowshipYears = s.fellowshipYears ?? 0;
-  const residencyOnly = Math.max(1, s.residencyYears - fellowshipYears);
-  return {
-    attendingSalary: s.attendingSalary,
-    residencyYears: residencyOnly,
-    fellowshipYears,
-    residencyStartingSalary: RESIDENT_SALARY,
-  };
-}
-
-function fitBadge(fit: 'often' | 'mixed' | 'rarely') {
-  if (fit === 'often') {
-    return {
-      icon: CheckCircle2,
-      label: 'PSLF: strong fit',
-      color: 'text-[color:var(--color-dark-green)]',
-      bg: 'bg-[color:var(--color-light-mint)]',
-    };
+function pickRelated(
+  currentId: string,
+  count = 3,
+): Array<{ specialty: Specialty; profile: SpecialtyProfile }> {
+  const pool: Array<{ specialty: Specialty; profile: SpecialtyProfile }> = [];
+  const idx = SPECIALTIES.findIndex((s) => s.id === currentId);
+  const startFrom = idx >= 0 ? idx : 0;
+  for (let i = 1; pool.length < count && i < SPECIALTIES.length; i++) {
+    const spec = SPECIALTIES[(startFrom + i) % SPECIALTIES.length];
+    const profile = SPECIALTY_PROFILES[spec.id];
+    if (!profile || spec.id === currentId) continue;
+    pool.push({ specialty: spec, profile });
   }
-  if (fit === 'mixed') {
-    return {
-      icon: Circle,
-      label: 'PSLF: mixed',
-      color: 'text-[#b5651d]',
-      bg: 'bg-[#fff4e6]',
-    };
-  }
-  return {
-    icon: MinusCircle,
-    label: 'PSLF: rarely wins',
-    color: 'text-[#7a3f0a]',
-    bg: 'bg-[#fff4e6]',
-  };
+  return pool;
 }
-
-function fitRating(fit: 'often' | 'mixed' | 'rarely') {
-  if (fit === 'often') return 5;
-  if (fit === 'mixed') return 3;
-  return 1;
-}
-
-const RELATED_GUIDES = [
-  { href: '/blog/pslf-explained-for-doctors', label: 'PSLF explained for doctors' },
-  { href: '/blog/when-to-refinance-medical-school-loans', label: 'When to refinance: a decision guide' },
-  { href: '/blog/idr-plans-for-doctors-paye-save-ibr', label: 'SAVE vs PAYE vs IBR for doctors' },
-  { href: '/blog/doctor-salary-by-specialty', label: 'Doctor salary by specialty' },
-];
 
 export default async function SpecialtyProfilePage({ params }: Props) {
   const { slug } = await params;
@@ -112,11 +72,32 @@ export default async function SpecialtyProfilePage({ params }: Props) {
   const specialty = getSpecialtyById(slug);
   if (!profile || !specialty) notFound();
 
-  const seed = seedFromSpecialty(slug);
-  const fit = fitBadge(profile.pslfFit);
-  const rating = fitRating(profile.pslfFit);
-  const FitIcon = fit.icon;
-  const debtToIncome = profile.typicalDebt.median / profile.salaryBand.median;
+  // Resolve long-form copy with short-form fallbacks so every specialty
+  // renders correctly before the content team fills in the optional
+  // fields on `SpecialtyProfile`.
+  const overview = profile.overview ?? profile.intro;
+  const salaryBreakdown = profile.salaryBreakdown;
+  const pslfStrategy = profile.pslfStrategy ?? profile.pslfNote;
+  const repaymentRecommendation =
+    profile.repaymentRecommendation ?? profile.strategyPick.reason;
+  const keyTakeaways =
+    profile.keyTakeaways && profile.keyTakeaways.length > 0
+      ? profile.keyTakeaways
+      : profile.bullets;
+  const salarySource = profile.salarySource ?? 'MGMA 2025 / Doximity 2025';
+  const pgy1Salary = profile.pgy1Salary ?? RESIDENT_SALARY;
+  const growthPct = (profile.residencyAnnualGrowth ?? 0.02) * 100;
+
+  // Fellowship tile is only rendered when the specialty actually has a
+  // fellowship baked into its training timeline. For specialties whose
+  // published training duration is pure residency (Dermatology, Peds,
+  // EM) the tile is suppressed entirely.
+  const hasFellowship = (specialty.fellowshipYears ?? 0) > 0;
+  const fellowshipYears = specialty.fellowshipYears ?? 0;
+  const fellowshipSalary = profile.fellowshipSalary ?? 80000;
+
+  const related = pickRelated(specialty.id, 3);
+  const calcHref = `/calculator?specialty=${specialty.id}`;
 
   const breadcrumbLd = {
     '@context': 'https://schema.org',
@@ -163,214 +144,358 @@ export default async function SpecialtyProfilePage({ params }: Props) {
       />
       <TrackPageView
         event="specialty_page_viewed"
-        params={{ specialty_id: specialty.id }}
+        params={{ specialty_name: specialty.id }}
       />
 
+      {/* ── Hero ─────────────────────────────────────────────── */}
       <section
-        className="pt-8 md:pt-10 pb-14 md:pb-20"
-        style={{ background: 'var(--color-off-white)' }}
+        className="pt-10 md:pt-14 pb-12 md:pb-16 text-white"
+        style={{
+          background:
+            'linear-gradient(120deg, var(--color-near-black) 0%, #163f33 100%)',
+        }}
       >
         <div className="container container-wide">
           <nav
             aria-label="Breadcrumb"
-            className="flex items-center gap-2 text-xs font-semibold text-[color:var(--text-muted)] mb-5 md:mb-6 flex-wrap"
+            className="flex items-center gap-2 text-[11px] font-semibold text-white/60 mb-6 flex-wrap"
           >
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 hover:text-[color:var(--color-near-black)] transition-colors"
+              className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
             >
               <ArrowLeft aria-hidden className="w-3 h-3" strokeWidth={2} />
               Home
             </Link>
             <span aria-hidden>/</span>
-            <Link
-              href="/specialty"
-              className="hover:text-[color:var(--color-near-black)] transition-colors"
-            >
+            <Link href="/specialty" className="hover:text-white transition-colors">
               Specialties
             </Link>
             <span aria-hidden>/</span>
-            <span className="text-[color:var(--color-near-black)]">
-              {specialty.label}
-            </span>
+            <span className="text-white">{specialty.label}</span>
           </nav>
 
-          <header className="mb-8 md:mb-10 max-w-3xl">
-            <p className="eyebrow mb-3">{profile.eyebrow}</p>
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--r-pill)] bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] text-[10px] font-black uppercase tracking-[0.14em] mb-4">
+              Specialty Profile
+            </span>
             <h1
-              className="text-[2rem] md:text-[2.5rem] lg:text-[3rem] text-[color:var(--color-near-black)] tracking-[-0.025em] leading-[1]"
+              className="text-[2rem] md:text-[2.75rem] lg:text-[3.25rem] tracking-[-0.025em] leading-[1]"
               style={{ fontWeight: 900 }}
             >
               {profile.h1}
             </h1>
-            <p className="mt-3 md:mt-4 text-[14px] md:text-[15px] text-[color:var(--text-secondary)] font-medium leading-relaxed">
-              {profile.intro}
+            <p className="mt-4 md:mt-5 text-[15px] md:text-[17px] text-white/80 font-medium leading-relaxed">
+              Realistic salary data, training timeline, and repayment strategy
+              for {specialty.label}.
             </p>
+            <Link
+              href={calcHref}
+              className="mt-6 md:mt-7 inline-flex items-center gap-2 px-5 py-3 rounded-[var(--r-pill)] bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] text-[13px] font-black tracking-[-0.01em] transition-transform hover:scale-[1.03]"
+            >
+              Model your scenario
+              <ArrowRight aria-hidden className="w-3.5 h-3.5" strokeWidth={2.5} />
+            </Link>
+          </div>
+        </div>
+      </section>
 
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-              <StatTile
-                label="Typical attending salary"
-                value={`$${Math.round(profile.salaryBand.median / 1000)}K`}
-                sub={`$${Math.round(profile.salaryBand.low / 1000)}K – $${Math.round(profile.salaryBand.high / 1000)}K`}
-              />
-              <StatTile
-                label="Typical debt at graduation"
-                value={`$${Math.round(profile.typicalDebt.median / 1000)}K`}
-                sub={`$${Math.round(profile.typicalDebt.low / 1000)}K – $${Math.round(profile.typicalDebt.high / 1000)}K`}
-              />
-              <StatTile
-                label="Training"
-                value={specialty.trainingLabel ?? `${specialty.residencyYears}y`}
-                sub={
-                  specialty.fellowshipYears
-                    ? `incl. ${specialty.fellowshipYears}y fellowship`
-                    : 'residency only'
-                }
-              />
-              <StatTile
-                label="Debt-to-income"
-                value={`${debtToIncome.toFixed(2)}x`}
-                sub="Median debt / median attending salary"
-              />
-            </div>
-          </header>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 mb-8 md:mb-10">
-            <aside className="lg:col-span-1 flex flex-col gap-4">
-              <div
-                className={`p-4 rounded-[var(--r-card)] ring-1 ring-inset ring-[color:var(--border-subtle)] ${fit.bg}`}
+      {/* ── Main content ─────────────────────────────────────── */}
+      <section
+        className="pt-12 md:pt-16 pb-14 md:pb-20"
+        style={{ background: 'var(--color-off-white)' }}
+      >
+        <div className="container container-wide">
+          <article className="max-w-4xl mx-auto flex flex-col gap-10 md:gap-12">
+            {/* Overview */}
+            <div>
+              <h2
+                className="text-[1.5rem] md:text-[1.875rem] text-[color:var(--color-near-black)] tracking-[-0.02em] leading-[1.05] mb-3"
+                style={{ fontWeight: 900 }}
               >
-                <div className={`inline-flex items-center gap-1.5 mb-2 ${fit.color}`}>
-                  <FitIcon aria-hidden className="w-3.5 h-3.5" strokeWidth={2.25} />
-                  <span className="text-[10px] font-bold uppercase tracking-[0.14em]">
-                    {fit.label}
-                  </span>
-                </div>
-                <p className="text-[12.5px] text-[color:var(--color-near-black)] leading-snug font-medium">
-                  {profile.pslfNote}
-                </p>
-                <div className="mt-3 flex items-center gap-1.5">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <Star
-                      key={`star-${i}`}
-                      aria-hidden="true"
-                      className={`w-3.5 h-3.5 ${
-                        i < rating ? 'fill-current' : 'opacity-25'
-                      }`}
-                      strokeWidth={2}
-                    />
-                  ))}
-                  <span className="text-[11px] font-bold uppercase tracking-[0.10em]">
-                    {rating}/5 viability
-                  </span>
-                </div>
+                Overview
+              </h2>
+              <p className="text-[15px] md:text-[16px] text-[color:var(--text-secondary)] leading-relaxed font-medium">
+                {overview}
+              </p>
+            </div>
+
+            {/* Salary & Compensation card */}
+            <div
+              className="rounded-[var(--r-card)] p-6 md:p-8 bg-[color:var(--color-light-mint)] ring-1 ring-inset ring-[color:var(--color-wise-green)]/40"
+              style={{ boxShadow: 'var(--shadow-ring)' }}
+            >
+              <h2
+                className="text-[1.25rem] md:text-[1.5rem] text-[color:var(--color-dark-green)] tracking-[-0.02em] leading-[1.05] mb-5"
+                style={{ fontWeight: 900 }}
+              >
+                Physician salary &amp; compensation
+              </h2>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mb-5">
+                <Metric
+                  label="Median salary"
+                  value={`$${Math.round(profile.salaryBand.median / 1000)}K`}
+                  valueClass="text-[2rem] md:text-[2.25rem] text-[color:var(--color-dark-green)]"
+                />
+                <Metric
+                  label="Range"
+                  value={`$${Math.round(profile.salaryBand.low / 1000)}K – $${Math.round(profile.salaryBand.high / 1000)}K`}
+                  valueClass="text-[1.125rem] md:text-[1.25rem] text-[color:var(--color-near-black)]"
+                />
+                <Metric
+                  label="Source"
+                  value={salarySource}
+                  valueClass="text-[13px] md:text-[14px] text-[color:var(--color-near-black)] font-bold normal-case"
+                />
               </div>
 
-              <div className="p-4 rounded-[var(--r-card)] bg-white ring-1 ring-inset ring-[color:var(--border-subtle)]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-1.5">
-                  Best strategy
+              {salaryBreakdown && (
+                <p className="text-[14px] md:text-[15px] text-[color:var(--color-near-black)]/90 leading-relaxed font-medium">
+                  {salaryBreakdown}
                 </p>
-                <p className="text-[14px] font-bold text-[color:var(--color-near-black)] mb-2 tracking-tight">
-                  {profile.strategyPick.label}
-                </p>
-                <p className="text-[12.5px] text-[color:var(--text-secondary)] leading-snug">
-                  {profile.strategyPick.reason}
-                </p>
+              )}
+            </div>
+
+            {/* Residency training timeline */}
+            <div>
+              <h2
+                className="text-[1.25rem] md:text-[1.5rem] text-[color:var(--color-near-black)] tracking-[-0.02em] leading-[1.05] mb-4"
+                style={{ fontWeight: 900 }}
+              >
+                Residency training timeline
+              </h2>
+
+              <div
+                className="rounded-[var(--r-card)] p-6 md:p-7 bg-white ring-1 ring-inset ring-[color:var(--border-subtle)] grid grid-cols-2 md:grid-cols-4 gap-5"
+                style={{ boxShadow: 'var(--shadow-ring)' }}
+              >
+                <Metric
+                  label="Training years"
+                  value={specialty.trainingLabel ?? `${specialty.residencyYears}y`}
+                  valueClass="text-[2rem] md:text-[2.25rem] text-[color:var(--color-near-black)]"
+                />
+                <Metric
+                  label="PGY-1 salary"
+                  value={`$${Math.round(pgy1Salary / 1000)}K`}
+                  valueClass="text-[1.5rem] md:text-[1.75rem] text-[color:var(--color-near-black)]"
+                />
+                <Metric
+                  label="Annual growth"
+                  value={`${growthPct.toFixed(1)}%`}
+                  valueClass="text-[1.5rem] md:text-[1.75rem] text-[color:var(--color-near-black)]"
+                />
+                {hasFellowship ? (
+                  <Metric
+                    label="Fellowship"
+                    value={`${fellowshipYears}y · $${Math.round(fellowshipSalary / 1000)}K`}
+                    valueClass="text-[15px] text-[color:var(--color-near-black)] font-bold"
+                  />
+                ) : (
+                  <Metric
+                    label="Fellowship"
+                    value="Optional"
+                    sub="Not baked into training"
+                    valueClass="text-[15px] text-[color:var(--text-muted)] font-bold"
+                  />
+                )}
               </div>
 
-              <div className="p-4 rounded-[var(--r-card)] bg-white ring-1 ring-inset ring-[color:var(--border-subtle)]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-2">
-                  What changes for this specialty
-                </p>
-                <ul className="flex flex-col gap-1.5 text-[12.5px] leading-snug text-[color:var(--color-near-black)]">
-                  {profile.bullets.map((b) => (
-                    <li key={b} className="flex gap-2">
-                      <span
-                        aria-hidden
-                        className="mt-[6px] w-1 h-1 rounded-full flex-shrink-0 bg-[color:var(--color-dark-green)]"
-                      />
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <p className="mt-4 text-[14px] text-[color:var(--text-secondary)] leading-relaxed font-medium">
+                Most {specialty.label.toLowerCase()} trainees follow a{' '}
+                {specialty.trainingLabel ?? `${specialty.residencyYears}-year`}{' '}
+                track. PGY-1 pay starts around ${Math.round(pgy1Salary / 1000)}K
+                with roughly {growthPct.toFixed(1)}% annual raises.
+                {hasFellowship && (
+                  <>
+                    {' '}
+                    An additional {fellowshipYears}-year fellowship extends
+                    training and affects payoff timing.
+                  </>
+                )}
+              </p>
+            </div>
 
-              <div className="p-4 rounded-[var(--r-card)] bg-white ring-1 ring-inset ring-[color:var(--border-subtle)]">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-2">
-                  Related guides
-                </p>
-                <ul className="flex flex-col gap-2">
-                  {RELATED_GUIDES.map((guide) => (
-                    <li key={guide.href}>
-                      <Link
-                        href={guide.href}
-                        className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-[color:var(--color-dark-green)] hover:underline"
-                      >
-                        {guide.label}
-                        <ArrowRight aria-hidden className="w-3 h-3" strokeWidth={2} />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </aside>
+            {/* PSLF & forgiveness strategy */}
+            <div
+              className="rounded-[var(--r-card)] p-6 md:p-8 bg-[#fff8ea] border-l-4 border-amber-500"
+              style={{ boxShadow: 'var(--shadow-ring)' }}
+            >
+              <h2
+                className="text-[1.25rem] md:text-[1.5rem] text-[color:var(--color-near-black)] tracking-[-0.02em] leading-[1.05] mb-3"
+                style={{ fontWeight: 900 }}
+              >
+                PSLF &amp; forgiveness strategy
+              </h2>
+              <p className="text-[14px] md:text-[15px] text-[color:var(--color-near-black)]/90 leading-relaxed font-medium">
+                {pslfStrategy}
+              </p>
+            </div>
 
-            <div className="lg:col-span-2">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[12px] text-[color:var(--text-muted)] font-medium">
-                  Calculator prefilled with {specialty.label} salary and training defaults.
+            {/* Repayment recommendation */}
+            <div
+              className="rounded-[var(--r-card)] p-6 md:p-8 bg-white ring-1 ring-inset ring-[color:var(--border-subtle)]"
+              style={{ boxShadow: 'var(--shadow-ring)' }}
+            >
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-2">
+                Our pick · {profile.strategyPick.label}
+              </p>
+              <h2
+                className="text-[1.25rem] md:text-[1.5rem] text-[color:var(--color-near-black)] tracking-[-0.02em] leading-[1.05] mb-3"
+                style={{ fontWeight: 900 }}
+              >
+                Repayment recommendation
+              </h2>
+              <p className="text-[14px] md:text-[15px] text-[color:var(--text-secondary)] leading-relaxed font-medium mb-5">
+                {repaymentRecommendation}
+              </p>
+              <Link
+                href={calcHref}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[var(--r-pill)] bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] text-[12.5px] font-black tracking-[-0.01em] transition-transform hover:scale-[1.03]"
+              >
+                Run your numbers for {specialty.label}
+                <ArrowRight aria-hidden className="w-3.5 h-3.5" strokeWidth={2.5} />
+              </Link>
+            </div>
+
+            {/* Key takeaways */}
+            <div>
+              <h2
+                className="text-[1.25rem] md:text-[1.5rem] text-[color:var(--color-near-black)] tracking-[-0.02em] leading-[1.05] mb-5"
+                style={{ fontWeight: 900 }}
+              >
+                Key takeaways
+              </h2>
+              <ul className="flex flex-col gap-3">
+                {keyTakeaways.map((takeaway, i) => (
+                  <li
+                    key={`takeaway-${i}`}
+                    className="flex gap-3 items-start text-[14px] md:text-[15px] text-[color:var(--color-near-black)] leading-relaxed font-medium"
+                  >
+                    <span
+                      aria-hidden
+                      className="mt-[3px] flex-shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full bg-[color:var(--color-light-mint)] text-[color:var(--color-dark-green)]"
+                    >
+                      <Check className="w-3 h-3" strokeWidth={3} />
+                    </span>
+                    <span>{takeaway}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Green CTA banner */}
+            <div className="rounded-[var(--r-card)] p-8 md:p-10 bg-[color:var(--color-dark-green)] text-white text-center">
+              <h2
+                className="text-[1.5rem] md:text-[1.875rem] tracking-[-0.02em] leading-[1.1] mb-3"
+                style={{ fontWeight: 900 }}
+              >
+                Ready to model your debt strategy?
+              </h2>
+              <p className="text-[14px] md:text-[15px] text-white/80 leading-relaxed font-medium max-w-xl mx-auto mb-6">
+                Compare PSLF, refinancing, and aggressive payoff for your{' '}
+                {specialty.label} scenario — pre-filled with the salary and
+                training defaults from this page.
+              </p>
+              <Link
+                href={calcHref}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-[var(--r-pill)] bg-white text-[color:var(--color-dark-green)] text-[13px] font-black tracking-[-0.01em] transition-transform hover:scale-[1.03]"
+              >
+                Open the calculator
+                <ArrowRight aria-hidden className="w-3.5 h-3.5" strokeWidth={2.5} />
+              </Link>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {/* ── Related specialties grid ─────────────────────────── */}
+      {related.length > 0 && (
+        <section className="py-12 md:py-16 bg-white border-t border-[color:var(--border-subtle)]">
+          <div className="container container-wide">
+            <div className="max-w-4xl mx-auto">
+              <h2
+                className="text-[1.25rem] md:text-[1.5rem] text-[color:var(--color-near-black)] tracking-[-0.02em] leading-[1.05] mb-6"
+                style={{ fontWeight: 900 }}
+              >
+                Related specialties
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {related.map(({ specialty: spec, profile: prof }) => (
+                  <Link
+                    key={spec.id}
+                    href={`/specialty/${spec.id}`}
+                    className="group p-5 rounded-[var(--r-card)] bg-[color:var(--color-off-white)] ring-1 ring-inset ring-[color:var(--border-subtle)] hover:ring-[color:var(--color-dark-green)] transition-colors"
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-1.5">
+                      {prof.eyebrow}
+                    </p>
+                    <h3 className="text-[16px] font-black text-[color:var(--color-near-black)] tracking-tight mb-2">
+                      {spec.label}
+                    </h3>
+                    <p className="text-[12.5px] text-[color:var(--text-secondary)] font-medium leading-snug mb-3">
+                      ${Math.round(prof.salaryBand.median / 1000)}K median ·{' '}
+                      {spec.trainingLabel ?? `${spec.residencyYears}y`} training
+                    </p>
+                    <span className="inline-flex items-center gap-1 text-[12px] font-black text-[color:var(--color-dark-green)] group-hover:gap-1.5 transition-all">
+                      View profile
+                      <ArrowRight aria-hidden className="w-3 h-3" strokeWidth={2.5} />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-6 pt-5 border-t border-[color:var(--border-subtle)] flex flex-wrap items-center justify-between gap-3">
+                <p className="text-[11.5px] text-[color:var(--text-muted)] font-medium">
+                  All figures median estimates. Sources: MGMA 2025, AAMC GQ
+                  2025, Doximity 2025.
                 </p>
-                <a
-                  href="#specialty-calculator"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--r-pill)] text-[12px] font-bold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform hover:scale-[1.03]"
+                <Link
+                  href="/specialty"
+                  className="text-[12.5px] font-black text-[color:var(--color-dark-green)] hover:underline"
                 >
-                  Jump to prefilled calculator
-                  <ArrowRight aria-hidden className="w-3 h-3" strokeWidth={2} />
-                </a>
-              </div>
-              <div id="specialty-calculator">
-              <Calculator initialInputs={seed} />
+                  See all 16 specialties →
+                </Link>
               </div>
             </div>
           </div>
-
-          <footer className="flex flex-wrap items-center justify-between gap-3 pt-5 border-t border-[color:var(--border-subtle)]">
-            <p className="text-[12px] text-[color:var(--text-muted)] font-medium">
-              All figures median estimates. Sources: MGMA 2025, AAMC GQ 2025, Doximity 2025.
-            </p>
-            <Link
-              href="/specialty"
-              className="text-[12.5px] font-bold text-[color:var(--color-dark-green)] hover:underline"
-            >
-              See all specialties →
-            </Link>
-          </footer>
-        </div>
-      </section>
+        </section>
+      )}
     </>
   );
 }
 
-function StatTile({
+/**
+ * Consistent metric tile for salary + training cards. Keeps label /
+ * value / sub sizing uniform across the two grids without pulling in
+ * one-off classnames at each call site.
+ */
+function Metric({
   label,
   value,
   sub,
+  valueClass,
 }: {
   label: string;
   value: string;
-  sub: string;
+  sub?: string;
+  valueClass: string;
 }) {
   return (
-    <div className="p-3.5 rounded-[var(--r-card-sm)] bg-white ring-1 ring-inset ring-[color:var(--border-subtle)]">
-      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-1">
+    <div>
+      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-1.5">
         {label}
       </p>
-      <p className="text-[20px] font-black tracking-tight text-[color:var(--color-near-black)] leading-none">
+      <p
+        className={`${valueClass} leading-none tabular-nums tracking-[-0.02em]`}
+        style={{ fontWeight: 900, fontFamily: 'var(--font-numbers)' }}
+      >
         {value}
       </p>
-      <p className="text-[11px] text-[color:var(--text-secondary)] font-medium mt-1">
-        {sub}
-      </p>
+      {sub && (
+        <p className="text-[11px] text-[color:var(--text-muted)] font-medium mt-1.5">
+          {sub}
+        </p>
+      )}
     </div>
   );
 }

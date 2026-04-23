@@ -5,6 +5,8 @@ import { formatDollars, formatYears } from '@/lib/calculator';
 import type { StrategyComparison as StrategyComparisonData, StrategyOutcome } from '@/lib/calculator-scenarios';
 import DataSourceBadge from '@/components/ui/DataSourceBadge';
 import ExplainPopover from './ExplainPopover';
+import Tooltip from '@/components/ui/Tooltip';
+import type { TooltipKey } from '@/lib/tooltip-definitions';
 import { track } from '@/lib/analytics';
 
 interface Props {
@@ -77,7 +79,12 @@ export default function StrategyComparison({ comparison }: Props) {
             <tr>
               <th className="text-left px-6 py-3.5">Strategy</th>
               <th className="text-right px-4 py-3.5">Total paid</th>
-              <th className="text-right px-4 py-3.5">True total cost</th>
+              <th className="text-right px-4 py-3.5">
+                <span className="inline-flex items-center">
+                  True total cost
+                  <Tooltip termKey="trueTotalCost" size="xs" />
+                </span>
+              </th>
               <th className="text-right px-4 py-3.5">Time to done</th>
               <th className="text-right px-4 py-3.5 whitespace-nowrap">Monthly</th>
               <th className="text-left pl-4 pr-6 py-3.5">Outcome</th>
@@ -235,7 +242,12 @@ function MobileCard({ strategy }: { strategy: StrategyOutcome }) {
       ) : (
         <>
           <dl className="grid grid-cols-2 gap-x-4 gap-y-3 tabular-nums">
-            <Stat label="True total cost" value={formatDollars(strategy.trueTotalCost)} emphasis />
+            <Stat
+              label="True total cost"
+              value={formatDollars(strategy.trueTotalCost)}
+              emphasis
+              labelTooltip="trueTotalCost"
+            />
             <Stat label="Time to done" value={formatYears(strategy.yearsToDone)} />
             <Stat label="Total paid" value={formatDollars(strategy.totalPaid)} />
             <Stat label="Monthly" value={formatDollars(strategy.monthlyPayment) + '/mo'} />
@@ -277,11 +289,22 @@ function MobileCard({ strategy }: { strategy: StrategyOutcome }) {
   );
 }
 
-function Stat({ label, value, emphasis = false }: { label: string; value: string; emphasis?: boolean }) {
+function Stat({
+  label,
+  value,
+  emphasis = false,
+  labelTooltip,
+}: {
+  label: string;
+  value: string;
+  emphasis?: boolean;
+  labelTooltip?: TooltipKey;
+}) {
   return (
     <div className="flex flex-col gap-0.5">
-      <dt className="text-[10px] font-bold uppercase tracking-[0.10em] text-[color:var(--text-muted)]">
+      <dt className="text-[10px] font-bold uppercase tracking-[0.10em] text-[color:var(--text-muted)] flex items-center">
         {label}
+        {labelTooltip && <Tooltip termKey={labelTooltip} size="xs" />}
       </dt>
       <dd
         className={`${

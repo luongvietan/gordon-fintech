@@ -35,6 +35,8 @@ import PeerBenchmarkNote from './PeerBenchmarkNote';
 import ExplainPopover, { type ExplainData } from './ExplainPopover';
 import RefiWarningCard from './RefiWarningCard';
 import RefiBreakevenCard from './RefiBreakevenCard';
+import Tooltip from '@/components/ui/Tooltip';
+import type { TooltipKey } from '@/lib/tooltip-definitions';
 
 interface Props {
   inputs: CalculatorInputs;
@@ -61,9 +63,15 @@ interface KpiProps {
   icon?: React.ReactNode;
   big?: boolean;
   explain?: ExplainData;
+  /**
+   * Optional glossary tooltip key. Renders an `<Info>` trigger next to
+   * the label — short definition only (long-form calculation walks
+   * still live in `<ExplainPopover>` under the value).
+   */
+  labelTooltip?: TooltipKey;
 }
 
-function KpiCard({ label, value, sub, tone = 'default', icon, big = false, explain }: KpiProps) {
+function KpiCard({ label, value, sub, tone = 'default', icon, big = false, explain, labelTooltip }: KpiProps) {
   const surface =
     tone === 'accent'
       ? 'bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]'
@@ -101,8 +109,9 @@ function KpiCard({ label, value, sub, tone = 'default', icon, big = false, expla
       style={{ boxShadow: tone === 'default' ? 'var(--shadow-ring)' : 'none' }}
     >
       <div className="flex items-start justify-between gap-3">
-        <p className={`text-[10px] font-bold uppercase tracking-[0.12em] ${labelColor}`}>
+        <p className={`text-[10px] font-bold uppercase tracking-[0.12em] ${labelColor} flex items-center`}>
           {label}
+          {labelTooltip && <Tooltip termKey={labelTooltip} size="xs" />}
         </p>
         {icon && (
           <span
@@ -426,6 +435,7 @@ export default function CalculatorResults({
           tone="accent"
           icon={<IconCrossover />}
           explain={explainCrossover}
+          labelTooltip="netWorthCrossover"
         />
       </div>
 
@@ -446,8 +456,9 @@ export default function CalculatorResults({
           style={{ boxShadow: 'var(--shadow-ring)' }}
         >
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[color:var(--color-dark-green)]/70">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[color:var(--color-dark-green)]/70 flex items-center">
               PSLF Forgiveness
+              <Tooltip termKey="pslf" size="xs" />
             </p>
             <p
               className="text-[1.75rem] md:text-[2rem] text-[color:var(--color-dark-green)] leading-none tabular-nums mt-2"
@@ -536,8 +547,9 @@ export default function CalculatorResults({
         style={{ boxShadow: 'var(--shadow-ring)' }}
       >
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--text-muted)] mb-2 flex items-center">
             Opportunity cost
+            <Tooltip termKey="opportunityCost" size="xs" />
           </p>
           <p
             className="text-[2.25rem] md:text-[2.5rem] lg:text-[2.75rem] text-[color:var(--color-near-black)] leading-none tabular-nums tracking-[-0.025em]"

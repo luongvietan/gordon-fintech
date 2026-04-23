@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Check, Users } from 'lucide-react';
-import { track } from '@/lib/analytics';
+import { track, trackEmailSignup } from '@/lib/analytics';
 import { NEWSLETTER_SUBSCRIBER_COUNT } from '@/lib/trust-content';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
@@ -50,7 +50,7 @@ export default function NewsletterSignup() {
       // tagging `source: 'newsletter_footer'` keeps it distinct from
       // the post-calculation `results_inline` capture for funnel
       // analysis.
-      track('email_submitted', { source: 'newsletter_footer', has_name: false });
+      trackEmailSignup('homepage', { has_name: false });
     } catch {
       setStatus('error');
       setMessage('Something went wrong — please try again.');
