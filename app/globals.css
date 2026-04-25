@@ -715,6 +715,37 @@ details[open] > *:not(summary) {
 }
 
 /* ============================================================
+   EXPERT MODE UNLOCK PULSE
+   ============================================================
+   When the user flips Expert Mode on, three previously hidden
+   sections appear (Refinance / Household / Job change). We add a
+   `data-pulse=""` attribute on each for ~1s and run a quick
+   green-left-border fade so the eye lands on what just changed.
+   The reduced-motion media query at the bottom of the file kills
+   this animation for users who opt out of motion. */
+[data-pulse] {
+  position: relative;
+  animation: pulseLeft 1s ease-out 1;
+}
+[data-pulse]::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--color-wise-green);
+  border-top-left-radius: var(--r-card-sm);
+  border-bottom-left-radius: var(--r-card-sm);
+  animation: pulseLeft 1s ease-out 1;
+  pointer-events: none;
+}
+@keyframes pulseLeft {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ============================================================
    REDUCED MOTION
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {

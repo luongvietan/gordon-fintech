@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { useCallback, useRef } from 'react';
 import {
   AlertTriangle,
   Briefcase,
@@ -14,6 +16,7 @@ import {
 } from 'lucide-react';
 import { CalculatorInputs } from '@/lib/calculator';
 import { SPECIALTIES } from '@/lib/specialties';
+import { IDR_PLANS, resolveIdrPlan, type IdrPlanId } from '@/lib/idr-plans';
 import { trackSpecialtySelected } from '@/lib/analytics';
 import { useExpertMode } from '@/hooks/useExpertMode';
 import NumberField from '@/components/ui/NumberField';
@@ -56,6 +59,58 @@ function IconJobChange() {
 
 export default function CalculatorInputsForm({ inputs, onChange }: Props) {
   const [expert, setExpert] = useExpertMode();
+
+  // Refs for the three Expert-gated sections so we can scroll-and-pulse
+  // them when the user flips Expert Mode on. Tied via the new `sectionRef`
+  // prop on `InputSection`.
+  const refiRef = useRef<HTMLElement | null>(null);
+  const householdRef = useRef<HTMLElement | null>(null);
+  const jobRef = useRef<HTMLElement | null>(null);
+
+  // Toggling Expert Mode reveals three sections at once, but the eye
+  // doesn't follow because the layout above stays fixed. Without
+  // feedback, ~half the audit testers said they couldn't tell anything
+  // happened. So: smooth-scroll the first revealed section into view
+  // and run a 1s green-left-border pulse on all three. The pulse is a
+  // CSS class (`expert-unlock-pulse` in app/globals.css) gated by a
+  // `data-pulse` attribute we add and remove. We respect
+  // `prefers-reduced-motion` for both behaviours — no scroll, no pulse.
+  const handleExpertToggle = useCallback(() => {
+    const next = !expert;
+    setExpert(next);
+    if (!next) return;
+
+    if (typeof window === 'undefined') return;
+    const reducedMotion =
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) return;
+
+    // Wait one frame so the gated `<InputSection>`s have actually
+    // mounted; their refs are null while `expert === false`.
+    requestAnimationFrame(() => {
+      const targets = [
+        refiRef.current,
+        householdRef.current,
+        jobRef.current,
+      ].filter((el): el is HTMLElement => el !== null);
+      if (targets.length === 0) return;
+      targets[0]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      for (const el of targets) {
+        el.setAttribute('data-pulse', '');
+      }
+      window.setTimeout(() => {
+        for (const el of targets) {
+          el.removeAttribute('data-pulse');
+        }
+      }, 1000);
+    });
+  }, [expert, setExpert]);
+
+  // If the user disables Expert Mode while a pulse is mid-flight,
+  // the sections unmount and the `data-pulse` attribute disappears
+  // with them, so no separate cleanup is needed beyond the timeout
+  // above.
 
   const specialtyOptions = SPECIALTIES.map((s) => ({
     value: s.id,
@@ -112,7 +167,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
           at a glance. Persists via useExpertMode → localStorage. */}
       <button
         type="button"
-        onClick={() => setExpert(!expert)}
+        onClick={handleExpertToggle}
         aria-pressed={expert}
         className={`
           w-full flex items-start gap-3 text-left px-4 py-3.5 rounded-[var(--r-card-sm)]
@@ -152,7 +207,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
                   : 'bg-white text-[color:var(--color-dark-green)] ring-1 ring-inset ring-[color:var(--color-dark-green)]/20'}
               `}
             >
-              {expert ? 'On — tap to turn off' : 'Off — tap to turn on'}
+              {expert ? 'On \u2014 turn off' : 'Off \u2014 turn on'}
             </span>
           </span>
           <span
@@ -175,6 +230,17 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
         icon={<IconCareer />}
         defaultOpen
       >
+        {/* Always-visible browse prompt above the dropdown. Distinct
+            from the conditional "Read the full guide" link below the
+            select (which only renders when a real specialty is
+            picked) — this one is for users who don't know their
+            attending salary yet. */}
+        <Link
+          href="/specialty"
+          className="self-end -mb-1 text-[11.5px] font-semibold text-[color:var(--color-dark-green)] hover:underline"
+        >
+          Not sure about salary? Browse specialty profiles &rarr;
+        </Link>
         <Select
           label="Specialty"
           value={currentSpecialtyId}
@@ -208,6 +274,19 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
               : undefined
           }
         />
+        {/* Inline link to the matched specialty's profile page. Only
+            rendered when the user has selected a real specialty (not
+            Custom). The /specialty/[slug] guide expands on salary
+            ranges, training pathway, and PSLF fit — context the
+            calculator's two-line summary can't carry. */}
+        {!isCustom && matchedSpecialty && (
+          <Link
+            href={`/specialty/${matchedSpecialty.id}`}
+            className="self-start text-[12px] font-bold text-[color:var(--color-dark-green)] hover:underline"
+          >
+            Read the full {matchedSpecialty.label} guide &rarr;
+          </Link>
+        )}
         <div className="grid grid-cols-2 gap-2.5">
           <NumberField
             label="Residency"
@@ -489,6 +568,86 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
           )}
         </div>
 
+        {/* IDR plan selector — surfaced here (rather than buried in
+            Assumptions → Advanced settings) because plan choice is one
+            of the most consequential federal repayment inputs. SAVE vs
+            IBR can swing the PSLF tax-bomb forecast by tens of
+            thousands. Federal-only; private loans don't qualify for
+            IDR so the field is hidden when loanType === 'private'. */}
+        {inputs.loanType === 'federal' && (
+          <div className="p-4 rounded-[var(--r-card-sm)] bg-[color:var(--color-off-white)] ring-1 ring-inset ring-[color:var(--border-subtle)] flex flex-col gap-2">
+            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-near-black)] flex items-center">
+              IDR plan
+              <Tooltip termKey="idr" size="xs" />
+            </p>
+            <Select
+              value={resolveIdrPlan(inputs).id}
+              onChange={(e) => {
+                const id = e.target.value as IdrPlanId;
+                const next = IDR_PLANS.find((p) => p.id === id);
+                if (!next) return;
+                onChange({ idrPlan: next.id, idrPaymentPct: next.paymentPct });
+              }}
+              options={IDR_PLANS.map((p) => ({
+                value: p.id,
+                label: `${p.label} \u2014 ${p.summary}`,
+              }))}
+            />
+            <p className="text-[11.5px] text-[color:var(--text-muted)] leading-snug">
+              Most residents should use SAVE unless currently on IBR.
+            </p>
+          </div>
+        )}
+
+        {/* Discoverable household-filing toggle. The full Household
+            section (filing-status comparison, family size, spouse
+            debt) stays Expert-gated below — this surface only
+            exposes the single most-asked-for input (spouse income)
+            so MFJ households don't have to flip Expert Mode just to
+            see a realistic IDR payment. Writes to the same
+            `spouseEnabled` / `spouseIncome` state used by the deep
+            Household section, so the two stay in sync; turning this
+            on also seeds `filingStatus = 'mfj'` and `familySize >= 2`
+            so the calculator behaves sensibly without further
+            input. */}
+        <div
+          className={`p-4 rounded-[var(--r-card-sm)] ${
+            inputs.spouseEnabled
+              ? 'bg-[color:var(--color-light-mint)]'
+              : 'bg-[color:var(--color-off-white)] ring-1 ring-inset ring-[color:var(--border-subtle)]'
+          } flex flex-col gap-3`}
+        >
+          <Toggle
+            id="spouse-quick-toggle"
+            checked={!!inputs.spouseEnabled}
+            onChange={(checked) =>
+              onChange({
+                spouseEnabled: checked,
+                filingStatus: checked
+                  ? inputs.filingStatus && inputs.filingStatus !== 'single'
+                    ? inputs.filingStatus
+                    : 'mfj'
+                  : 'single',
+                familySize: checked ? Math.max(2, inputs.familySize ?? 2) : 1,
+              })
+            }
+            label="I file taxes with a spouse or partner"
+            description="Reveals a basic spouse income field. For MFS vs MFJ comparison and household net worth, turn on Expert mode."
+          />
+          {inputs.spouseEnabled && (
+            <NumberField
+              label="Spouse income"
+              prefix="$"
+              suffix="/yr"
+              min={0}
+              max={2_000_000}
+              step={1000}
+              value={inputs.spouseIncome ?? 0}
+              onValueChange={(v) => onChange({ spouseIncome: v })}
+            />
+          )}
+        </div>
+
         {inputs.loanType === 'federal' && (
           <div className="p-4 rounded-[var(--r-card-sm)] bg-[color:var(--color-off-white)] ring-1 ring-inset ring-[color:var(--border-subtle)]">
             <Toggle
@@ -573,6 +732,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
         title="Refinance"
         hint={refiSummary}
         icon={<IconRefi />}
+        sectionRef={refiRef}
       >
         <div
           className={`
@@ -661,6 +821,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
         title="Household"
         hint={householdSummary}
         icon={<IconHousehold />}
+        sectionRef={householdRef}
       >
         <div
           className={`
@@ -821,6 +982,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
         title="Job change"
         hint={jobChangeSummary}
         icon={<IconJobChange />}
+        sectionRef={jobRef}
       >
         <div
           className={`

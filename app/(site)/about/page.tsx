@@ -17,7 +17,7 @@ import { DATA_SOURCES } from '@/lib/trust-content';
 export const metadata: Metadata = {
   title: 'About | MedDebt Calculator',
   description:
-    'Why this medical school debt calculator exists, who built it, and how every number traces back to a published source. Independently built, no lender affiliations.',
+    'Why this medical school debt calculator exists, who built it, and how every number traces back to a published source. Independently built, no referral commissions; supported by display advertising.',
   alternates: { canonical: '/about' },
 };
 
@@ -44,7 +44,11 @@ const BREADCRUMB_LD = {
 // concrete number we can defend — no vibes, no marketing fluff.
 const MANIFESTO_STATS = [
   { value: '16', label: 'Specialty presets', sub: 'AAMC + MGMA + Medscape' },
-  { value: '0', label: 'Lender partnerships', sub: 'No refi affiliates, ever' },
+  {
+    value: '0',
+    label: 'No commission-based referrals',
+    sub: 'We earn nothing when you choose a repayment strategy.',
+  },
   { value: '100%', label: 'In your browser', sub: 'No data leaves your device' },
 ];
 
@@ -68,7 +72,7 @@ const IS_LIST = [
 const ISNT_LIST = [
   {
     title: 'A refi-affiliate funnel',
-    body: 'No commissions, no lead-gen, no sponsored "recommended lender" list at the bottom.',
+    body: 'No commission-based referrals or sponsored "recommended lender" lists. The site runs on display advertising only.',
   },
   {
     title: 'Personal financial advice',
@@ -172,7 +176,7 @@ export default function AboutPage() {
               <p className="mt-6 md:mt-7 text-base md:text-lg max-w-xl leading-relaxed font-medium text-white/65">
                 We built a free, transparent calculator for medical students,
                 residents, and attendings making six-figure financial
-                decisions. Not a refi ad in disguise.
+                decisions. Independent &mdash; no commission-based referrals.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -298,9 +302,10 @@ export default function AboutPage() {
                     to sell you a refinancing product.
                   </p>
                   <p>
-                    Every number here traces to a published source. We have no
-                    affiliate links, no lender partnerships, and no upsells.
-                    This tool has no agenda &mdash; it&rsquo;s just the math.
+                    Every number here traces to a published source. We earn no
+                    referral commissions. The site is supported by display
+                    advertising. This tool has no agenda &mdash; it&rsquo;s
+                    just the math.
                   </p>
                 </div>
 

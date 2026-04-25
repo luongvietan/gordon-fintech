@@ -239,7 +239,7 @@ export default function ComparisonMatrix() {
         <p className="text-[11px] text-[color:var(--text-muted)] mt-6 font-medium max-w-2xl">
           Comparisons reflect publicly available features as of 2025. Student
           Loan Planner and White Coat Investor are independent brands, not
-          affiliated with this site. No affiliate links anywhere on this page.
+          affiliated with this site. No referral commissions; only display ads.
         </p>
       </div>
     </section>

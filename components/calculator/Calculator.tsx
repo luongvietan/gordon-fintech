@@ -476,6 +476,15 @@ export default function Calculator({ initialInputs }: CalculatorProps = {}) {
         </button>
       </div>
 
+      {/* Helper text below the strategy chips: testers were unsure
+          whether picking a strategy was just a preview or whether it
+          mutated their inputs (it does — `applyScenarioPreset` writes
+          to PSLF, IDR, refi, etc.). One quiet line removes the
+          ambiguity without bloating the surface. */}
+      <p className="px-5 md:px-7 lg:px-8 pb-3 -mt-1 text-[12px] font-medium text-[color:var(--text-muted)] leading-snug">
+        Selecting a strategy auto-fills your repayment settings below.
+      </p>
+
       {/* ── Privacy strip ────────────────────────────────── */}
       <div
         className="px-5 md:px-7 lg:px-8 py-2.5 flex items-center gap-2.5 border-b border-[color:var(--border-subtle)]"

@@ -7,6 +7,7 @@ import { getAllPosts } from '@/lib/blog';
 import HeroChart from '@/components/home/HeroChart';
 import CredentialsStrip from '@/components/home/CredentialsStrip';
 import CrossoverUspSection from '@/components/home/CrossoverUspSection';
+import SpecialtySection from '@/components/home/SpecialtySection';
 import ComparisonMatrix from '@/components/home/ComparisonMatrix';
 import TestimonialsSection from '@/components/home/TestimonialsSection';
 import FaqSection, { type FaqItem as FaqCategoryItem } from '@/components/home/FaqSection';
@@ -356,7 +357,7 @@ export default async function HomePage() {
                 </li>
                 <li className="inline-flex items-center gap-1.5 pl-4 border-l border-white/10">
                   <CheckDot />
-                  No affiliate links
+                  No referral commissions
                 </li>
               </ul>
             </div>
@@ -481,6 +482,9 @@ export default async function HomePage() {
           <Calculator />
         </div>
       </section>
+
+      {/* ─── BROWSE BY SPECIALTY ─────────────────────────────── */}
+      <SpecialtySection />
 
       {/* ─── NET-WORTH CROSSOVER USP ─────────────────────────── */}
       <CrossoverUspSection />

@@ -2,15 +2,9 @@
 
 import type { CalculatorInputs } from '@/lib/calculator';
 import NumberField from '@/components/ui/NumberField';
-import Select from '@/components/ui/Select';
 import Slider from '@/components/ui/Slider';
 import DataSourceBadge from '@/components/ui/DataSourceBadge';
 import Tooltip from '@/components/ui/Tooltip';
-import {
-  IDR_PLANS,
-  resolveIdrPlan,
-  type IdrPlanId,
-} from '@/lib/idr-plans';
 
 interface Props {
   inputs: CalculatorInputs;
@@ -156,55 +150,14 @@ export default function AdvancedSettings({ inputs, onChange }: Props) {
         </summary>
 
         <div className="mt-4 flex flex-col gap-3">
-          {/* IDR plan selection.
-              R3 feedback: the previous two-radio list ("10% vs 15%") made
-              it look like we lumped SAVE, PAYE, and IBR into a single
-              bucket. They have distinct forgiveness horizons and
-              discretionary-income floors that materially move the
-              tax-bomb number, so we surface them individually here. The
-              dropdown writes to `idrPlan` and the engine honors each
-              plan's paymentPct + fplMultiplier + forgivenessYears
-              through `resolveIdrPlan()`. */}
-          {(() => {
-            const activePlan = resolveIdrPlan(inputs);
-            return (
-              <div className="flex flex-col gap-2">
-                {/* Custom label so we can park the glossary tooltip
-                    next to the text — the shared Select component
-                    only accepts a string label. */}
-                <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-near-black)] flex items-center">
-                  IDR plan
-                  <Tooltip termKey="idr" size="xs" />
-                </p>
-                <Select
-                  value={activePlan.id}
-                  onChange={(e) => {
-                    const id = e.target.value as IdrPlanId;
-                    const next = IDR_PLANS.find((p) => p.id === id);
-                    if (!next) return;
-                    onChange({
-                      idrPlan: next.id,
-                      idrPaymentPct: next.paymentPct,
-                    });
-                  }}
-                  options={IDR_PLANS.map((p) => ({
-                    value: p.id,
-                    label: `${p.label} — ${p.summary}`,
-                  }))}
-                />
-                <p className="text-[11px] text-[color:var(--text-muted)] leading-relaxed">
-                  Not sure which applies? Most post-July-2014 borrowers land
-                  on SAVE or PAYE. Plan choice affects monthly payment, the
-                  forgiveness horizon, and the projected IDR tax bomb.
-                </p>
-                {activePlan.caveats && (
-                  <p className="text-[11px] text-[color:var(--text-muted)] leading-relaxed italic">
-                    {activePlan.caveats}
-                  </p>
-                )}
-              </div>
-            );
-          })()}
+          {/* IDR plan selection moved up to the Repayment section so it's
+              reachable without opening Advanced. Leave a one-line pointer
+              here so power users who used to find it nested in this block
+              don't think it disappeared. */}
+          <p className="text-[11.5px] text-[color:var(--text-muted)] leading-snug">
+            IDR plan now lives in the Repayment section above so it&rsquo;s
+            reachable without opening Advanced settings.
+          </p>
 
           {/* Capitalization toggle */}
           <label className="flex items-start gap-2.5 cursor-pointer pt-1 border-t border-[color:var(--border-subtle)]">

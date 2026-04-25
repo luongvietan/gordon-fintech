@@ -75,9 +75,9 @@ export const TRUST_PILLARS: TrustPillar[] = [
   },
   {
     metric: 'Independent',
-    title: 'No lender, no commissions, no affiliate links',
+    title: 'No commissions on your repayment choice',
     description:
-      'We don\u2019t earn anything when you pick a refi vendor or repayment plan. The tool exists to model your scenario — not to sell you one.',
+      'We don\u2019t earn anything when you pick PSLF, refi, or any specific lender. The site is supported by display advertising — that\u2019s it.',
   },
 ];
 

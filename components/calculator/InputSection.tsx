@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useId, type ReactNode } from 'react';
+import { useState, useId, type ReactNode, type Ref } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 interface Props {
@@ -18,6 +18,12 @@ interface Props {
   icon?: ReactNode;
   /** Default-open state. First section should usually be open. */
   defaultOpen?: boolean;
+  /**
+   * Optional ref attached to the outer `<section>`. Used by the
+   * Expert-Mode unlock animation to scroll the first revealed section
+   * into view and to apply a 1s left-border pulse highlight.
+   */
+  sectionRef?: Ref<HTMLElement>;
   children: ReactNode;
 }
 
@@ -43,6 +49,7 @@ export default function InputSection({
   hint,
   icon,
   defaultOpen = false,
+  sectionRef,
   children,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
@@ -50,6 +57,7 @@ export default function InputSection({
 
   return (
     <section
+      ref={sectionRef}
       className={`rounded-[var(--r-card-sm)] bg-white transition-shadow duration-150 ${
         open ? 'ring-1 ring-inset ring-[color:var(--border-default)]' : ''
       }`}

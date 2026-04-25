@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { Check, Sparkles } from 'lucide-react';
 import { formatDollars, formatYears } from '@/lib/calculator';
 import type { StrategyComparison as StrategyComparisonData, StrategyOutcome } from '@/lib/calculator-scenarios';
@@ -24,6 +25,30 @@ interface Props {
  */
 export default function StrategyComparison({ comparison }: Props) {
   const { strategies } = comparison;
+
+  // Right-edge fade indicator for the desktop scroll container.
+  // The table can outgrow the calculator's right column at ~1280px when
+  // the input panel is consuming ~400px. Without a visual cue, the
+  // OUTCOME column gets clipped silently. We listen for scroll + resize
+  // and toggle a 32px linear-gradient overlay only when more content
+  // exists past the right edge — so on wide viewports it stays clean.
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [overflowing, setOverflowing] = useState(false);
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const update = () => {
+      setOverflowing(el.scrollWidth - el.clientWidth - el.scrollLeft > 4);
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener('scroll', update);
+      ro.disconnect();
+    };
+  }, [strategies.length]);
 
   return (
     <section
@@ -60,42 +85,57 @@ export default function StrategyComparison({ comparison }: Props) {
       {/* ── Desktop table ──────────────────────────── */}
       {/*
         `overflow-x-auto` lets the table scroll horizontally inside the
-        card when the viewport is narrow. The explicit `min-w-[980px]`
-        baseline grows to `min-w-[1100px]` when the refi strategy is
-        present, so the extra row still gets comfortable column widths
-        instead of cramming numbers into tiny cells.
+        card when the viewport is narrow. The min-width baseline is set
+        just above the column-content threshold (920/1020) so wide
+        viewports never trigger horizontal scroll, but the OUTCOME
+        column still has breathing room when it does. The wrapping
+        `<div className="relative">` hosts a right-edge fade overlay
+        toggled by `overflowing` to signal there's more content offscreen.
       */}
-      <div className="hidden md:block overflow-x-auto wise-scroll border-t border-[color:var(--border-subtle)]">
-        <table className={`w-full ${strategies.length >= 4 ? 'min-w-[1160px]' : 'min-w-[1040px]'} text-[13px] font-semibold`}>
-          <colgroup>
-            <col className="w-[22%]" />
-            <col className="w-[14%]" />
-            <col className="w-[16%]" />
-            <col className="w-[12%]" />
-            <col className="w-[12%]" />
-            <col className="w-[24%]" />
-          </colgroup>
-          <thead className="bg-[color:var(--color-off-white)] text-[10px] uppercase tracking-[0.10em] text-[color:var(--text-muted)]">
-            <tr>
-              <th className="text-left px-6 py-3.5">Strategy</th>
-              <th className="text-right px-4 py-3.5">Total paid</th>
-              <th className="text-right px-4 py-3.5">
-                <span className="inline-flex items-center">
-                  True total cost
-                  <Tooltip termKey="trueTotalCost" size="xs" />
-                </span>
-              </th>
-              <th className="text-right px-4 py-3.5">Time to done</th>
-              <th className="text-right px-4 py-3.5 whitespace-nowrap">Monthly</th>
-              <th className="text-left pl-4 pr-6 py-3.5">Outcome</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[color:var(--border-subtle)]">
-            {strategies.map((s) => (
-              <DesktopRow key={s.id} strategy={s} />
-            ))}
-          </tbody>
-        </table>
+      <div className="relative hidden md:block">
+        <div
+          ref={scrollerRef}
+          className="overflow-x-auto wise-scroll border-t border-[color:var(--border-subtle)]"
+        >
+          <table
+            className={`w-full ${strategies.length >= 4 ? 'min-w-[1020px]' : 'min-w-[920px]'} text-[13px] font-semibold`}
+          >
+            <colgroup>
+              <col className="w-[20%]" />
+              <col className="w-[13%]" />
+              <col className="w-[15%]" />
+              <col className="w-[11%]" />
+              <col className="w-[13%]" />
+              <col className="w-[28%]" />
+            </colgroup>
+            <thead className="bg-[color:var(--color-off-white)] text-[10px] uppercase tracking-[0.10em] text-[color:var(--text-muted)]">
+              <tr>
+                <th className="text-left px-4 py-3.5">Strategy</th>
+                <th className="text-right px-3 py-3.5">Total paid</th>
+                <th className="text-right px-3 py-3.5">
+                  <span className="inline-flex items-center">
+                    True total cost
+                    <Tooltip termKey="trueTotalCost" size="xs" />
+                  </span>
+                </th>
+                <th className="text-right px-3 py-3.5">Time to done</th>
+                <th className="text-right px-3 py-3.5 whitespace-nowrap">Monthly</th>
+                <th className="text-left pl-3 pr-4 py-3.5">Outcome</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[color:var(--border-subtle)]">
+              {strategies.map((s) => (
+                <DesktopRow key={s.id} strategy={s} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {overflowing && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent"
+          />
+        )}
       </div>
 
       {/* ── Mobile card stack ──────────────────────── */}
@@ -122,7 +162,7 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
       onClick={() => track('strategy_compared', { strategy_type: strategy.id })}
     >
       <td
-        className={`text-left px-6 py-4 relative ${
+        className={`text-left px-4 py-4 relative ${
           isRec
             ? 'before:content-[""] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[color:var(--color-wise-green)]'
             : ''
@@ -145,7 +185,7 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
           )}
         </div>
       </td>
-      <td className="text-right px-4 py-4 whitespace-nowrap">
+      <td className="text-right px-3 py-4 whitespace-nowrap">
         {isUnavail ? <span className="text-[color:var(--text-muted)]">&mdash;</span> : (
           <div className="inline-flex flex-col items-end gap-1.5">
             <span>{formatDollars(strategy.totalPaid)}</span>
@@ -164,7 +204,7 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
           </div>
         )}
       </td>
-      <td className="text-right px-4 py-4 font-bold whitespace-nowrap">
+      <td className="text-right px-3 py-4 font-bold whitespace-nowrap">
         {isUnavail ? (
           <span className="text-[color:var(--text-muted)]">&mdash;</span>
         ) : (
@@ -185,13 +225,13 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
           </div>
         )}
       </td>
-      <td className="text-right px-4 py-4 whitespace-nowrap">
+      <td className="text-right px-3 py-4 whitespace-nowrap">
         {isUnavail ? <span className="text-[color:var(--text-muted)]">&mdash;</span> : formatYears(strategy.yearsToDone)}
       </td>
-      <td className="text-right px-4 py-4 whitespace-nowrap">
+      <td className="text-right px-3 py-4 whitespace-nowrap">
         {isUnavail ? <span className="text-[color:var(--text-muted)]">&mdash;</span> : formatDollars(strategy.monthlyPayment) + '/mo'}
       </td>
-      <td className="text-left pl-4 pr-6 py-4">
+      <td className="text-left pl-3 pr-4 py-4">
         <span className={`inline-flex items-center gap-1.5 ${strategy.forgivenAmount ? 'text-[color:var(--color-dark-green)]' : 'text-[color:var(--text-secondary)]'}`}>
           {strategy.forgivenAmount ? (
             <Check aria-hidden className="w-3 h-3" strokeWidth={2.5} />

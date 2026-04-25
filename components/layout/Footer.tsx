@@ -50,6 +50,7 @@ export default function Footer() {
                 { href: '/calculator', label: 'Debt Calculator' },
                 { href: '/calculator', label: 'PSLF Comparison' },
                 { href: '/#crossover', label: 'Net Worth Crossover' },
+                { href: '/specialty', label: 'Specialties' },
               ].map((item) => (
                 <li key={item.label}>
                   <Link
@@ -158,9 +159,9 @@ export default function Footer() {
               <strong className="text-[color:var(--text-secondary)] font-semibold">
                 Independently built.
               </strong>{' '}
-              No lender partnerships, no affiliate codes, no commissions. Not
-              affiliated with AAMC, MGMA, Medscape, the U.S. Department of
-              Education, or any loan servicer.
+              No lender partnerships, no referral commissions. Display ads are
+              served by Google AdSense. Not affiliated with AAMC, MGMA,
+              Medscape, the U.S. Department of Education, or any loan servicer.
             </p>
           </div>
         </div>

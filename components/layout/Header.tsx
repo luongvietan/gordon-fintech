@@ -7,6 +7,7 @@ import { track } from '@/lib/analytics';
 
 const NAV = [
   { href: '/calculator', label: 'Calculator' },
+  { href: '/specialty', label: 'Specialties' },
   { href: '/blog', label: 'Guides' },
   { href: '/#how-it-works', label: 'How it works' },
   { href: '/about', label: 'About' },
