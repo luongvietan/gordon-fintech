@@ -34,6 +34,11 @@ import { RESIDENT_SALARY } from '@/lib/specialties';
 
 const CANONICAL_DEFAULTS: CalculatorInputs = {
   totalDebt: 250000,
+  actualRepaymentEnabled: false,
+  currentBalance: 250000,
+  pslfQualifyingPaymentsMade: 0,
+  repaymentStartMonth: 1,
+  repaymentStartYear: new Date().getFullYear(),
   interestRate: 6.5,
   loanType: 'federal',
   residencyYears: 3,

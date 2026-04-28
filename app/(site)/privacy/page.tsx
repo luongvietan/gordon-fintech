@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import LegalPageShell from '@/components/layout/LegalPageShell';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | MedDebt Calculator',
+  title: 'Privacy Policy',
   description:
     'How the Med School Debt Calculator handles your data. Everything you type into the calculator stays in your browser.',
   alternates: { canonical: '/privacy' },

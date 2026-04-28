@@ -17,6 +17,45 @@ interface Props {
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
+const ARTICLE_BOTTOM_CTAS: Record<string, { href: string; label: string }> = {
+  'doctor-salary-by-specialty': {
+    href: '/specialty',
+    label: 'Browse all 16 specialty profiles →',
+  },
+  'pslf-explained-for-doctors': {
+    href: '/calculator',
+    label: 'Model your PSLF scenario — free →',
+  },
+  'idr-plans-for-doctors-paye-save-ibr': {
+    href: '/calculator',
+    label: 'Compare IDR plans for your specialty →',
+  },
+  'married-physicians-student-loan-strategy': {
+    href: '/calculator',
+    label: 'Model your household scenario →',
+  },
+  'when-to-refinance-medical-school-loans': {
+    href: '/calculator',
+    label: 'Run the PSLF vs refinance comparison →',
+  },
+  'how-long-doctors-pay-off-loans': {
+    href: '/calculator',
+    label: 'See your payoff timeline →',
+  },
+  'average-medical-school-debt': {
+    href: '/calculator',
+    label: 'Run your numbers — free →',
+  },
+  'how-to-track-pslf-progress': {
+    href: '/calculator',
+    label: 'Model your PSLF path →',
+  },
+  'best-repayment-plans-for-doctors': {
+    href: '/calculator',
+    label: 'Compare repayment strategies →',
+  },
+};
+
 export async function generateStaticParams() {
   const slugs = await getAllSlugs();
   return slugs.map((slug) => ({ slug }));
@@ -57,6 +96,10 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post) notFound();
 
   const related = await getRelatedPosts(slug);
+  const bottomCta = ARTICLE_BOTTOM_CTAS[slug] ?? {
+    href: '/calculator',
+    label: 'Calculate my payoff — free →',
+  };
 
   const articleLd = {
     '@context': 'https://schema.org',
@@ -300,14 +343,24 @@ export default async function BlogPostPage({ params }: Props) {
               Enter your specialty, residency, and loan details. Get a customized projection in seconds.
             </p>
             <TrackedLink
-              href="/calculator"
+              href={bottomCta.href}
               event="calculator_cta_clicked"
-              params={{ location: 'blog_bottom_cta', target: 'calculator' }}
+              params={{ location: 'blog_bottom_cta', target: bottomCta.href }}
               className="inline-flex items-center gap-2 mt-8 px-6 py-3.5 rounded-[var(--r-pill)] text-base font-semibold bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] transition-transform duration-200 hover:scale-[1.05] active:scale-[0.95]"
             >
-              Calculate my payoff — free
+              {bottomCta.label}
               <ArrowRight aria-hidden="true" className="w-4 h-4" strokeWidth={2} />
             </TrackedLink>
+            {bottomCta.href !== '/calculator' && (
+              <TrackedLink
+                href="/calculator"
+                event="calculator_cta_clicked"
+                params={{ location: 'blog_bottom_cta_secondary', target: 'calculator' }}
+                className="block mt-4 text-sm font-semibold text-white/65 hover:text-white transition-colors"
+              >
+                Try the calculator →
+              </TrackedLink>
+            )}
           </div>
         </div>
       </section>

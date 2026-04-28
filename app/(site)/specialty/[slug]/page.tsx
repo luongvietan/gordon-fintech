@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const specialty = getSpecialtyById(slug);
   if (!profile || !specialty) return {};
   return {
-    title: `${profile.h1} — MedDebt Calculator`,
+    title: profile.h1,
     description: profile.metaDescription,
     alternates: { canonical: `/specialty/${slug}` },
     openGraph: {
@@ -85,6 +85,7 @@ export default async function SpecialtyProfilePage({ params }: Props) {
       ? profile.keyTakeaways
       : profile.bullets;
   const salarySource = profile.salarySource ?? 'MGMA 2025 / Doximity 2025';
+  const salaryAttribution = 'via MGMA 2025 · Medscape 2024';
   const pgy1Salary = profile.pgy1Salary ?? RESIDENT_SALARY;
   const growthPct = (profile.residencyAnnualGrowth ?? 0.02) * 100;
 
@@ -236,11 +237,13 @@ export default async function SpecialtyProfilePage({ params }: Props) {
                 <Metric
                   label="Median salary"
                   value={`$${Math.round(profile.salaryBand.median / 1000)}K`}
+                  sub={salaryAttribution}
                   valueClass="text-[2rem] md:text-[2.25rem] text-[color:var(--color-dark-green)]"
                 />
                 <Metric
                   label="Range"
                   value={`$${Math.round(profile.salaryBand.low / 1000)}K – $${Math.round(profile.salaryBand.high / 1000)}K`}
+                  sub={salaryAttribution}
                   valueClass="text-[1.125rem] md:text-[1.25rem] text-[color:var(--color-near-black)]"
                 />
                 <Metric

@@ -15,7 +15,7 @@ import {
 import { DATA_SOURCES } from '@/lib/trust-content';
 
 export const metadata: Metadata = {
-  title: 'About | MedDebt Calculator',
+  title: 'About',
   description:
     'Why this medical school debt calculator exists, who built it, and how every number traces back to a published source. Independently built, no referral commissions; supported by display advertising.',
   alternates: { canonical: '/about' },

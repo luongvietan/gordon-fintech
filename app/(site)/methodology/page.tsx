@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import LegalPageShell from '@/components/layout/LegalPageShell';
 
 export const metadata: Metadata = {
-  title: 'Methodology — How We Calculate | MedDebt Calculator',
+  title: 'Methodology — How We Calculate',
   description:
     'Data sources, assumptions, and formulas behind the Med School Debt Calculator. AAMC debt stats, MGMA/Medscape specialty salaries, PSLF rules, and interest capitalization logic.',
   alternates: { canonical: '/methodology' },

@@ -13,6 +13,16 @@ export type ScenarioPreset =
 
 export interface CalculatorInputs {
   totalDebt: number;
+  /** When true, projections start from the borrower's real current balance. */
+  actualRepaymentEnabled?: boolean;
+  /** Current outstanding loan balance when repayment tracking is enabled. */
+  currentBalance?: number;
+  /** PSLF-qualifying payments already certified/made, 0-120. */
+  pslfQualifyingPaymentsMade?: number;
+  /** Month repayment started, 1-12. Captured for user context and sharing. */
+  repaymentStartMonth?: number;
+  /** Calendar year repayment started. Captured for user context and sharing. */
+  repaymentStartYear?: number;
   interestRate: number;             // percent (e.g. 6.8)
   loanType: 'federal' | 'private';
   residencyYears: number;
@@ -205,6 +215,8 @@ export interface CalculatorOutputs {
   pslfSchedule: YearlySnapshot[];
   pslfEligible: boolean;
   pslfYearsToForgiveness: number;
+  /** Remaining PSLF qualifying payments from the current modeled position. */
+  pslfRemainingQualifyingPayments: number;
 
   // ── v4 additions ─────────────────────────────────────────
   /** First year index where net worth turns non-negative (null if never within horizon). */
@@ -410,6 +422,9 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     jobChangePslfQualifies = true,
     idrPaymentPct: idrPaymentPctInput,
     idrPlan: idrPlanInput,
+    actualRepaymentEnabled = false,
+    currentBalance,
+    pslfQualifyingPaymentsMade = 0,
   } = inputs;
 
   // Resolve the active IDR plan. Anything saved before the plan enum
@@ -442,6 +457,15 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
 
   const pslfEligible = loanType === 'federal' && pslfEnabled;
   const trainingYears = residencyYears + Math.max(0, fellowshipYears);
+  const actualRepaymentActive =
+    !!actualRepaymentEnabled &&
+    typeof currentBalance === 'number' &&
+    isFinite(currentBalance) &&
+    currentBalance >= 0;
+  const startingDebt = actualRepaymentActive ? Math.max(0, currentBalance) : totalDebt;
+  const priorPslfPayments = pslfEligible
+    ? Math.max(0, Math.min(120, Math.round(pslfQualifyingPaymentsMade)))
+    : 0;
 
   // ── Resolve household/filing state ──────────────────────────
   // `spouseEnabled=false` always means single-tax-filer; we ignore any
@@ -519,7 +543,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     );
   }
 
-  function spouseLoanPaymentForYear(_yearsFromStart: number): number {
+  function spouseLoanPaymentForYear(): number {
     if (!(effectiveSpouseDebt > 0)) return 0;
     return spouseMonthlyPayment(
       effectiveSpouseDebt,
@@ -571,7 +595,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
 
   // ─── STANDARD REPAYMENT ─────────────────────────────────────
   const standardSchedule: YearlySnapshot[] = [];
-  let balance = totalDebt;
+  let balance = startingDebt;
   /** Unpaid interest bucket when capitalization is deferred to end of training. */
   let accruedInterest = 0;
   let totalInterestPaid = 0;
@@ -668,7 +692,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       net +
       spouseNet -
       yearlyPayment -
-      spouseLoanPaymentForYear(yr - 1) -
+      spouseLoanPaymentForYear() -
       yearlyLiving;
     minimumPaidStandard += yearlyMinimum;
 
@@ -740,7 +764,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       currentNet +
       spouseNetAtt -
       yearlyPayment -
-      spouseLoanPaymentForYear(yearsFromStart) -
+      spouseLoanPaymentForYear() -
       yearlyLiving;
     minimumPaidStandard += yearlyMinimum;
     const calendarYear = trainingYears + yr;
@@ -769,7 +793,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     residentSalaryGrowthRate,
     inflationRate,
   );
-  const firstMonthInterestRes = accrueInterest(totalDebt, interestRate);
+  const firstMonthInterestRes = accrueInterest(startingDebt, interestRate);
   const firstSpouseGross = spouseGrossForYear(0);
   const firstAgi = idrAgi(firstResidentGross, firstSpouseGross, filingStatus);
   const monthlyPaymentResidency = Math.round(
@@ -778,7 +802,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
       firstAgi,
       familySize,
       firstMonthInterestRes,
-      totalDebt,
+      startingDebt,
       monthlyPaymentResidencyOverride,
       idrPct,
       idrFplMultiplier,
@@ -792,16 +816,19 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
   let pslfForgiven = 0;
   let pslfSavings = 0;
   let pslfYearsToForgiveness = 0;
+  const pslfRemainingQualifyingPayments = pslfEligible
+    ? Math.max(0, 120 - priorPslfPayments)
+    : 0;
   const pslfSchedule: YearlySnapshot[] = [];
 
   if (pslfEligible) {
-    let pslfBalance = totalDebt;
+    let pslfBalance = startingDebt;
     let pslfAccrued = 0;
     let pslfCumulativePaid = 0;
     let pslfCumulativeInterest = 0;
     let pslfCumulativeNetWorth = 0;
     const PSLF_MONTHS = 120;
-    let qualifyingPayments = 0;
+    let qualifyingPayments = priorPslfPayments;
 
     pslfSchedule.push({
       year: 0,
@@ -855,7 +882,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
         net +
         spouseNet -
         yearlyPayment -
-        spouseLoanPaymentForYear(yr - 1) -
+        spouseLoanPaymentForYear() -
         yearlyLiving;
 
       const displayed = Math.max(0, pslfBalance + pslfAccrued);
@@ -912,7 +939,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
         currentNet +
         spouseNetAtt -
         yearlyPayment -
-        spouseLoanPaymentForYear(yearsFromStart) -
+        spouseLoanPaymentForYear() -
         yearlyLiving;
       const calendarYear = trainingYears + yr;
       const isForgiven = qualifyingPayments >= PSLF_MONTHS;
@@ -950,9 +977,15 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     pslfSavings = Math.max(0, standardTotalPaid - pslfTotalPaid);
     // Years until 120 qualifying payments reached. When training doesn't
     // qualify, the clock effectively starts at attending-hood.
-    const trainingQualifyingMonths = pslfResidencyQualifies ? trainingYears * 12 : 0;
-    const attendingMonthsNeeded = Math.max(0, PSLF_MONTHS - trainingQualifyingMonths);
-    pslfYearsToForgiveness = trainingYears + Math.ceil(attendingMonthsNeeded / 12);
+    if (actualRepaymentActive) {
+      pslfYearsToForgiveness = Math.ceil(
+        Math.max(0, PSLF_MONTHS - priorPslfPayments) / 12,
+      );
+    } else {
+      const trainingQualifyingMonths = pslfResidencyQualifies ? trainingYears * 12 : 0;
+      const attendingMonthsNeeded = Math.max(0, PSLF_MONTHS - trainingQualifyingMonths);
+      pslfYearsToForgiveness = trainingYears + Math.ceil(attendingMonthsNeeded / 12);
+    }
   }
 
   // ─── v4: crossover + opportunity cost ───────────────────────
@@ -991,6 +1024,7 @@ export function calculateOutputs(inputs: CalculatorInputs): CalculatorOutputs {
     pslfSchedule,
     pslfEligible,
     pslfYearsToForgiveness,
+    pslfRemainingQualifyingPayments,
 
     netWorthCrossoverYear,
     opportunityCost,

@@ -29,7 +29,7 @@ export const TOOLTIP_DEFINITIONS = {
   netWorthCrossover: {
     term: 'Net-worth crossover',
     definition:
-      'The year your net worth turns positive — when assets finally exceed liabilities and you start building wealth instead of digging out of debt.',
+      'The year your accumulated net worth (assets minus remaining debt) first turns positive. Before this year your debt outweighs what you have saved. After this year you are building real wealth.',
   },
   opportunityCost: {
     term: 'Opportunity cost',

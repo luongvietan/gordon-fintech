@@ -104,7 +104,11 @@ export default function QuickToggles({
           type="button"
           onClick={onReset}
           disabled={!modified}
-          className="inline-flex min-h-[44px] items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-pill)] text-[11.5px] font-bold text-[color:var(--text-muted)] hover:text-[color:var(--color-near-black)] hover:bg-[color:var(--color-near-black)]/[0.06] transition-colors disabled:opacity-40 disabled:pointer-events-none"
+          className={`inline-flex min-h-[44px] items-center gap-1.5 px-3 py-1.5 rounded-[var(--r-pill)] text-[11.5px] font-bold transition-colors ${
+            modified
+              ? 'bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)] hover:bg-[color:var(--color-wise-green)]/80'
+              : 'text-[color:var(--text-muted)] opacity-40 pointer-events-none'
+          }`}
         >
           <RotateCcw className="w-3 h-3" strokeWidth={2} aria-hidden />
           Reset to baseline
@@ -143,6 +147,11 @@ function ToggleButton({
 function shallowEqual(a: CalculatorInputs, b: CalculatorInputs): boolean {
   const keys: (keyof CalculatorInputs)[] = [
     'totalDebt',
+    'actualRepaymentEnabled',
+    'currentBalance',
+    'pslfQualifyingPaymentsMade',
+    'repaymentStartMonth',
+    'repaymentStartYear',
     'interestRate',
     'loanType',
     'residencyYears',

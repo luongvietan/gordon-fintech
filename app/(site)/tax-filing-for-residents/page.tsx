@@ -6,7 +6,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
 export const metadata: Metadata = {
-  title: 'Tax Filing Strategies for Medical Residents | MedDebt Calculator',
+  title: 'Tax Filing Strategies for Medical Residents',
   description:
     'MFJ vs MFS, estimated quarterly payments, state income tax, and how your filing status affects IDR student loan payments. A practical guide for resident physicians.',
   alternates: { canonical: '/tax-filing-for-residents' },

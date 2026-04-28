@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import LegalPageShell from '@/components/layout/LegalPageShell';
 
 export const metadata: Metadata = {
-  title: 'Terms of Use | MedDebt Calculator',
+  title: 'Terms of Use',
   description:
     'Terms of use for the Med School Debt Calculator. Educational tool only, not financial advice.',
   alternates: { canonical: '/terms' },

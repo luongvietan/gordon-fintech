@@ -185,6 +185,11 @@ function ShareLinkButton({
 
 const DEFAULT_INPUTS: CalculatorInputs = {
   totalDebt: 250000,
+  actualRepaymentEnabled: false,
+  currentBalance: 250000,
+  pslfQualifyingPaymentsMade: 0,
+  repaymentStartMonth: 1,
+  repaymentStartYear: new Date().getFullYear(),
   interestRate: 6.5,
   loanType: 'federal',
   residencyYears: 3,
@@ -231,14 +236,25 @@ interface PresetMeta {
 }
 
 const PRESETS: PresetMeta[] = [
-  { id: 'aggressive', label: 'Aggressive payoff', description: 'Pay 1.5\u00d7 standard \u2014 knock it out fast' },
-  { id: 'pslf-optimized', label: 'PSLF-optimized', description: '10 years of qualifying service, then forgiveness' },
+  {
+    id: 'aggressive',
+    label: 'Aggressive payoff',
+    description: 'Pay 1.5× the standard monthly amount — fastest debt elimination, highest monthly cost.',
+  },
+  {
+    id: 'pslf-optimized',
+    label: 'PSLF-optimized',
+    description: 'Make minimum IDR payments for 10 years at a qualifying employer, then receive tax-free forgiveness.',
+  },
   {
     id: 'minimum',
     label: 'Minimum payment',
-    description: 'Federal: IDR-style floor; private: interest-only \u2014 lowest modeled payment',
+    description: 'Federal IDR floor during training, interest-only on private — the lowest modeled monthly payment.',
   },
 ];
+
+const CUSTOM_PRESET_DESCRIPTION =
+  'All settings below are manually controlled. Adjust any input to build a custom scenario.';
 
 /**
  * Read shared inputs from `?s=...` lazily, on the very first render. Done
@@ -382,6 +398,9 @@ export default function Calculator({ initialInputs }: CalculatorProps = {}) {
 
   const outputs = useMemo(() => calculateOutputs(inputs), [inputs]);
   const activePreset = inputs.scenarioPreset ?? 'custom';
+  const activePresetDescription =
+    PRESETS.find((preset) => preset.id === activePreset)?.description ??
+    CUSTOM_PRESET_DESCRIPTION;
   const trainingYears = inputs.residencyYears + (inputs.fellowshipYears ?? 0);
 
   return (
@@ -482,7 +501,7 @@ export default function Calculator({ initialInputs }: CalculatorProps = {}) {
           to PSLF, IDR, refi, etc.). One quiet line removes the
           ambiguity without bloating the surface. */}
       <p className="px-5 md:px-7 lg:px-8 pb-3 -mt-1 text-[12px] font-medium text-[color:var(--text-muted)] leading-snug">
-        Selecting a strategy auto-fills your repayment settings below.
+        {activePresetDescription}
       </p>
 
       {/* ── Privacy strip ────────────────────────────────── */}

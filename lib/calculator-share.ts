@@ -20,6 +20,11 @@ export const SHARE_PARAM = 's';
  */
 const ALLOWED_KEYS = [
   'totalDebt',
+  'actualRepaymentEnabled',
+  'currentBalance',
+  'pslfQualifyingPaymentsMade',
+  'repaymentStartMonth',
+  'repaymentStartYear',
   'interestRate',
   'loanType',
   'residencyYears',
@@ -57,6 +62,8 @@ const ALLOWED_KEYS = [
   'jobChangeYear',
   'jobChangeAttendingSalary',
   'jobChangePslfQualifies',
+  'idrPlan',
+  'idrPaymentPct',
 ] as const satisfies readonly (keyof CalculatorInputs)[];
 
 type AllowedKey = (typeof ALLOWED_KEYS)[number];

@@ -6,7 +6,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
 export const metadata: Metadata = {
-  title: 'Resident Budget Calculator — After-Tax Income & Savings | MedDebt Calculator',
+  title: 'Resident Budget Calculator — After-Tax Income & Savings',
   description:
     'Enter your PGY year and location to see after-tax income, estimated living expenses, student loan payment, and savings potential as a medical resident.',
   alternates: { canonical: '/budget' },

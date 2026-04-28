@@ -12,7 +12,9 @@ interface PageProps {
 }
 
 export const metadata: Metadata = {
-  title: 'Med School Debt Calculator — Run Your Numbers',
+  title: {
+    absolute: 'Med School Debt Calculator — Run Your Numbers | MedDebt',
+  },
   description:
     'Direct-access calculator for medical school debt. PSLF vs refinance vs aggressive payoff, 16 specialty presets, net-worth crossover — no marketing, just the tool.',
   alternates: { canonical: '/calculator' },

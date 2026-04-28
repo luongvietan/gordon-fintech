@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import CompareClient from './CompareClient';
 
 export const metadata: Metadata = {
-  title: 'Compare saved scenarios | MedDebt Calculator',
+  title: 'Compare saved scenarios',
   description:
     'Side-by-side comparison of every scenario you saved to this browser. No signup, no cloud sync — everything is kept locally on your device.',
   // The compare view is a personal session tool, not a public landing

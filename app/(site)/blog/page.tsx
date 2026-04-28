@@ -6,8 +6,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
 export const metadata: Metadata = {
-  title:
-    'Doctor Finance Blog — Medical School Debt & Loan Repayment Guides',
+  title: 'Doctor Finance Blog',
   description:
     'Research-backed guides on medical school debt, PSLF, doctor salaries, and the best loan repayment strategies for physicians and medical students.',
   alternates: { canonical: '/blog' },

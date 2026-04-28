@@ -71,9 +71,8 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
   // doesn't follow because the layout above stays fixed. Without
   // feedback, ~half the audit testers said they couldn't tell anything
   // happened. So: smooth-scroll the first revealed section into view
-  // and run a 1s green-left-border pulse on all three. The pulse is a
-  // CSS class (`expert-unlock-pulse` in app/globals.css) gated by a
-  // `data-pulse` attribute we add and remove. We respect
+  // and run a 2s green background fade on all three. The pulse is gated
+  // by a `data-pulse` attribute we add and remove. We respect
   // `prefers-reduced-motion` for both behaviours — no scroll, no pulse.
   const handleExpertToggle = useCallback(() => {
     const next = !expert;
@@ -86,9 +85,9 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reducedMotion) return;
 
-    // Wait one frame so the gated `<InputSection>`s have actually
-    // mounted; their refs are null while `expert === false`.
-    requestAnimationFrame(() => {
+    // Wait for React to commit the newly mounted Expert sections before
+    // reading refs and scrolling.
+    window.setTimeout(() => {
       const targets = [
         refiRef.current,
         householdRef.current,
@@ -103,8 +102,8 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
         for (const el of targets) {
           el.removeAttribute('data-pulse');
         }
-      }, 1000);
-    });
+      }, 2000);
+    }, 300);
   }, [expert, setExpert]);
 
   // If the user disables Expert Mode while a pulse is mid-flight,
@@ -152,6 +151,24 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
         (inputs.jobChangeAttendingSalary ?? 0) / 1000,
       )}K${inputs.jobChangePslfQualifies ? '' : ' (PSLF off)'}`
     : 'Off';
+  const repaymentYears = Array.from({ length: 16 }, (_, i) => {
+    const year = new Date().getFullYear() - i;
+    return { value: String(year), label: String(year) };
+  });
+  const repaymentMonths = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ].map((label, i) => ({ value: String(i + 1), label }));
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -284,7 +301,7 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
             href={`/specialty/${matchedSpecialty.id}`}
             className="self-start text-[12px] font-bold text-[color:var(--color-dark-green)] hover:underline"
           >
-            Read the full {matchedSpecialty.label} guide &rarr;
+            Read the full {matchedSpecialty.label}{' '}guide &rarr;
           </Link>
         )}
         <div className="grid grid-cols-2 gap-2.5">
@@ -459,9 +476,94 @@ export default function CalculatorInputsForm({ inputs, onChange }: Props) {
           max={1000000}
           step={1000}
           value={inputs.totalDebt}
-          onValueChange={(v) => onChange({ totalDebt: v })}
+          onValueChange={(v) =>
+            onChange({
+              totalDebt: v,
+              currentBalance: inputs.actualRepaymentEnabled
+                ? inputs.currentBalance
+                : v,
+            })
+          }
           hint="via AAMC GQ median"
         />
+        <details
+          open={!!inputs.actualRepaymentEnabled}
+          onToggle={(event) => {
+            const open = event.currentTarget.open;
+            onChange({
+              actualRepaymentEnabled: open,
+              currentBalance: open
+                ? inputs.currentBalance ?? inputs.totalDebt
+                : inputs.currentBalance,
+            });
+          }}
+          className="group rounded-[var(--r-card-sm)] bg-[color:var(--color-off-white)] p-4 ring-1 ring-inset ring-[color:var(--border-subtle)]"
+        >
+          <summary className="flex items-center justify-between cursor-pointer list-none gap-3">
+            <span className="text-[13px] font-bold text-[color:var(--color-near-black)]">
+              Already making payments? Enter your current balance and payment count instead.
+            </span>
+            <ChevronDown
+              aria-hidden="true"
+              className="w-2.5 h-2.5 text-[color:var(--text-muted)] transition-transform group-open:rotate-180"
+              strokeWidth={2}
+            />
+          </summary>
+          <div className="mt-4 flex flex-col gap-3">
+            <NumberField
+              label="Current outstanding balance"
+              prefix="$"
+              min={0}
+              max={1000000}
+              step={1000}
+              value={inputs.currentBalance ?? inputs.totalDebt}
+              onValueChange={(v) =>
+                onChange({ actualRepaymentEnabled: true, currentBalance: v })
+              }
+              hint="Used as the starting balance for projections."
+            />
+            {inputs.pslfEnabled && inputs.loanType === 'federal' && (
+              <NumberField
+                label="PSLF qualifying payments made"
+                min={0}
+                max={120}
+                step={1}
+                value={inputs.pslfQualifyingPaymentsMade ?? 0}
+                onValueChange={(v) =>
+                  onChange({
+                    actualRepaymentEnabled: true,
+                    pslfQualifyingPaymentsMade: Math.max(0, Math.min(120, v)),
+                  })
+                }
+                hint={`${Math.max(0, 120 - (inputs.pslfQualifyingPaymentsMade ?? 0))} qualifying payments remaining`}
+              />
+            )}
+            <div className="grid grid-cols-2 gap-2.5">
+              <Select
+                label="Repayment started month"
+                value={String(inputs.repaymentStartMonth ?? 1)}
+                onChange={(e) =>
+                  onChange({
+                    actualRepaymentEnabled: true,
+                    repaymentStartMonth: Number(e.target.value),
+                  })
+                }
+                options={repaymentMonths}
+              />
+              <Select
+                label="Repayment started year"
+                value={String(inputs.repaymentStartYear ?? new Date().getFullYear())}
+                onChange={(e) =>
+                  onChange({
+                    actualRepaymentEnabled: true,
+                    repaymentStartYear: Number(e.target.value),
+                  })
+                }
+                options={repaymentYears}
+              />
+            </div>
+          </div>
+        </details>
         <div className="grid grid-cols-2 gap-2.5">
           <NumberField
             label="Interest rate"

@@ -480,6 +480,13 @@ export default function CalculatorResults({
           </div>
           <p className="col-span-2 md:col-span-1 text-[12px] text-[color:var(--color-dark-green)]/85 max-w-xs font-medium leading-relaxed">
             Based on 120 qualifying payments at a 501(c)(3) or government employer.
+            {inputs.actualRepaymentEnabled ? (
+              <>
+                {' '}
+                {outputs.pslfRemainingQualifyingPayments} qualifying payments
+                remaining from your current count.
+              </>
+            ) : null}
           </p>
         </div>
       )}

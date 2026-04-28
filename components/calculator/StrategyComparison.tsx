@@ -101,12 +101,12 @@ export default function StrategyComparison({ comparison }: Props) {
             className={`w-full ${strategies.length >= 4 ? 'min-w-[1020px]' : 'min-w-[920px]'} text-[13px] font-semibold`}
           >
             <colgroup>
-              <col className="w-[20%]" />
+              <col className="w-[18%]" />
               <col className="w-[13%]" />
               <col className="w-[15%]" />
               <col className="w-[11%]" />
-              <col className="w-[13%]" />
-              <col className="w-[28%]" />
+              <col className="w-[12%]" />
+              <col />
             </colgroup>
             <thead className="bg-[color:var(--color-off-white)] text-[10px] uppercase tracking-[0.10em] text-[color:var(--text-muted)]">
               <tr>
@@ -231,8 +231,8 @@ function DesktopRow({ strategy }: { strategy: StrategyOutcome }) {
       <td className="text-right px-3 py-4 whitespace-nowrap">
         {isUnavail ? <span className="text-[color:var(--text-muted)]">&mdash;</span> : formatDollars(strategy.monthlyPayment) + '/mo'}
       </td>
-      <td className="text-left pl-3 pr-4 py-4">
-        <span className={`inline-flex items-center gap-1.5 ${strategy.forgivenAmount ? 'text-[color:var(--color-dark-green)]' : 'text-[color:var(--text-secondary)]'}`}>
+      <td className="text-left pl-3 pr-4 py-4 whitespace-normal overflow-visible">
+        <span className={`inline-flex flex-wrap items-center gap-1.5 whitespace-normal overflow-visible ${strategy.forgivenAmount ? 'text-[color:var(--color-dark-green)]' : 'text-[color:var(--text-secondary)]'}`}>
           {strategy.forgivenAmount ? (
             <Check aria-hidden className="w-3 h-3" strokeWidth={2.5} />
           ) : null}
