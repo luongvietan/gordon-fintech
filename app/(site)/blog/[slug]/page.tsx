@@ -17,10 +17,17 @@ interface Props {
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.medschooldebtcalculator.com';
 
-const ARTICLE_BOTTOM_CTAS: Record<string, { href: string; label: string }> = {
+const ARTICLE_BOTTOM_CTAS: Record<
+  string,
+  { href: string; label: string; secondary?: { href: string; label: string } }
+> = {
   'doctor-salary-by-specialty': {
-    href: '/specialty',
-    label: 'Browse all 16 specialty profiles →',
+    href: '/calculator',
+    label: 'Model your salary →',
+    secondary: {
+      href: '/specialty',
+      label: 'Browse all 16 specialty profiles →',
+    },
   },
   'pslf-explained-for-doctors': {
     href: '/calculator',
@@ -351,7 +358,20 @@ export default async function BlogPostPage({ params }: Props) {
               {bottomCta.label}
               <ArrowRight aria-hidden="true" className="w-4 h-4" strokeWidth={2} />
             </TrackedLink>
-            {bottomCta.href !== '/calculator' && (
+            {bottomCta.secondary ? (
+              <TrackedLink
+                href={bottomCta.secondary.href}
+                event="blog_cta_clicked"
+                params={{
+                  location: 'blog_bottom_cta_secondary',
+                  slug,
+                  target: bottomCta.secondary.href,
+                }}
+                className="block mt-4 text-sm font-semibold text-white/65 hover:text-white transition-colors"
+              >
+                {bottomCta.secondary.label}
+              </TrackedLink>
+            ) : bottomCta.href !== '/calculator' ? (
               <TrackedLink
                 href="/calculator"
                 event="calculator_cta_clicked"
@@ -360,7 +380,7 @@ export default async function BlogPostPage({ params }: Props) {
               >
                 Try the calculator →
               </TrackedLink>
-            )}
+            ) : null}
           </div>
         </div>
       </section>

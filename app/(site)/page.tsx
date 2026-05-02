@@ -16,8 +16,10 @@ import TrackedLink from '@/components/analytics/TrackedLink';
 import TrustBand from '@/components/home/TrustBand';
 
 export const metadata: Metadata = {
-  title:
-    'Med School Debt Calculator | Free PSLF Tool for Doctors & Medical Students',
+  title: {
+    absolute:
+      'Med School Debt Calculator | Free PSLF Tool for Doctors & Medical Students',
+  },
   description:
     'The most complete medical school debt calculator. Built for medical students, residents, and attendings. Compare PSLF vs standard repayment, model 16 specialty salary presets, and see the year your net worth turns positive — all in your browser, free.',
   alternates: { canonical: '/' },
