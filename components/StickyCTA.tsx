@@ -60,9 +60,7 @@ function ctaCopy(category: ArticleCategory): { message: string; cta: string } {
 export default function StickyCTA({ slug, primaryCategory = 'general' }: StickyCTAProps) {
   const [showBar, setShowBar] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const [showMidCta, setShowMidCta] = useState(false);
   const barFiredRef = useRef(false);
-  const midFiredRef = useRef(false);
 
   useEffect(() => {
     // Check if dismissed this session
@@ -86,12 +84,6 @@ export default function StickyCTA({ slug, primaryCategory = 'general' }: StickyC
         setShowBar(true);
         track('sticky_cta_shown', { slug, category: primaryCategory });
       }
-
-      // 60% threshold → mid-article callout
-      if (pct >= 0.6 && !midFiredRef.current) {
-        midFiredRef.current = true;
-        setShowMidCta(true);
-      }
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -110,7 +102,7 @@ export default function StickyCTA({ slug, primaryCategory = 'general' }: StickyC
 
   return (
     <>
-      {/* Sticky bottom bar */}
+      {/* Sticky bottom bar — appears after 30% scroll, once per session */}
       {showBar && !dismissed && (
         <div
           className="fixed bottom-0 inset-x-0 z-50 flex items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-3.5 text-white"
@@ -150,11 +142,6 @@ export default function StickyCTA({ slug, primaryCategory = 'general' }: StickyC
             </button>
           </div>
         </div>
-      )}
-
-      {/* Mid-article callout (rendered inline at ~60% scroll) */}
-      {showMidCta && (
-        <MidArticleCallout slug={slug} category={primaryCategory} />
       )}
     </>
   );

@@ -9,7 +9,7 @@ import AdSlot from '@/components/ads/AdSlot';
 import TrackedLink from '@/components/analytics/TrackedLink';
 import TrackPageView from '@/components/analytics/TrackPageView';
 import ArticleCard from '@/components/blog/ArticleCard';
-import StickyCTA, { type ArticleCategory } from '@/components/StickyCTA';
+import StickyCTA, { MidArticleCallout, type ArticleCategory } from '@/components/StickyCTA';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -248,6 +248,11 @@ export default async function BlogPostPage({ params }: Props) {
                 source={post.content}
                 options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
               />
+
+              {/* Mid-article CTA — placed after the main body so it falls
+                  naturally at ~60-70% of the reading experience for most
+                  articles, before the FAQ accordion. */}
+              <MidArticleCallout slug={slug} category={primaryCategory} />
 
               {post.faqs && post.faqs.length > 0 && (
                 <section
