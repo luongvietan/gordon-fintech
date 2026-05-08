@@ -24,12 +24,11 @@ import BalanceChart from './charts/BalanceChart';
 import NetWorthChart from './charts/NetWorthChart';
 import ComparisonChart from './charts/ComparisonChart';
 import BestStrategyPanel from './BestStrategyPanel';
-import StrategyComparison from './StrategyComparison';
+import StrategyTabs from './StrategyTabs';
 import QuickToggles from './QuickToggles';
 import RiskFlags from './RiskFlags';
 import PslfDisruptionPanel from './PslfDisruptionPanel';
 import TaxBombCard from './TaxBombCard';
-import PslfProgressTracker from '@/components/PslfProgressTracker';
 import HouseholdFilingComparison from './HouseholdFilingComparison';
 import InlineEmailCapture from './InlineEmailCapture';
 import PeerBenchmarkNote from './PeerBenchmarkNote';
@@ -376,8 +375,12 @@ export default function CalculatorResults({
       {/* ── 3. Refinancing warning (when refi enabled) ──── */}
       {inputs.refinanceEnabled && <RefiWarningCard />}
 
-      {/* ── 3. Strategy comparison ──────────────────────── */}
-      <StrategyComparison comparison={comparison} />
+      {/* ── 3. Strategy comparison + PSLF Tracker tabs ─── */}
+      <StrategyTabs
+        comparison={comparison}
+        inputs={inputs}
+        pslfEligible={!!outputs.pslfEligible}
+      />
 
       {/* ── 3b. Refi breakeven (when both PSLF + refi present) ── */}
       {inputs.refinanceEnabled && (() => {
@@ -492,8 +495,7 @@ export default function CalculatorResults({
         </div>
       )}
 
-      {/* ── 8b. PSLF Progress Tracker ───────────────────── */}
-      {outputs.pslfEligible && <PslfProgressTracker />}
+      {/* PSLF Progress Tracker is now surfaced in the Strategy Tabs above. */}
 
       {/* ── 9. PSLF disruption stress test ──────────────── */}
       <PslfDisruptionPanel inputs={inputs} />

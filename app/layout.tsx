@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   authors: [{ name: "MedDebt Calculator" }],
   openGraph: {
     type: "website",
-    siteName: "MedDebt Calculator",
+    siteName: "MedDebt",
     locale: "en_US",
     url: SITE_URL,
   },

@@ -75,10 +75,10 @@ export default function ContactForm() {
           className="text-[1.25rem] text-[color:var(--color-near-black)] tracking-[-0.01em]"
           style={{ fontWeight: 900 }}
         >
-          Message sent!
+          Thanks!
         </p>
         <p className="text-[15px] text-[color:var(--text-secondary)] font-medium max-w-sm">
-          We&rsquo;ll get back to you at the email you provided. Usually within a day or two.
+          We&rsquo;ll get back to you within 48 hours.
         </p>
       </div>
     );
@@ -87,6 +87,7 @@ export default function ContactForm() {
   return (
     <form
       onSubmit={handleSubmit}
+      method="post"
       className="flex flex-col gap-5"
       aria-label="Contact form"
     >
