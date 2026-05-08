@@ -9,6 +9,7 @@ import AdSlot from '@/components/ads/AdSlot';
 import TrackedLink from '@/components/analytics/TrackedLink';
 import TrackPageView from '@/components/analytics/TrackPageView';
 import ArticleCard from '@/components/blog/ArticleCard';
+import StickyCTA, { type ArticleCategory } from '@/components/StickyCTA';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -108,6 +109,20 @@ export default async function BlogPostPage({ params }: Props) {
     label: 'Calculate my payoff — free →',
   };
 
+  // Derive article category for context-specific sticky CTA copy.
+  const primaryCategory: ArticleCategory = (() => {
+    if (slug.includes('pslf') || slug.includes('forgiveness')) return 'pslf';
+    if (slug.includes('idr') || slug.includes('repayment-plan')) return 'idr';
+    if (slug.includes('salary') || slug.includes('income')) return 'salary';
+    if (slug.includes('refinanc') || slug.includes('refi')) return 'refi';
+    const categories = post.categories?.map((c) => c.slug) ?? [];
+    if (categories.some((c) => c.includes('pslf'))) return 'pslf';
+    if (categories.some((c) => c.includes('idr') || c.includes('repayment'))) return 'idr';
+    if (categories.some((c) => c.includes('salary') || c.includes('income'))) return 'salary';
+    if (categories.some((c) => c.includes('refi'))) return 'refi';
+    return 'general';
+  })();
+
   const articleLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -162,6 +177,7 @@ export default async function BlogPostPage({ params }: Props) {
         />
       )}
       <TrackPageView event="blog_article_viewed" params={{ article: slug }} />
+      <StickyCTA slug={slug} primaryCategory={primaryCategory} />
 
       <section className="pt-10 md:pt-16 pb-6 md:pb-10 bg-white">
         <div className="container">

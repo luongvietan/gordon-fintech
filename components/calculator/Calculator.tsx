@@ -26,6 +26,8 @@ import {
 import CalculatorInputsForm from './CalculatorInputs';
 import CalculatorResults from './CalculatorResults';
 import SaveScenarioButton from './SaveScenarioButton';
+import ScenarioManager from '@/components/ScenarioManager';
+import ScenarioComparison from '@/components/ScenarioComparison';
 import { RESIDENT_SALARY } from '@/lib/specialties';
 import {
   bucketDollars,
@@ -302,6 +304,7 @@ interface CalculatorProps {
 }
 
 export default function Calculator({ initialInputs }: CalculatorProps = {}) {
+  const [comparisonMode, setComparisonMode] = useState(false);
   const [inputs, setInputs] = useState<CalculatorInputs>(() =>
     readInitialInputs(initialInputs),
   );
@@ -397,6 +400,15 @@ export default function Calculator({ initialInputs }: CalculatorProps = {}) {
   }
 
   const outputs = useMemo(() => calculateOutputs(inputs), [inputs]);
+
+  // When entering comparison mode, snapshot the current inputs.
+  function handleToggleComparison() {
+    setComparisonMode((v) => {
+      if (!v) track('comparison_mode_opened', {});
+      return !v;
+    });
+  }
+
   const activePreset = inputs.scenarioPreset ?? 'custom';
   const activePresetDescription =
     PRESETS.find((preset) => preset.id === activePreset)?.description ??
@@ -404,6 +416,15 @@ export default function Calculator({ initialInputs }: CalculatorProps = {}) {
   const trainingYears = inputs.residencyYears + (inputs.fellowshipYears ?? 0);
 
   return (
+    // In comparison mode we swap out the entire dashboard for ScenarioComparison.
+    comparisonMode ? (
+      <ScenarioComparison
+        scenario1Inputs={inputs}
+        scenario1Outputs={outputs}
+        defaultInputs={DEFAULT_INPUTS}
+        onClose={() => setComparisonMode(false)}
+      />
+    ) : (
     // `overflow-clip` instead of `overflow-hidden` — both clip the rounded
     // corners visually, but `clip` does NOT establish a scroll container,
     // so position:sticky on the inputs sidebar (below) still anchors to
@@ -444,6 +465,16 @@ export default function Calculator({ initialInputs }: CalculatorProps = {}) {
 
         <div className="flex items-center gap-2 flex-wrap">
           <SaveScenarioButton inputs={inputs} outputs={outputs} />
+          <button
+            type="button"
+            onClick={handleToggleComparison}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[var(--r-pill)] text-xs font-bold bg-white/10 text-white/80 ring-1 ring-inset ring-white/20 transition-all duration-200 hover:bg-white/15 hover:text-white active:scale-[0.96]"
+            aria-pressed={comparisonMode}
+            aria-label="Toggle side-by-side comparison mode"
+          >
+            <LineChart aria-hidden="true" className="w-3 h-3" strokeWidth={2} />
+            Compare
+          </button>
           <ShareLinkButton inputs={inputs} defaults={DEFAULT_INPUTS} />
           <DownloadPdfButton inputs={inputs} outputs={outputs} />
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--r-pill)] text-[10px] font-bold uppercase tracking-widest bg-[color:var(--color-wise-green)] text-[color:var(--color-dark-green)]">
@@ -568,6 +599,14 @@ export default function Calculator({ initialInputs }: CalculatorProps = {}) {
           <div className="px-5 md:px-6 lg:px-7 py-5 md:py-6 lg:py-7">
             <CalculatorInputsForm inputs={inputs} onChange={handleChange} />
           </div>
+          <ScenarioManager
+            inputs={inputs}
+            outputs={outputs}
+            onLoad={(loaded) => {
+              setInputs(loaded);
+              setBaselineInputs(loaded);
+            }}
+          />
         </aside>
 
         {/* Results pane — gets generous padding on desktop so charts feel curated, not crammed. */}
@@ -589,5 +628,6 @@ export default function Calculator({ initialInputs }: CalculatorProps = {}) {
         </div>
       </div>
     </div>
+    )
   );
 }

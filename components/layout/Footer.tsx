@@ -105,7 +105,6 @@ export default function Footer() {
                 { href: '/methodology', label: 'Methodology' },
                 { href: '/privacy', label: 'Privacy Policy' },
                 { href: '/terms', label: 'Terms of Use' },
-                { href: 'mailto:hello@medschooldebtcalculator.com', label: 'Contact' },
               ].map((item) => (
                 <li key={item.label}>
                   <Link
@@ -116,6 +115,14 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href="/contact"
+                  className="text-sm font-semibold text-[color:var(--color-dark-green)] hover:text-[color:var(--text-primary)] transition-colors"
+                >
+                  Contact Us
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

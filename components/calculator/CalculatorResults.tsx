@@ -29,6 +29,7 @@ import QuickToggles from './QuickToggles';
 import RiskFlags from './RiskFlags';
 import PslfDisruptionPanel from './PslfDisruptionPanel';
 import TaxBombCard from './TaxBombCard';
+import PslfProgressTracker from '@/components/PslfProgressTracker';
 import HouseholdFilingComparison from './HouseholdFilingComparison';
 import InlineEmailCapture from './InlineEmailCapture';
 import PeerBenchmarkNote from './PeerBenchmarkNote';
@@ -340,7 +341,7 @@ export default function CalculatorResults({
       },
     ],
     plainEnglish:
-      'Net worth = invested assets minus loan balance. Each year we add after-tax income, subtract living expenses and loan payments, invest the leftover at your assumed market return, and check whether the result has cleared zero.',
+      'Net worth = invested assets minus loan balance. Each year we add after-tax income, subtract living expenses and loan payments, invest the leftover at your assumed market return, and check whether the result has cleared zero.\n\nWhy it matters: Most doctors focus on months to payoff. But the real question is when your financial situation actually turns around. The crossover year accounts for taxes, living expenses, and investment opportunity costs.\n\nExample: On PSLF your crossover might be Year 7 when forgiveness hits. Paying aggressively it might be Year 5. The difference shapes your entire career trajectory — how much house you can afford, when you start investing seriously, and how resilient your finances are to a job change.',
   };
 
   return (
@@ -490,6 +491,9 @@ export default function CalculatorResults({
           </p>
         </div>
       )}
+
+      {/* ── 8b. PSLF Progress Tracker ───────────────────── */}
+      {outputs.pslfEligible && <PslfProgressTracker />}
 
       {/* ── 9. PSLF disruption stress test ──────────────── */}
       <PslfDisruptionPanel inputs={inputs} />

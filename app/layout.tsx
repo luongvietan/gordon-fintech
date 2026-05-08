@@ -75,7 +75,7 @@ const ORGANIZATION_LD = {
 const WEBSITE_LD = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  name: "MedDebt Calculator",
+  name: "MedDebt",
   url: SITE_URL,
   description:
     "Med school debt calculator with PSLF comparison and net-worth projections for doctors.",

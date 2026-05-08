@@ -83,9 +83,15 @@ export type AnalyticsEvent =
   | 'pdf_downloaded'
   | 'scenario_saved'
   | 'scenario_opened'
+  | 'scenario_loaded'
+  | 'scenario_saved_named'
   | 'compare_viewed'
+  | 'comparison_mode_opened'
   | 'specialty_page_viewed'
-  | 'blog_article_viewed';
+  | 'blog_article_viewed'
+  | 'sticky_cta_shown'
+  | 'sticky_cta_clicked'
+  | 'sticky_cta_dismissed';
 
 export function trackSpecialtySelected(specialty: string): void {
   track('specialty_selected', { specialty_name: specialty });
