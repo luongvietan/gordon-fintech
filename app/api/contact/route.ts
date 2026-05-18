@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy — avoids Resend constructor throwing at build time when env var is absent.
+const getResend = () => new Resend(process.env.RESEND_API_KEY!);
 const FROM = 'Med School Debt Calculator <hello@medschooldebtcalculator.com>';
 
 interface ContactBody {
@@ -86,6 +87,8 @@ export async function POST(req: NextRequest) {
       console.log('Contact form submitted (Resend keys not configured):', { name, email, message });
       return NextResponse.json({ ok: true });
     }
+
+    const resend = getResend();
 
     // Send notification to site owner.
     const { error } = await resend.emails.send({

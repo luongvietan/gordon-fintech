@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY!);
 
 function page(title: string, body: string): NextResponse {
   return new NextResponse(
@@ -45,6 +45,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const resend = getResend();
+
     // Find the contact by email then mark as unsubscribed.
     const { data: contacts } = await resend.contacts.list({
       audienceId: process.env.RESEND_AUDIENCE_ID,

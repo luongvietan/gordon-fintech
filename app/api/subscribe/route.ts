@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY!);
 
 const FROM = 'Doctor Finance Digest <hello@medschooldebtcalculator.com>';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medschooldebtcalculator.com';
@@ -144,6 +144,8 @@ export async function POST(req: NextRequest) {
       console.log('Subscribe (Resend keys not configured):', { email, firstName, tag });
       return NextResponse.json({ ok: true });
     }
+
+    const resend = getResend();
 
     const { error: contactError } = await resend.contacts.create({
       email,
