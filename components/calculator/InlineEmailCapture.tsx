@@ -78,8 +78,8 @@ export default function InlineEmailCapture() {
             You&rsquo;re on the list{firstName ? `, ${firstName}` : ''}.
           </p>
           <p className="text-[13px] text-[color:var(--color-dark-green)]/80 font-medium leading-relaxed mt-1.5">
-            We&rsquo;ll email a summary of these results plus our monthly digest
-            of doctor-finance tactics. One-click unsubscribe in every email.
+            You&rsquo;ll receive our monthly doctor-finance digest. One-click
+            unsubscribe in every email.
           </p>
         </div>
       </section>
@@ -104,11 +104,11 @@ export default function InlineEmailCapture() {
             className="text-[15px] md:text-[16px] text-[color:var(--color-near-black)] tracking-[-0.005em]"
             style={{ fontWeight: 900 }}
           >
-            Want to save your results?
+            Get monthly doctor-finance tactics
           </p>
           <p className="text-[12.5px] md:text-[13px] text-[color:var(--text-secondary)] font-medium leading-snug mt-1">
-            We&rsquo;ll email a summary of this scenario so you can come back to
-            it later. No spam &mdash; one digest a month, unsubscribe anytime.
+            Join physicians getting PSLF, IDR, and refi breakdowns in plain
+            English. One digest a month &mdash; unsubscribe anytime.
           </p>
         </div>
       </div>

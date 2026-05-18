@@ -6,45 +6,34 @@ import { ArrowRight, Check, Loader2 } from 'lucide-react';
 type FormState = 'idle' | 'submitting' | 'success' | 'error';
 
 /**
- * Contact form that submits to Formspree.
- *
- * To activate, set NEXT_PUBLIC_FORMSPREE_ID to your Formspree form ID
- * (the random hash after https://formspree.io/f/). Without the env var
- * the form renders normally but submissions are no-ops in dev.
+ * Contact form that submits to internal API using Resend.
  */
 export default function ContactForm() {
   const [state, setState] = useState<FormState>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const formspreeId = process.env.NEXT_PUBLIC_FORMSPREE_ID;
-
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setState('submitting');
+    setErrorMsg('');
 
     const form = e.currentTarget;
     const data = new FormData(form);
-
-    // If no Formspree ID is configured, fall back to mailto
-    if (!formspreeId) {
-      const name = data.get('name') as string;
-      const email = data.get('email') as string;
-      const message = data.get('message') as string;
-      const subject = encodeURIComponent('Message from MedDebt Contact Form');
-      const body = encodeURIComponent(
-        `Name: ${name}\nEmail: ${email}\n\n${message}`,
-      );
-      window.location.href = `mailto:hello@medschooldebtcalculator.com?subject=${subject}&body=${body}`;
-      setState('success');
-      return;
-    }
+    
+    const name = data.get('name') as string;
+    const email = data.get('email') as string;
+    const message = data.get('message') as string;
 
     try {
-      const res = await fetch(`https://formspree.io/f/${formspreeId}`, {
+      const res = await fetch(`/api/contact`, {
         method: 'POST',
-        body: data,
-        headers: { Accept: 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ name, email, message }),
       });
+      
       if (res.ok) {
         setState('success');
         form.reset();
